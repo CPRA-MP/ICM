@@ -280,8 +280,8 @@ yearstokeepmorph = [1,2,3,10,20,25,30,40,50]
 run_ewe = True
 
 sftp_upload = True
-host = 'cimsftp.coastal.la.gov'
-un = 'mp2017models'
+host = 'sftp_url'
+un = 'username'
 pw = #'password' #password goes here in quotes 
 pt = 52222
 
