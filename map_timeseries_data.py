@@ -30,6 +30,7 @@ asc_head = 'ncols 1259\nnrows 615\nxllcorner 390500\nyllcorner 3125000\ncellsize
 def daily2ave(all_sd,ave_sd,ave_ed,input_file): 
     # this function reads a portion of the ICM-Hydro daily timeseries file into a numpy array and then computes the average for the time slice read in
     # this function returns a dictionary 'comp_ave' that has ICM-Hydro compartment ID as the key and a temporal average for each compartment as the value
+    # the key is of type integer and the values are of type float
     
     # if looping through the whole file and batch generating averages for a bunch of timeslices it will be faster to read in the whole file to a numpy array and iterating over the whole array rather than iteratively calling this function
     
@@ -41,7 +42,7 @@ def daily2ave(all_sd,ave_sd,ave_ed,input_file):
     ave_n = (ave_ed - ave_sd).days + 1  # number of days to be used for averaging
     skip_head = (ave_sd - all_sd).days  # number of rows at top of daily timeseries to skip until start date for averaging window is met
     skip_foot = all_rows - skip_head - ave_n
-    data = np.genfromtxt(daily_timeseries_file,dtype='str',delimiter=',',skip_header=skip_head,skip_footer=skip_foot)
+    data = np.genfromtxt(input_file,dtype='str',delimiter=',',skip_header=skip_head,skip_footer=skip_foot)
     comp_ave = {}
     nrow = 0
     for row in data:
@@ -73,7 +74,7 @@ def comp2grid(comp_data_dict,grid_comp_dict):
     
     
     
-def dict2asc(mapping_dict,outfile,asc_grid,asc_header):
+def dict2asc_flt(mapping_dict,outfile,asc_grid,asc_header,write_mode):
     # this function maps a dictionary of data into XY space and saves as a raster file of ASCII grid format
     # this function does not return anything but it will save 'outfile' to disk
     
@@ -85,7 +86,7 @@ def dict2asc(mapping_dict,outfile,asc_grid,asc_header):
     # 'asc_header' is a string that includes the 6 lines of text required by the ASCII grid format
     
     msg = '\ndid not save %s' % (outfile)
-    with open(outfile, mode='w') as outf:
+    with open(outfile, mode=write_mode) as outf:
         outf.write(asc_header)
         for row in asc_grid:
             nc = 0            
@@ -136,4 +137,5 @@ comp_ave_dict = daily2ave(data_start,ave_start,ave_end,daily_timeseries_file)
 map_dict = comp2grid(comp_ave_dict,grid_comp)
 
 # write ascii output text file from dictionary with grid values
-print(dict2asc(map_dict,output_asc,asc_grid_ids,asc_head) )
+filemode = 'w'
+print(dict2asc_flt(map_dict,output_asc,asc_grid_ids,asc_head,filemode))
