@@ -3,10 +3,10 @@ import datetime as dt
 
 print('\n\n mapping some stuff. how exciting...\n\n')
 # input file paths and filenames here
-input_directory = r'D:\ICM\S04\G300'
-output_directory = r'D:\ICM\S04\G300'
+input_directory = r'D:\ICM\S03\G028'
+output_directory = r'D:\ICM\S03\G028'
 
-output_asc = r'%s\veg\MPM2017_S04_G300_C000_U00_V00_SLA_N_01_50_H_acsal.asc' % output_directory
+output_asc = r'%s\veg\MP2023_S03_G028_C000_U00_V00_SLA_N_01_50_H_acsal.asc' % output_directory
 
 
 # confirm details for ascii grid details - check that files exist at location and header text is correct
