@@ -124,7 +124,7 @@ def forward2backslash(fs_file):
 import os
 import platform
 import sys
-
+import subprocess
 import shutil
 import math
 import time
@@ -303,18 +303,18 @@ if InputErrorFlag == 1:
     sys.exit(InputErrorMsg)           
 
 
-
+par_dir = os.getcwd()
 inputs = np.genfromtxt('ICM_control.csv',dtype=str,comments='#',delimiter=',')
 
 # Parent directory locations for various ICM components
 # These directories must exist in the model folder
 # Other directories are created throughout the ICM run - but they are all based on these parent directories
-ecohydro_dir = os.path.normpath(inputs[1,1].lstrip().rstrip())
-wetland_morph_dir = os.path.normpath(inputs[2,1].lstrip().rstrip())
-vegetation_dir = os.path.normpath(inputs[3,1].lstrip().rstrip())
-bimode_dir = os.path.normpath(inputs[4,1].lstrip().rstrip())
-HSI_dir = os.path.normpath(inputs[5,1].lstrip().rstrip())
-ewe_dir = os.path.normpath(inputs[6,1].lstrip().rstrip())
+ecohydro_dir = os.path.normpath('%s/%s' % (par_dir,inputs[1,1].lstrip().rstrip()))
+wetland_morph_dir = os.path.normpath('%s/%s' % (par_dir,inputs[2,1].lstrip().rstrip()))
+vegetation_dir = os.path.normpath('%s/%s' % (par_dir,inputs[3,1].lstrip().rstrip()))
+bimode_dir = os.path.normpath('%s/%s' % (par_dir,inputs[4,1].lstrip().rstrip()))
+HSI_dir = os.path.normpath('%s/%s' % (par_dir,inputs[5,1].lstrip().rstrip()))
+ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
 # Configuration files used by various ICM components
 VegConfigFile = inputs[7,1].lstrip().rstrip()
 WMConfigFile = inputs[8,1].lstrip().rstrip()
@@ -382,7 +382,10 @@ for row in range(48,48+n_bimode):
 
 yearstokeepmorph = [1,2,3,10,20,25,30,40,50]
 
-## Load 1D River Model Configuration file
+#########################################################
+##        Load 1D River Model Configuration file       ##
+#########################################################
+
 n_1D = int(inputs[54,1].lstrip().rstrip())
 
 if n_1D > 0:
@@ -458,9 +461,25 @@ if n_1D > 0:
             SandConfigFile.append("na")
         idx = idx+1
 
-
+    # In the input file passed into Fortran, there needs to be quotes around the filepath
+    # Those quotes need to be removed in for Python
+    # Run this loop twice - checking for both single and double quotation marks
+    for i in range (0,n_1D):
+        HydroConfigFile[i]   = HydroConfigFile[i].replace("'","")
+        SandConfigFile[i]    = SandConfigFile[i].replace("'","")
+        FineConfigFile[i]    = FineConfigFile[i].replace("'","")
+        TempConfigFile[i]    = TempConfigFile[i].replace("'","")
+        SalConfigFile[i]     = SalConfigFile[i].replace("'","")
+    for i in range (0,n_1D):
+        HydroConfigFile[i]   = HydroConfigFile[i].replace('"','')
+        SandConfigFile[i]    = SandConfigFile[i].replace('"','')
+        FineConfigFile[i]    = FineConfigFile[i].replace('"','')
+        TempConfigFile[i]    = TempConfigFile[i].replace('"','')
+        SalConfigFile[i]     = SalConfigFile[i].replace('"','')
+            
+        
 #########################################################
-##            SETTING UP ICM-HYDRO MODEL                 ##
+##            SETTING UP ICM-HYDRO MODEL               ##
 #########################################################
 
 print(' Configuring ICM-Hydro.')
@@ -522,24 +541,27 @@ if ehflag == 1:
 os.chdir(vegetation_dir)
 
 ## Need to select path delimiter since this is getting written to a file to be read into Fortran that is not flexible when running in Windows.
+## Also need to set whether a leading quote is needed when writing filepaths to a file that will be read as Input to Fortran program
 if os.name == 'nt':
     path_del = '\\'
+    lq = "" # I do not think that a leading quote is required for Windows Fortran when \\ is used - possibly need to delete this
 else:
     path_del = '/'
+    lq = "'"
     
-VegWaveAmpFile =     r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),WaveAmplitudeFile)
-VegMeanSalFile =     r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),MeanSalinityFile)
-VegSummerDepthFile = r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanWaterDepthFile)
-VegSummerSalFile =   r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanSalinityFile)
-VegSummerTempFile =  r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanTempFile)
-VegTreeEstCondFile = r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),TreeEstCondFile)
-VegBIHeightFile =    r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),HtAbvWaterFile)
-VegPerLandFile =     r'%s%s%s_N_%02d_%02d_H_%s' % (vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),PerLandFile)
+VegWaveAmpFile =     r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),WaveAmplitudeFile,lq)
+VegMeanSalFile =     r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),MeanSalinityFile,lq)
+VegSummerDepthFile = r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanWaterDepthFile,lq)
+VegSummerSalFile =   r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanSalinityFile,lq)
+VegSummerTempFile =  r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanTempFile,lq)
+VegTreeEstCondFile = r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),TreeEstCondFile,lq)
+VegBIHeightFile =    r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),HtAbvWaterFile,lq)
+VegPerLandFile =     r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),PerLandFile,lq)
 vegflag = 0        
 ehveg_outfiles = [VegWaveAmpFile,VegMeanSalFile,VegSummerDepthFile,VegSummerSalFile,VegSummerTempFile,VegTreeEstCondFile,VegBIHeightFile,VegPerLandFile]
 
 for veginfile in ehveg_outfiles:
-    if os.path.isfile(veginfile) == True:
+    if os.path.isfile(veginfile.replace(lq,"")) == True:               # remove any leading quotes from vegfile path
                 vegflag = 1
 
 if elapsed_hotstart > 0:
@@ -625,7 +647,7 @@ if rnflag == 1:
 #HPCmode#        sys.exit(exitmsg)
 #HPCmode#    exitmsg='\n Manually remove files from Veg directory and re-run ICM.'
 #HPCmode#    sys.exit(exitmsg)    
-    exitmsg='\n Manually remove files from Veg directory and re-run ICM.'
+    exitmsg='\n Manually delete TempFiles directory and re-run ICM.'
     sys.exit(exitmsg)    
     
 if elapsed_hotstart == 0:
@@ -658,7 +680,8 @@ if max_string > 300:
     sys.exit(error_msg2)
 else:   
     file_for_hydro = os.path.normpath(r'%s/%s' % (ecohydro_dir,EHInterfaceFile))
-    ## Exclamation point in write statments indicate comments in file that are ignored by the Ecohydro Fortran code ("!" is comment character in Fortran)
+    ## Exclamation point in write statments indicate comments in file that are ignored by the Ecohydro Fortran code ("!" is comment character in Fortran) 
+    ## Filepaths are set above and should be full path and include any opening/closing quotation marks that may be required to be passed into Fortran IO (Fortran will skip over / path delimiters unless within quotations)
     with open(file_for_hydro,'w') as f:
         f.write(VegWaveAmpFile+'\t\t!Annual water level variability file for LAVegMod')
         f.write('\n')
@@ -820,25 +843,26 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     ##     SETTING UP 1D HYDRO MODEL FOR CURRENT YEAR      ##
     #########################################################
     
+
     for i in range (0,n_1D):
         print(r' Preparing 1D Channel Hydro Input Files for reach %d - Year %s' % (i,year))
-        
-        Rmfile = os.path.normpath(r'%s/input/hydro.inp' % HydroConfigFile[i])
+        print(HydroConfigFile[i])
+        Rmfile = os.path.normpath('./%s/input/hydro.inp' % HydroConfigFile[i])
         f1 = open(Rmfile, "r") 
         templine = f1.readlines() 
         f1.close()
-        RmTemp = os.path.normpath(r'%s/input/temp.txt' % HydroConfigFile[i])
+        RmTemp = os.path.normpath('./%s/input/temp.txt' % HydroConfigFile[i])
         f2 = open(RmTemp, "w")
         idx2 = 1
         for pl in templine:
             if idx2 == 5:
-                f2.write('input/Upstream/Discharge_%s.txt =: upstream_path\n' % year)
+                f2.write("%sinput/Upstream/Discharge_%s.txt%s =: upstream_path\n" % (lq,year,lq))
                 idx2 += 1
             elif idx2 == 6:
-                f2.write('input/Downstream/WL_%s.txt =: downstream_path\n' % year)
+                f2.write("%sinput/Downstream/WL_%s.txt%s =: downstream_path\n" % (lq,year,lq))
                 idx2 += 1
             elif idx2 == 9:
-                f2.write('input/Lateral/%s/ =: lateralFlow_path\n' % year)
+                f2.write("%sinput/Lateral/%s/%s =: lateralFlow_path\n" % (lq,year,lq))
                 idx2 += 1
             else:
                 f2.writelines(pl)
@@ -848,7 +872,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             os.remove(Rmfile)
             os.rename(RmTemp,Rmfile)
         else:
-            RmfileBackup = os.path.normpath(r'%s/input/hydro_%s.inp' % (HydroConfigFile[i],(year-1)))
+            RmfileBackup = os.path.normpath(r'./%s/input/hydro_%s.inp' % (HydroConfigFile[i],(year-1)))
             os.rename(Rmfile,RmfileBackup)
             os.rename(RmTemp,Rmfile)
         # convert filepath delimiter to backslash if running on Windows (this is for text I/O passed into Fortran executables)
@@ -856,22 +880,22 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             forward2backslash(Rmfile)
             
         if Sub_Sal[i]=="1":
-            Rmfile = os.path.normpath(r'%s/input/sal.inp' % SalConfigFile[i])
+            Rmfile = os.path.normpath(r'./%s/input/sal.inp' % SalConfigFile[i])
             f1 = open(Rmfile, "r") 
             templine = f1.readlines() 
             f1.close()
-            RmTemp = os.path.normpath(r'%s/input/temp.txt' % SalConfigFile[i])
+            RmTemp = os.path.normpath(r'./%s/input/temp.txt' % SalConfigFile[i])
             f2 = open(RmTemp, "w")
             idx2 = 1
             for pl in templine:
                 if idx2 == 5:
-                    f2.write('input/Upstream/upstream_sal_%s.txt            ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Upstream/upstream_sal_%s.txt%s            ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 6:
-                    f2.write('input/Downstream/downstream_sal_%s.txt        ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Downstream/downstream_sal_%s.txt%s        ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 8:
-                    f2.write('input/Lateral/lateral_q_con_%s.txt            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n' % year)
+                    f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
                     idx2 += 1
                 else:
                     f2.writelines(pl)
@@ -881,7 +905,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 os.remove(Rmfile)
                 os.rename(RmTemp,Rmfile)
             else:
-                RmfileBackup = os.path.normpath(r'%s/input/sal_%s.inp' % (SalConfigFile[i],(year-1)))
+                RmfileBackup = os.path.normpath(r'./%s/input/sal_%s.inp' % (SalConfigFile[i],(year-1)))
                 os.rename(Rmfile,RmfileBackup)
                 os.rename(RmTemp,Rmfile)
             # convert filepath delimiter to backslash if running on Windows (this is for text I/O passed into Fortran executables)
@@ -889,28 +913,28 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 forward2backslash(Rmfile)
               
         if Sub_Temp[i]=="1":   
-            Rmfile = os.path.normpath(r'%s/input/tmp.inp' % TempConfigFile[i])
+            Rmfile = os.path.normpath(r'./%s/input/tmp.inp' % TempConfigFile[i])
             f1 = open(Rmfile, "r") 
             templine = f1.readlines() 
             f1.close()
-            RmTemp = os.path.normpath(r'%s/input/temp.txt' % TempConfigFile[i])
+            RmTemp = os.path.normpath(r'./%s/input/temp.txt' % TempConfigFile[i])
             f2 = open(RmTemp, "w")
             idx2 = 1
             for pl in templine:
                 if idx2 == 5:
-                    f2.write('input/Upstream/upstream_temp_%s.txt           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Upstream/upstream_temp_%s.txt%s           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 6:
-                    f2.write('input/Downstream/downstream_temp_%s.txt       ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Downstream/downstream_temp_%s.txt%s      ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 8:
-                    f2.write('input/Lateral/lateral_q_con_%s.txt            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n' % year)
+                    f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 10:
-                    f2.write('input/Wind/U10_GI_ncep_%s.txt                 !Wind U10 input\n' % year)
+                    f2.write("%sinput/Wind/U10_GI_ncep_%s.txt%s                 !Wind U10 input\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 11:
-                    f2.write('input\Tbk\Tback_GI_ncep_%s.txt                !Tback input\n' % year)
+                    f2.write("%sinput/Tbk/Tback_GI_ncep_%s.txt%s                !Tback input\n"  % (lq,year,lq))
                     idx2 += 1     
                 else:
                     f2.writelines(pl)
@@ -920,7 +944,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 os.remove(Rmfile)
                 os.rename(RmTemp,Rmfile)
             else:
-                RmfileBackup = os.path.normpath(r'%s/input/tmp_%s.inp' % (TempConfigFile[i],(year-1)))
+                RmfileBackup = os.path.normpath(r'./%s/input/tmp_%s.inp' % (TempConfigFile[i],(year-1)))
                 os.rename(Rmfile,RmfileBackup)
                 os.rename(RmTemp,Rmfile)
             # convert filepath delimiter to backslash if running on Windows (this is for text I/O passed into Fortran executables)
@@ -929,22 +953,22 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
         if Sub_Fine[i]=="1":
-            Rmfile = os.path.normpath(r'%s/input/fine.inp' % FineConfigFile[i])
+            Rmfile = os.path.normpath(r'./%s/input/fine.inp' % FineConfigFile[i])
             f1 = open(Rmfile, "r") 
             templine = f1.readlines() 
             f1.close()
-            RmTemp = os.path.normpath(r'%s/input/temp.txt' % FineConfigFile[i])
+            RmTemp = os.path.normpath(r'./%s/input/temp.txt' % FineConfigFile[i])
             f2 = open(RmTemp, "w")
             idx2 = 1
             for pl in templine:
                 if idx2 == 12:
-                    f2.write('input/Upstream/upstream_fine_%s.txt           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Upstream/upstream_fine_%s.txt%s           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 13:
-                    f2.write('input/Downstream/downstream_fine_%s.txt       ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Downstream/downstream_fine_%s.txt%s       ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 16:
-                    f2.write('input/Lateral/lateral_q_con_%s.txt            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n' % year)
+                    f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
                     idx2 += 1
                 else:
                     f2.writelines(pl)
@@ -954,7 +978,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 os.remove(Rmfile)
                 os.rename(RmTemp,Rmfile)
             else:
-                RmfileBackup = os.path.normpath(r'%s/input/fine_%s.inp' % (FineConfigFile[i],(year-1)))
+                RmfileBackup = os.path.normpath(r'./%s/input/fine_%s.inp' % (FineConfigFile[i],(year-1)))
                 os.rename(Rmfile,RmfileBackup)
                 os.rename(RmTemp,Rmfile)
             # convert filepath delimiter to backslash if running on Windows (this is for text I/O passed into Fortran executables)
@@ -962,22 +986,22 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 forward2backslash(Rmfile)
         
         if Sub_Sand[i]=="1":     
-            Rmfile = os.path.normpath(r'%s/input/sand.inp' % SandConfigFile[i])
+            Rmfile = os.path.normpath(r'./%s/input/sand.inp' % SandConfigFile[i])
             f1 = open(Rmfile, "r") 
             templine = f1.readlines() 
             f1.close()
-            RmTemp = os.path.normpath(r'%s/input/temp.txt' % SandConfigFile[i])
+            RmTemp = os.path.normpath(r'./%s/input/temp.txt' % SandConfigFile[i])
             f2 = open(RmTemp, "w")
             idx2 = 1
             for pl in templine:
                 if idx2 == 12:
-                    f2.write('input/Upstream/upstream_sand_%s.txt           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Upstream/upstream_sand_%s.txt%s           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 13:
-                    f2.write('input/Downstream/downstream_sand_%s.txt       ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n' % year)
+                    f2.write("%sinput/Downstream/downstream_sand_%s.txt%s       ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 16:
-                    f2.write('input/Lateral/lateral_q_con_%s.txt            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n' % year)
+                    f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
                     idx2 += 1
                 else:
                     f2.writelines(pl)
@@ -987,7 +1011,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 os.remove(Rmfile)
                 os.rename(RmTemp,Rmfile)
             else:
-                RmfileBackup = os.path.normpath(r'%s/input/sand_%s.inp' % (SandConfigFile[i],(year-1)))
+                RmfileBackup = os.path.normpath(r'./%s/input/sand_%s.inp' % (SandConfigFile[i],(year-1)))
                 os.rename(Rmfile,RmfileBackup)
                 os.rename(RmTemp,Rmfile)
             # convert filepath delimiter to backslash if running on Windows (this is for text I/O passed into Fortran executables)
@@ -1329,8 +1353,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     print(' See %s for Hydro runtime logs.' % hydro_logfile)
      
     # run compiled Fortran executable - will automatically return to Python window when done running
-    hydrorun = os.system('hydro_v23.2.0.exe')
-       
+#    hydrorun = os.system('hydro_v23.2.0.exe')
+    hydrorun = subprocess.call('./hydro_v23.2.0')   
     if hydrorun != 0:
         print('******ERROR******')
         error_msg = '\n Hydro model run for year %s was unsuccessful.' % year

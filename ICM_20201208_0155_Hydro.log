@@ -1,0 +1,21 @@
+ ----------------------------------------------------
+ ------------- RUNNING HYDROLOGY MODEL --------------
+ ----------------------------------------------------
+ 
+ ----------------------------------------------------
+  GRID AND RUN INFORMATION
+ ----------------------------------------------------
+ 
+ Simulation time (days)          : 365
+ Hydrologic compartments         : 1777
+ Hydraulic links                 : 5229
+ 500m ICM grid cells (with data) : 187553
+ LA-Veg Model rows               : 615
+ LA-Veg Model columns            : 1259
+ 
+ Links allowed per compartment   : 50
+ 
+ Water area required (sq km)     : .20
+ 
+ Maximum change in stage allowed : 15.00
+ Initializing 1D model for region:            1
