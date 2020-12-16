@@ -1,4 +1,41 @@
 import os
+os.chdir('D:/nov20/adcirc_bcdataForICM_20201102/IPETrainfall')
+with open('rainfall_intensity_mm_hr.csv',mode='w') as wf:
+    hdr = 'storm,15min_dt'
+    for stn in range(1,428):
+        hdr = '%s,stn_%04d' % (hdr,stn)
+    a=wf.write('%s\n' % hdr)
+
+    for imed in os.listdir():
+        if imed.endswith('total.imeds'):
+            a = 'skip'
+        else:
+            if imed.endswith('.imeds'):
+                sr = {}
+                storm = imed.split('_')[3]
+                print('storm:  %s' % storm)
+                with open(imed,mode='r') as rf:
+                    for line in rf:
+                        if line.startswith('HEADER'):
+                            a = 'skip'
+                        else:
+                            if line.startswith('Station'):
+                                stn = line.split()[0].split('_')[1]
+                                sr[stn] = []
+                                print('  station:  %s' % stn)
+                            else:
+                                sr[stn].append(line.split()[-1])
+                for t in range(0,len(sr[stn])):
+                    wr = '%s,%s' % (storm,t)
+                    for s in range(1,427):
+                        val = sr['%s' % s][t]
+                        wr = '%s,%s' % (wr,val)
+                        a = wf.write('%s\n' % wr)
+
+
+
+
+import os
 import netCDF4 as nc
 from netCDF4 import Dataset
 
