@@ -27,10 +27,10 @@ with open('rainfall_intensity_mm_hr.csv',mode='w') as wf:
                                 sr[stn].append(line.split()[-1])
                 for t in range(0,len(sr[stn])):
                     wr = '%s,%s' % (storm,t)
-                    for s in range(1,427):
+                    for s in range(1,428):
                         val = sr['%s' % s][t]
                         wr = '%s,%s' % (wr,val)
-                        a = wf.write('%s\n' % wr)
+                    a = wf.write('%s\n' % wr)
 
 
 
