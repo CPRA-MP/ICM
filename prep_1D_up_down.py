@@ -6,7 +6,7 @@ tribF_file = 'S06_TribF.csv'
 tribS_file = 'S06_TribS.csv'
 temp_file = 'Meteorology.csv'
 
-rch_trip = {}
+rch_trib = {}
 rch_trib['ATCH']                = 10
 rch_trib['WLO']                 = 'na'
 rch_trib['lower_Mississippi']   = 11 # need to update so that lowerMiss used flow at Belle Chasse (residual after Caernarvon)
@@ -27,7 +27,7 @@ lat_ts_trib['CSC'] = {}
 
 rch = 'ATCH'
 
-trib_number = rch_trib[reach]
+trib_number = rch_trib[rch]
 latlinks = rch_lat[rch]
 
 upQfile =    '%s/HYDRO/input/Upstream/Discharge' % rch
@@ -54,16 +54,16 @@ Sanddays = len(S_in[:])
 
 if Qdays != Finedays:
     print('%s and %s are not the same length. Check files.' % (tribQ_file,tribF_file))
-    break
+    quit()
 elif Qdays != Sanddays:
     print('%s and %s are not the same length. Check files.' % (tribQ_file,tribS_file))
-    break
+    quit()
 elif Finedays != Sanddays:
     print('%s and %s are not the same length. Check files.' % (tribF_file,tribS_file))
-    break
+    quit()
 elif Qdays != len(Temp_in[0]):
     print('%s and %s are not the same length. Check files.' % (tribQ_file,temp_file))
-    break
+    quit()
 
 
 
@@ -76,7 +76,7 @@ for d in range(0,Qdays):
     Qval = Q_in[d][0]
     Fval = Fine_in[d][0]
     Sval = Sand_in[d][0]
-    Tairval = Temp_in[d][0]]
+    Tairval = Temp_in[d][0]
     Twval = Temp_in[d][1]
     
     ###########################################################################
@@ -252,7 +252,7 @@ for d in range(0,Qdays):
     
             if int(year) in range[2000,4001,4]:
                 dtall = 8787
-            else
+            else:
                 dtall = 8762
                 
             nlat = len(rch_lat[rch])
@@ -270,7 +270,7 @@ for d in range(0,Qdays):
 
     for lat in rch_lat[rch]:
         if lat in lat_ts_trib[rch].keys():
-            q = latQ_in[lat][d]
+            q = latQ_in[lat][d] 
             sal = 0
             fine = latFine_in[lat][d]
             sand = latSand_in[lat][d]
