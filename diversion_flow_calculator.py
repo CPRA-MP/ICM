@@ -66,7 +66,7 @@ for d in range(0,ndays):
         else:
             if Qresidual <= 100000 :
                 Qdiv = 5000
-            elif Qresidual > high_threshold:
+            elif Qresidual > 1000000:
                 Qdiv = 75000
             else:
                 Qdiv = rating curve calculation
