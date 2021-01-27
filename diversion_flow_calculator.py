@@ -46,10 +46,10 @@ for d in range(0,ndays):
         ##############################
         ###   Morganza Floodway    ###
         ##############################
-        # not active, set to zero (this is redundant sinze Morg_cfs is already set as a zero array above)
+        # not active, set to zero (this is redundant since Morg_cfs is already set as a zero array above)
         
         Qdiv = 0
-        Morg_cfs[d] Qdiv
+        Morg_cfs[d] = Qdiv
         Qresidual -= Qdiv
         
         
