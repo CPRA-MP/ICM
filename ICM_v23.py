@@ -169,12 +169,15 @@ ncomp = 1778
 
 # read in asci grid structure
 asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='int')
+asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
 
 # read in compartment-to-grid structure
 grid_lookup_file = '%s/grid_lookup_500m.csv' % hydro_dir
 grid_comp_np = np.genfromtxt(grid_lookup_file,delimiter=',',skip_header=1,usecols=[0,1],dtype='int')
 grid_comp_dict = {rows[0]:rows[1] for rows in grid_comp_np}
 del(grid_comp_np)
+
+
 
 
 for year in range(startyear+elapsed_hotstart,endyear+1):
@@ -208,6 +211,28 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
 
+
+    stg_ts_file = r'%s/STG.out' % hydro_dir
+    sal_ts_file = r'%s/SAL.out' % hydro_dir
+    tss_ts_file = r'%s/TSS.out' % hydro_dir
+
+    comp_out_file = r'%s/TempFiles/compartment_out_%4d.csv' % (hydro_dir,year)
+    comp_out = np.genfromtxt(comp_out_file,delimiter=',',dtype='str',skip_header=1)
+
+
+    monthly_file_avstg = r'hydro/TempFiles/compartment_monthly_mean_stage_%4d.csv' % year
+    monthly_file_mxstg = r'hydro/TempFiles/compartment_monthly_max_stage_%4d.csv' % year
+    monthly_file_avsal = r'hydro/TempFiles/compartment_monthly_mean_salinity_%4d.csv' % year
+    monthly_file_avtss = r'hydro/TempFiles/compartment_monthly_mean_tss_%4d.csv' % year
+
+    monthly_file_sdowt = r'hydro/TempFiles/compartment_monthly_sed_dep_wat_%4d.csv' % year
+    monthly_file_sdint = r'hydro/TempFiles/compartment_monthly_sed_dep_interior_%4d.csv' % year
+    monthly_file_sdedg = r'hydro/TempFiles/compartment_monthly_sed_dep_edge_%4d.csv' % year
+
+    gd_file = os.path.normpath(r'%s/TempFiles/grid_data_500m_%04d.csv' % (hydro_dir,year-1))
+
+    BITI_input_filename = r'[Add path here]\BITI_setup_input.xlsx'
+    
     ########################################################
     ##  Format ICM-Hydro output data for use in ICM-Morph ##
     ########################################################
@@ -216,7 +241,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     print(' - calculating mean and max monthly water levels')
     stg_mon = {}
     stg_mon_mx = {}
-    stg_ts_file = r'%s/STG.out' % hydro_dir
     for mon in range(1,13):
         print('     - month: %02d' % mon)
         data_start = dt.date(startyear,1,1)             # start date of all data included in the daily timeseries file (YYYY,M,D)
@@ -226,7 +250,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         stg_mon_mx[mon] = daily2max(data_start,ave_start,ave_end,stg_ts_file)
 
     # write monthly mean water level file for use in ICM-Morph
-    monthly_file_avstg = r'hydro/TempFiles/compartment_monthly_mean_stage_%4d.csv' % year
     with open(monthly_file_avstg,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -239,7 +262,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             mon_file.write('%s\n'% wrt_string)
 
     # write monthly max water level file for use in ICM-Morph
-    monthly_file_mxstg = r'hydro/TempFiles/compartment_monthly_max_stage_%4d.csv' % year
     with open(monthly_file_mxstg,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -254,7 +276,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     # read in monthly salinity data
     print(' - calculating mean monthly salinity')
     sal_mon = {}
-    sal_ts_file = r'%s/SAL.out' % hydro_dir
     for mon in range(1,13):
         print('     - month: %02d' % mon)
         data_start = dt.date(startyear,1,1)             # start date of all data included in the daily timeseries file (YYYY,M,D)
@@ -263,7 +284,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         sal_mon[mon] = daily2ave(data_start,ave_start,ave_end,sal_ts_file)
     
     # write monthly mean salinity file for use in ICM-Morph
-    monthly_file_avsal = r'hydro/TempFiles/compartment_monthly_mean_salinity_%4d.csv' % year
     with open(monthly_file_avsal,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -278,7 +298,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
    # read in monthly TSS data
     print(' - calculating mean monthly TSS')
     tss_mon = {}
-    tss_ts_file = r'%s/TSS.out' % hydro_dir
     for mon in range(1,13):
         print('     - month: %02d' % mon)
         data_start = dt.date(startyear,1,1)             # start date of all data included in the daily timeseries file (YYYY,M,D)
@@ -287,7 +306,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         tss_mon[mon] = daily2ave(data_start,ave_start,ave_end,tss_ts_file)
 
     # write monthly mean TSS file for use in ICM-Morph
-    monthly_file_avtss = r'hydro/TempFiles/compartment_monthly_mean_tss_%4d.csv' % year
     with open(monthly_file_avtss,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -304,8 +322,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     sed_ow = {}
     sed_mi = {}
     sed_me = {}
-    comp_out_file = r'%s/TempFiles/compartment_out_%4d.csv' % (hydro_dir,year)
-    comp_out = np.genfromtxt(comp_out_file,delimiter=',',dtype='str',skip_header=1)
     for mon in range(1,13):
         sed_ow[mon] = {}
         sed_mi[mon] = {}
@@ -317,7 +333,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             sed_me[mon][comp] = float(row[12])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
 
     # write monthly sediment deposition in open water file for use in ICM-Morph
-    monthly_file_sdowt = r'hydro/TempFiles/compartment_monthly_sed_dep_wat_%4d.csv' % year
     with open(monthly_file_sdowt,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -330,7 +345,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             mon_file.write('%s\n'% wrt_string)
 
     # write monthly sediment deposition in marsh interior file for use in ICM-Morph
-    monthly_file_sdint = r'hydro/TempFiles/compartment_monthly_sed_dep_interior_%4d.csv' % year
     with open(monthly_file_sdint,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -343,7 +357,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             mon_file.write('%s\n'% wrt_string)
 
     # write monthly sediment deposition in marsh edge zone file for use in ICM-Morph
-    monthly_file_sdedg = r'hydro/TempFiles/compartment_monthly_sed_dep_edge_%4d.csv' % year
     with open(monthly_file_sdedg,mode='w') as mon_file:
         wrt_hdr = 'comp'
         for mon in range(1,13):
@@ -360,7 +373,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     ##  Format ICM-Hydro output data for use in ICM-LAVegMod ##
     ###########################################################
 
-    asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
     asc_head = '# Year = %04d\n%s' % (year,asc_grid_head)
     if year == startyear:
         filemode = 'w'
@@ -369,7 +381,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
     print('   - updating percent water grid file for ICM-LAVegMod')
     pwatr_dict = {}
-    gd_file = os.path.normpath(r'%s/TempFiles/grid_data_500m_%04d.csv' % (hydro_dir,year-1))
     with open(gd_file,mode='r') as grid_data:
         nline = 0
         for line in grid_data:
@@ -409,7 +420,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     #Barrier Island Tidal Inlet (BITI) input file
     #The input file only needs to be read once
     #It contains the comp IDs, link IDs, depth to width ratios, partition coefficients, and basin-wide factors.
-    BITI_input_filename = r'[Add path here]\BITI_setup_input.xlsx'
     BITI_Terrebonne_setup = pandas.read_excel(BITI_input_filename, 'Terrebonne',index_col=None)
     BITI_Barataria_setup = pandas.read_excel(BITI_input_filename, 'Barataria',index_col=None)
     BITI_Pontchartrain_setup = pandas.read_excel(BITI_input_filename, 'Pontchartrain',index_col=None)
