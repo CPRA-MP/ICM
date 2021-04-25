@@ -4,6 +4,17 @@
 ####                                                                                                 ####   
 #########################################################################################################
 
+def file_len(fname):
+    # this function counts the number of lines in a text file
+    # this function returns an integer value that is the number of lines in the file 'fname'
+    
+    # 'fname' is a string variable that contains the full path to a text file with an unknown number of lines
+    
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
+
 
 def daily2ave(all_sd,ave_sd,ave_ed,input_file,input_nrows=-9999): 
     # this function reads a portion of the ICM-Hydro daily timeseries file into a numpy array and then computes the average for the time slice read in
@@ -40,16 +51,34 @@ def daily2ave(all_sd,ave_sd,ave_ed,input_file,input_nrows=-9999):
     return comp_ave
 
 
-def file_len(fname):
-    # this function counts the number of lines in a text file
-    # this function returns an integer value that is the number of lines in the file 'fname'
-    
-    # 'fname' is a string variable that contains the full path to a text file with an unknown number of lines
-    
-    with open(fname) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
+def daily2max(all_sd,ave_sd,ave_ed,input_file):
+    # this function reads a portion of the ICM-Hydro daily timeseries file into a numpy array and then computes the maximum for the time slice read in
+    # this function returns a dictionary 'comp_max' that has ICM-Hydro compartment ID as the key and a temporal maximum for each compartment as the value
+    # the key is of type integer and the values are of type float
+
+    # if looping through the whole file and batch generating for a bunch of timeslices it will be faster to read in the whole file to a numpy array and iterating over the whole array rather than iteratively calling this function
+
+    # 'all_sd' is the start date of all data included in the daily timeseries file - all_sd is a datetime.date object
+    # 'ave_sd' is the start date of averaging/maximum window, inclusive - ave_sd is a datetime.date object
+    # 'ave_ed' is the end date of averaging/maximum window, inclusive - ave_ed is a datetime.date object
+
+    all_rows = file_len(input_file)
+    ave_n = (ave_ed - ave_sd).days + 1  # number of days to be used for averaging
+    skip_head = (ave_sd - all_sd).days  # number of rows at top of daily timeseries to skip until start date for averaging window is met
+    skip_foot = all_rows - skip_head - ave_n
+    data = np.genfromtxt(input_file,dtype='str',delimiter=',',skip_header=skip_head,skip_footer=skip_foot)
+    comp_max = {}
+    nrow = 0
+    for row in data:
+        if nrow == 0:
+            for comp in range(1,len(row)+1):
+                comp_max[comp]= -99999.0
+        for col in range(0,len(row)):
+            comp = col + 1
+            val = float(row[col])
+            comp_max[comp] = max(comp_max[comp],val)
+        nrow += 1
+    return comp_max
 
 
 def comp2grid(comp_data_dict,grid_comp_dict):
@@ -91,6 +120,38 @@ def compout2dict(input_file,import_column):
     return comp_ave
 
 
+def dict2asc_flt(mapping_dict,outfile,asc_grid,asc_header,write_mode):
+    # this function maps a dictionary of data into XY space and saves as a raster file of ASCII grid format
+    # this function does not return anything but it will save 'outfile' to disk
+
+    # ASCII grid format description: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+
+    # 'mapping_dict' is a dictionary with grid cell ID as the key and some value for each key
+    # 'outfile' is the filename (full path) of the output .asc raster text file to be saved
+    # 'asc_grid' is a numpy array that is the grid structure of an ASCII text raster
+    # 'asc_header' is a string that includes the 6 lines of text required by the ASCII grid format
+
+    msg = '\ndid not save %s' % (outfile)
+    with open(outfile, mode=write_mode) as outf:
+        outf.write(asc_header)
+        for row in asc_grid:
+            nc = 0
+            for col in row:
+                gid_map = row[nc]
+                if gid_map > 0:                     # if the ASC grid has a no data cell (-9999) there will be no dictionary key, the else criterion is met and it keeps the no data value (-9999)
+                    gid_val = float(mapping_dict[gid_map] )
+                else:
+                    gid_val = float(gid_map)
+                if nc == 0:
+                    rowout = '%0.4f'  % gid_val
+                else:
+                    rowout = '%s %0.4f' % (rowout,gid_val)
+                nc += 1
+            outf.write('%s\n' % rowout)
+            msg = '\nsuccessfully saved %s' % (outfile)
+    return msg
+
+
 def forward2backslash(fs_file):
     # this function reads every line in a text file and replaces any forward slash '/' to a backslash '\'
     # this is used to convert filepaths passed into Fortran I/O text files for interoperability on Windows and Linux
@@ -115,6 +176,7 @@ def forward2backslash(fs_file):
     return
 
 
+
 #########################################################################################################
 ####                                                                                                 ####   
 ####                                START GENERAL ICM.PY PROGRAM                                     ####
@@ -129,10 +191,15 @@ import shutil
 import math
 import time
 import errno
-import numpy as np
 import random
+import datetime as dt
+import numpy as np
+import xlrd                 # is xlrd used??
+import pandas
 from builtins import Exception as exceptions
-#import pysftp
+
+
+
 
 
 #HPCmode# ## Save Python's console output to a log file
@@ -147,8 +214,9 @@ from builtins import Exception as exceptions
 #HPCmode# 
 #HPCmode# ## Activate log text file
 #HPCmode# logfile ='ICM_%s_ICM_Veg_Morph_HSI.log' % time.strftime('%Y%m%d_%H%M', time.localtime())
-hydro_logfile = 'ICM_%s_Hydro.log' % time.strftime('%Y%m%d_%H%M', time.localtime()) 
 #HPCmode# sys.stdout = Logger(logfile)
+
+hydro_logfile = 'ICM_%s_Hydro.log' % time.strftime('%Y%m%d_%H%M', time.localtime()) 
 
 
 ## NOTE: all directory paths and filenames (when appended to a directory path) are normalized
@@ -175,7 +243,7 @@ print('~~                                                           ~~')
 print('~~ Developed under Cooperative Endeavor Agreement Number:    ~~')
 print('~~      2503-12-58, Task Order No. 03 (subtask 4.8)          ~~')
 print('~~                                                           ~~')
-print('~~ Development team:                                         ~~')
+print('~~ Original Development team (2017 Master Plan)              ~~')
 print('~~   CB&I                                                    ~~')
 print('~~   Fenstermaker                                            ~~')
 print('~~   Moffatt & Nichol                                        ~~')
@@ -304,6 +372,7 @@ if InputErrorFlag == 1:
 
 
 par_dir = os.getcwd()
+
 inputs = np.genfromtxt('ICM_control.csv',dtype=str,comments='#',delimiter=',')
 
 # Parent directory locations for various ICM components
@@ -312,6 +381,9 @@ inputs = np.genfromtxt('ICM_control.csv',dtype=str,comments='#',delimiter=',')
 ecohydro_dir = os.path.normpath('%s/%s' % (par_dir,inputs[1,1].lstrip().rstrip()))
 wetland_morph_dir = os.path.normpath('%s/%s' % (par_dir,inputs[2,1].lstrip().rstrip()))
 vegetation_dir = os.path.normpath('%s/%s' % (par_dir,inputs[3,1].lstrip().rstrip()))
+
+
+
 bimode_dir = os.path.normpath('%s/%s' % (par_dir,inputs[4,1].lstrip().rstrip()))
 HSI_dir = os.path.normpath('%s/%s' % (par_dir,inputs[5,1].lstrip().rstrip()))
 ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
@@ -372,24 +444,40 @@ vterm = inputs[45,1].lstrip().rstrip()
 rterm = inputs[46,1].lstrip().rstrip()
 runprefix = '%s_%s_%s_%s_%s_%s_%s' % (mpterm,sterm,gterm,cterm,uterm,vterm,rterm)
 
+# 1D Hydro model information
+n_1D = int(inputs[47,1].lstrip().rstrip())
+RmConfigFile = inputs[48,1].lstrip().rstrip()
+
 ## BIMODE sub-directories
-n_bimode = int(inputs[47,1].lstrip().rstrip())
+n_bimode = int(inputs[49,1].lstrip().rstrip())
 bimode_folders=[]
-for row in range(48,48+n_bimode):
+for row in range(50,50+n_bimode):
     bimode_folders.append(inputs[row,1].lstrip().rstrip())
-# bimode_folders should be a string array of BIMODE folder names - looks like:
-#bimode_folders =['ST73124','ST73126','ST73129','ST73131','ST73139','ST73141']
 
-yearstokeepmorph = [1,2,3,10,20,25,30,40,50]
+
+# read in asci grid structure
+asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
+asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='int')
+asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
+
+# read in compartment-to-grid structure
+grid_lookup_file = '%s/grid_lookup_500m.csv' % hydro_dir
+grid_comp_np = np.genfromtxt(grid_lookup_file,delimiter=',',skip_header=1,usecols=[0,1],dtype='int')
+grid_comp_dict = {rows[0]:rows[1] for rows in grid_comp_np}
+del(grid_comp_np)
+
+
 
 #########################################################
-##        Load 1D River Model Configuration file       ##
+##            SETTING UP ICM-HYDRO MODEL               ##
 #########################################################
 
-n_1D = int(inputs[54,1].lstrip().rstrip())
+print(' Configuring ICM-Hydro.')
+
+
+# Load 1D River Model Configuration file 
 
 if n_1D > 0:
-    RmConfigFile = inputs[55,1].lstrip().rstrip()
     f = open(RmConfigFile, "r")
     templine = f.readlines()        
     f.close()
@@ -478,11 +566,7 @@ if n_1D > 0:
         SalConfigFile[i]     = SalConfigFile[i].replace('"','')
             
         
-#########################################################
-##            SETTING UP ICM-HYDRO MODEL               ##
-#########################################################
 
-print(' Configuring ICM-Hydro.')
 # change working directory to hydro folder
 os.chdir(ecohydro_dir)
 
@@ -501,38 +585,10 @@ for files in eh_outfiles:
 if elapsed_hotstart > 0:
     ehflag = 0
 
-
 if ehflag == 1:
     print('\n**************ERROR**************')
     print('\n Hydro output files already exist in Hydro project directory.')
-#HPCmode#    print('\n Would you like to:')
-#HPCmode#    print('\n     1. Exit run and manually delete all *.out files?')
-#HPCmode#    print('\n     2. Programatically delete all *.out files and continue run?')
-#HPCmode#    option=input()
-#HPCmode#    try:
-#HPCmode#        if int(option) == 1:
-#HPCmode#            exitmsg='\n Manually remove *.out files and re-run ICM.'
-#HPCmode#            sys.exit(exitmsg)
-#HPCmode#        elif int(option) == 2:
-#HPCmode#            print('\n Attempting to remove *.out files from Hydro directory.')
-#HPCmode#            try:
-#HPCmode#                ehfiles=os.listdir(ecohydro_dir)
-#HPCmode#                for f in ehfiles:
-#HPCmode#                    if f.endswith('.out'):
-#HPCmode#                        fp = ecohydro_dir+'/'+f
-#HPCmode#                        os.unlink(fp)
-#HPCmode#                        print('   - deleted %s' %f)
-#HPCmode#                print('\n Successfully deleted all *.out files in %s.' % ecohydro_dir)
-#HPCmode#                print('\n Continuing with ICM run.')
-#HPCmode#            except Exception,e:
-#HPCmode#                    print(' Automatic delete failed.')
-#HPCmode#                    sys.exit(e)
-#HPCmode#        else:
-#HPCmode#                exitmsg='\n Invalid option - manually remove *.out files and re-run ICM.'
-#HPCmode#                sys.exit(exitmsg)
-#HPCmode#    except Exception,e:
-#HPCmode#            exitmsg='\n Invalid option - manually remove *.out files and re-run ICM.'
-#HPCmode#            sys.exit(exitmsg)
+
     exitmsg='\n Manually remove *.out files and re-run ICM.'
     sys.exit(exitmsg)
     
@@ -571,32 +627,6 @@ if elapsed_hotstart > 0:
 if vegflag == 1:
     print('\n**************ERROR**************')
     print('\n Hydro output files formatted for Veg model already exist in Veg project directory.\n Move or delete files and re-run ICM.')
-#HPCmode#    print('\n Would you like to:' )
-#HPCmode#    print('\n     1. Exit run and manually delete all Hydro output files in Veg directory?')
-#HPCmode#    print('\n     2. Programatically delete files and continue run?' )
-#HPCmode#    option=input()
-#HPCmode#    try:
-#HPCmode#        if int(option) == 1:
-#HPCmode#            exitmsg='\n Manually remove Hydro output files from Veg directory and re-run ICM.'
-#HPCmode#            sys.exit(exitmsg)
-#HPCmode#        elif int(option) == 2:
-#HPCmode#            print('\n Attempting to remove Hydro output files from Veg directory.')
-#HPCmode#            try:
-#HPCmode#                vegfiles=os.listdir(vegetation_dir)
-#HPCmode#                for vf in ehveg_outfiles:
-#HPCmode#                    os.unlink(vf)
-#HPCmode#                    print('   - deleted %s' %vf)
-#HPCmode#                print('\n Successfully deleted all Hydro output files in %s.' % vegetation_dir)
-#HPCmode#                print('\n Continuing with ICM run.')
-#HPCmode#            except Exception,e:
-#HPCmode#                    print(' Automatic delete failed.')
-#HPCmode#                    sys.exit(e)
-#HPCmode#        else:
-#HPCmode#                exitmsg='\n Invalid option - manually remove files from Veg directory and re-run ICM.'
-#HPCmode#                sys.exit(exitmsg)
-#HPCmode#    except Exception,e:
-#HPCmode#            exitmsg='\n Invalid option - manually remove files from Veg directory and re-run ICM.'
-#HPCmode#                sys.exit(exitmsg)
     exitmsg='\n Manually remove files from Veg directory and re-run ICM.'
     sys.exit(exitmsg)       
 
@@ -619,34 +649,6 @@ if elapsed_hotstart > 0:
 if rnflag == 1:   
     print('\n**************ERROR**************')
     print('\n Temporary folder for Hydro files already exists.')
-#HPCmode#    print('\n Would you like to:')
-#HPCmode#    print('\n     1. Exit run and manually move or delete folder?')
-#HPCmode#    print('\n     2. Programatically rename folder and continue run?')
-#HPCmode#    option=input()
-#HPCmode#    try:
-#HPCmode#        if int(option) == 1:
-#HPCmode#            exitmsg='\n Manually rename or delete folder and re-run ICM.'
-#HPCmode#            sys.exit(exitmsg)
-#HPCmode#        elif int(option) == 2:
-#HPCmode#            print('\n Attempting to rename folder.')
-#HPCmode#            try:
-#HPCmode#                print('\n What would you like to rename the folder?')
-#HPCmode#                nn = input()
-#HPCmode#                newnn = os.path.normpath(r'%s/%s' % (ecohydro_dir,nn))
-#HPCmode#                os.rename(EHtemp_path,newnn)
-#HPCmode#                print('\n Successfully renamed Hydro temporary folder.')
-#HPCmode#                print('\n Continuing with ICM run.')
-#HPCmode#            except Exception,e:
-#HPCmode#                print(' Automatic folder rename failed.')
-#HPCmode#                sys.exit(e)
-#HPCmode#        else:
-#HPCmode#            exitmsg='\n Invalid option - manually rename or delete folder and re-run ICM.'
-#HPCmode#            sys.exit(exitmsg)
-#HPCmode#    except Exception,e:
-#HPCmode#        exitmsg='\n Invalid option - manually remove files from Veg directory and re-run ICM.'
-#HPCmode#        sys.exit(exitmsg)
-#HPCmode#    exitmsg='\n Manually remove files from Veg directory and re-run ICM.'
-#HPCmode#    sys.exit(exitmsg)    
     exitmsg='\n Manually delete TempFiles directory and re-run ICM.'
     sys.exit(exitmsg)    
     
@@ -726,12 +728,18 @@ else:
 ## first column is configuration value, second column is description of value
 EHConfigArray=np.genfromtxt(EHConfigFile,dtype=str,delimiter='!',autostrip=True)
 
-cellsheader='Compartment,TotalArea,AreaWaterPortion,AreaUplandPortion,AreaMarshPortion,MarshEdgeLength,WSEL_init,bed_elev,depth,initial_stage,percentForETcalc,initial_sand,initial_salinity,RainGage,WindGage,ETGage,CurrentsCoeff,bedFricCoeff,NonSandExp,NonSandCoeff,SandCoeff,KadlecKnightA,KadlecKnightDepth,MarshEdgeErosion,initial_stage_marsh,marsh_elev,soil_moisture_depth,initial_salinity_marsh,marh_elev_adjust'
-linksheader='ICM_Link_ID,USnode,DSnode,USx,USy,DSx,DSy,Type,attribute1,attribute2,attribute3,attribute4,attribute5,attribute6,attribute7,attribute8,Exy,attribute9,attribute10,fa_mult'
+cellsheader='Compartment,TotalArea,AreaWaterPortion,AreaUplandPortion,AreaMarshPortion,MarshEdgeLength,WSEL_init,bed_elev,bed_depth,bed_bulk_density,percentForETcalc,initial_sand,initial_salinity,RainGage,WindGage,ETGage,CurrentsCoeff_ka,bedFricCoeff_cf,NonSandExp_sedn,NonSandCoeff_sedcalib,SandCoeff_alphased,Marsh_Flow_roughness_Kka,Minimum_Marsh_Flow_Depth_Kkdepth,MarshEdgeErosionRate_myr,initial_stage_marsh,marsh_elev_mean,marsh_elev_stdv,soil_moisture_depth_Esho,depo_on_off,marh_elev_adjust'
+cells_ncol = range(0,30)
+
+linksheader='ICM_ID,USnode_ICM,DSnode_ICM,USx,USy,DSx,DSy,Type,attr01,attr02,attr03,attr04,attr05,attr06,attr07,attr08,Exy,attr09,attr10,fa_multi'
+links_ncol = range(0,20)
 
 ## Read Ecohydro's Compartment Attributes file into an array
-EHCellsArray = np.genfromtxt(EHCellsFile,dtype=float,delimiter=',',skip_header=1)
-EHLinksArray = np.genfromtxt(EHLinksFile,dtype=float,delimiter=',',skip_header=1)
+
+EHCellsArray = np.genfromtxt(EHCellsFile,dtype=float,delimiter=',',skip_header=1,usecols=cells_ncol)
+EHLinksArray = np.genfromtxt(EHLinksFile,dtype=float,delimiter=',',skip_header=1,usecols=links_ncol)
+
+ncomp = len(EHCellsArray)
 
 ## file containing percentage land, and land/water elevations for each 500-m grid cell as it is used by hydro (file is generated by Morph)
 EH_grid_file = 'grid_data_500m.csv' # this must match file name used in hydro.exe
@@ -779,31 +787,6 @@ del(linklup,EHBMfile)
 #test_hydro_veg#breaches = {} 
 #test_hydro_veg#   
 #test_hydro_veg#
-#test_hydro_veg############################################################
-#test_hydro_veg####         SETTING UP MORPH MODEL              ##
-#test_hydro_veg###########################################################
-#test_hydro_veg#print(' Configuring ICM-Morph.')
-#test_hydro_veg## change working directory to wetland morph folder
-#test_hydro_veg#os.chdir(wetland_morph_dir)
-#test_hydro_veg#sys.path.append(wetland_morph_dir)
-#test_hydro_veg#
-#test_hydro_veg###import Wetland Morph model
-#test_hydro_veg##test_hydro_veg#import WM
-#test_hydro_veg#
-#test_hydro_veg### read Wetland Morph parameters csv file into array (first column is descriptor, second column is variable)                            
-#test_hydro_veg#WM_params = np.genfromtxt(WMConfigFile,dtype=str,delimiter=',',usecols=1)                              
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg##########################################################
-#test_hydro_veg###              SETTING UP HSI MODEL                   ##
-#test_hydro_veg##########################################################
-#test_hydro_veg#print(' Configuring ICM-HSI.')
-#test_hydro_veg## change working directory to veg folder
-#test_hydro_veg#os.chdir(HSI_dir)
-#test_hydro_veg#sys.path.append(HSI_dir)
-#test_hydro_veg#
-#test_hydro_veg#import HSI
-#test_hydro_veg#
 
 
 # check to see if hydro input data start date is different than ICM start year
@@ -831,12 +814,18 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     print('  START OF MODEL TIMESTEPPING LOOP - YEAR %s' % year)
     print('--------------------------------------------------\n')
     
-    ## Check if current year is a leap year
+    ## assign number of days in each month and length of year
+    dom = {1:31,2:28,3:31,4:30,5:31,6:30,7:31,8:31,9:30,10:31,11:30,12:31}
+
     if year in range(1984,4000,4):
-        ndays = 366
         print(r' Current model year (%s) is a leap year - input timeseries must include leap day' % year)
+        ndays = 366
+        dom[2] = 29
     else:
         ndays = 365
+        dom[2] = 28
+
+
 
 
     #########################################################
@@ -889,10 +878,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             idx2 = 1
             for pl in templine:
                 if idx2 == 5:
-                    f2.write("%sinput/Upstream/upstream_sal_%s.txt%s            ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Upstream/upstream_sal_%s.txt%s            ! File that contains upstream concentration BC \n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 6:
-                    f2.write("%sinput/Downstream/downstream_sal_%s.txt%s        ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Downstream/downstream_sal_%s.txt%s        ! File that contains downstream concentration BC \n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 8:
                     f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
@@ -922,10 +911,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             idx2 = 1
             for pl in templine:
                 if idx2 == 5:
-                    f2.write("%sinput/Upstream/upstream_temp_%s.txt%s           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Upstream/upstream_temp_%s.txt%s           ! File that contains upstream BC \n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 6:
-                    f2.write("%sinput/Downstream/downstream_temp_%s.txt%s      ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Downstream/downstream_temp_%s.txt%s      ! File that contains upstream BC \n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 8:
                     f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
@@ -962,10 +951,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             idx2 = 1
             for pl in templine:
                 if idx2 == 12:
-                    f2.write("%sinput/Upstream/upstream_fine_%s.txt%s           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Upstream/upstream_fine_%s.txt%s           ! File that contains upstream concentration BC for all particle classes considered (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 13:
-                    f2.write("%sinput/Downstream/downstream_fine_%s.txt%s       ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Downstream/downstream_fine_%s.txt%s       ! File that contains downstream concentration BC for all particle classes considered (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 16:
                     f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
@@ -995,10 +984,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             idx2 = 1
             for pl in templine:
                 if idx2 == 12:
-                    f2.write("%sinput/Upstream/upstream_sand_%s.txt%s           ! File that contains upstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Upstream/upstream_sand_%s.txt%s           ! File that contains upstream concentration BC for all particle classes considered (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 13:
-                    f2.write("%sinput/Downstream/downstream_sand_%s.txt%s       ! File that contains downstream concentration BC for all particle classes consided (1, 2, 3, ...)\n" % (lq,year,lq))
+                    f2.write("%sinput/Downstream/downstream_sand_%s.txt%s       ! File that contains downstream concentration BC for all particle classes considered (1, 2, 3, ...)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 16:
                     f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
@@ -1468,6 +1457,343 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             RmOutFile = os.path.normpath(r'%s/output/SedConSand_output.dat' % SandConfigFile[i])
             RmOutFileBK = os.path.normpath(r'%s/output/SedConSand_output_%s.dat' % (SandConfigFile[i],year))
             os.rename(RmOutFile,RmOutFileBK)    
+
+
+
+
+    elapsedyear = year - startyear + 1
+    runprefix = r'MP2023_S06_G501_C000_U00_V00_SLA'
+    file_prefix = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_oprefix = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_o_01_50_prefix = r'%s_O_01_01' % (runprefix)
+    file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
+
+
+
+
+    pwatr_grid_file = os.path.normpath(r'%s/MP2023_S06_G501_C000_U00_V00_SLA_N_01_01_H_pwatr.asc' % vegetation_dir)
+    acute_sal_grid_file = os.path.normpath(r'%s/MP2023_S06_G501_C000_U00_V00_SLA_N_01_01_H_acsal.asc' % vegetation_dir)
+
+
+
+    stg_ts_file = r'%s/STG.out' % hydro_dir
+    sal_ts_file = r'%s/SAL.out' % hydro_dir
+    tss_ts_file = r'%s/TSS.out' % hydro_dir
+
+
+    
+
+    monthly_file_avstg = r'hydro/TempFiles/compartment_monthly_mean_stage_%4d.csv' % year
+    monthly_file_mxstg = r'hydro/TempFiles/compartment_monthly_max_stage_%4d.csv' % year
+    monthly_file_avsal = r'hydro/TempFiles/compartment_monthly_mean_salinity_%4d.csv' % year
+    monthly_file_avtss = r'hydro/TempFiles/compartment_monthly_mean_tss_%4d.csv' % year
+
+    monthly_file_sdowt = r'hydro/TempFiles/compartment_monthly_sed_dep_wat_%4d.csv' % year
+    monthly_file_sdint = r'hydro/TempFiles/compartment_monthly_sed_dep_interior_%4d.csv' % year
+    monthly_file_sdedg = r'hydro/TempFiles/compartment_monthly_sed_dep_edge_%4d.csv' % year
+
+    gd_file = os.path.normpath(r'%s/TempFiles/grid_data_500m_%04d.csv' % (hydro_dir,year-1))
+
+    BITI_input_filename = r'[Add path here]\BITI_setup_input.xlsx'
+    
+    ########################################################
+    ##  Format ICM-Hydro output data for use in ICM-Morph ##
+    ########################################################
+    
+    # read in monthly water level data
+    print(' - calculating mean and max monthly water levels')
+    stg_mon = {}
+    stg_mon_mx = {}
+    for mon in range(1,13):
+        print('     - month: %02d' % mon)
+        data_start = dt.date(startyear,1,1)             # start date of all data included in the daily timeseries file (YYYY,M,D)
+        ave_start = dt.date(year,mon,1)                 # start date of averaging window, inclusive (YYYY,M,D)
+        ave_end = dt.date(year,mon,dom[mon])            # end date of averaging window, inclusive (YYYY,M,D)
+        stg_mon[mon] = daily2ave(data_start,ave_start,ave_end,stg_ts_file)
+        stg_mon_mx[mon] = daily2max(data_start,ave_start,ave_end,stg_ts_file)
+
+    # write monthly mean water level file for use in ICM-Morph
+    with open(monthly_file_avstg,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,stage_m_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,stg_mon[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+
+    # write monthly max water level file for use in ICM-Morph
+    with open(monthly_file_mxstg,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,stage_mx_m_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,stg_mon_mx[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+   
+    # read in monthly salinity data
+    print(' - calculating mean monthly salinity')
+    sal_mon = {}
+    for mon in range(1,13):
+        print('     - month: %02d' % mon)
+        data_start = dt.date(startyear,1,1)             # start date of all data included in the daily timeseries file (YYYY,M,D)
+        ave_start = dt.date(year,mon,1)                 # start date of averaging window, inclusive (YYYY,M,D)
+        ave_end = dt.date(year,mon,dom[mon])            # end date of averaging window, inclusive (YYYY,M,D)
+        sal_mon[mon] = daily2ave(data_start,ave_start,ave_end,sal_ts_file)
+    
+    # write monthly mean salinity file for use in ICM-Morph
+    with open(monthly_file_avsal,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,sal_ave_ppt_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,sal_mon[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+
+   # read in monthly TSS data
+    print(' - calculating mean monthly TSS')
+    tss_mon = {}
+    for mon in range(1,13):
+        print('     - month: %02d' % mon)
+        data_start = dt.date(startyear,1,1)             # start date of all data included in the daily timeseries file (YYYY,M,D)
+        ave_start = dt.date(year,mon,1)                 # start date of averaging window, inclusive (YYYY,M,D)
+        ave_end = dt.date(year,mon,dom[mon])            # end date of averaging window, inclusive (YYYY,M,D)
+        tss_mon[mon] = daily2ave(data_start,ave_start,ave_end,tss_ts_file)
+
+    # write monthly mean TSS file for use in ICM-Morph
+    with open(monthly_file_avtss,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,tss_ave_mgL_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,tss_mon[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+
+    # read in average sediment deposition data
+    print(' - formatting sedimentation output for ICM-Morph')
+    sed_ow = {}
+    sed_mi = {}
+    sed_me = {}
+    for mon in range(1,13):
+        sed_ow[mon] = {}
+        sed_mi[mon] = {}
+        sed_me[mon] = {}
+        for row in EH_comp_out:
+            comp = int(float(row[0]))
+            sed_ow[mon][comp] = float(row[10])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
+            sed_mi[mon][comp] = float(row[11])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
+            sed_me[mon][comp] = float(row[12])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
+
+    # write monthly sediment deposition in open water file for use in ICM-Morph
+    with open(monthly_file_sdowt,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,sed_dp_ow_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,sed_ow[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+
+    # write monthly sediment deposition in marsh interior file for use in ICM-Morph
+    with open(monthly_file_sdint,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,sed_dp_int_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,sed_mi[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+
+    # write monthly sediment deposition in marsh edge zone file for use in ICM-Morph
+    with open(monthly_file_sdedg,mode='w') as mon_file:
+        wrt_hdr = 'comp'
+        for mon in range(1,13):
+            wrt_hdr = '%s,sed_dp_edge_%02d' % (wrt_hdr,mon)
+        mon_file.write('%s\n' % wrt_hdr)
+        for comp in range(1,ncomp+1):
+            wrt_string = comp
+            for mon in range(1,13):
+                wrt_string = '%s,%s' % (wrt_string,sed_me[mon][comp])
+            mon_file.write('%s\n'% wrt_string)
+
+
+    ###########################################################
+    ##  Format ICM-Hydro output data for use in ICM-LAVegMod ##
+    ###########################################################
+
+    asc_head = '# Year = %04d\n%s' % (year,asc_grid_head)
+    if year == startyear:
+        filemode = 'w'
+    else:
+        filemode = 'a'
+
+    print('   - updating percent water grid file for ICM-LAVegMod')
+    pwatr_dict = {}
+    with open(gd_file,mode='r') as grid_data:
+        nline = 0
+        for line in grid_data:
+            if nline > 0:
+                gr = int(float(line.split(',')[0]))
+                pwatr = line.split(',')[5]          # in grid_data 6th column is percent water; 5th column is percent_wetland and is defined in morph as vegetated land + flotant marsh + unvegetated bare ground ** it does not include NotMod/Developed or water**
+                pwatr_dict[gr] = pwatr
+            nline += 1
+    print(dict2asc_flt(pwatr_dict,pwatr_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
+
+    print('   - updating acute salinity stress grid file for ICM-LAVegMod')
+    salmx_comp = compout2dict(comp_out_file,7)
+    salmx_grid = comp2grid(salmx_comp,grid_comp_dict)
+    print(dict2asc_flt(salmx_grid,acute_sal_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
+
+
+
+    bidem_xyz_file = r'bidem/MP2023_S04_G031_C000_U00_V00_SLA_I_00_00_W_2017dem30_bi.xyz'
+
+
+
+
+
+
+
+    
+    
+    
+    
+    #Barrier Island Tidal Inlet (BITI) Model (to be added to the ICM py code)
+
+    # FROM 2017 ICM-Py:
+    # create dictionary where key is compartment ID, value is tidal prism (Column 14 of Ecohydro output)
+    # EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
+    ########### EH_comp_out is a numpy array #############
+    
+    #Barrier Island Tidal Inlet (BITI) input file
+    #The input file only needs to be read once
+    #It contains the comp IDs, link IDs, depth to width ratios, partition coefficients, and basin-wide factors.
+    BITI_Terrebonne_setup = pandas.read_excel(BITI_input_filename, 'Terrebonne',index_col=None)
+    BITI_Barataria_setup = pandas.read_excel(BITI_input_filename, 'Barataria',index_col=None)
+    BITI_Pontchartrain_setup = pandas.read_excel(BITI_input_filename, 'Pontchartrain',index_col=None)
+    
+    #Barrier Island Tidal Inlet (BITI) compartment IDs
+    #These are the compartments that make up each basin
+    BITI_Terrebonne_comp = list( BITI_Terrebonne_setup.iloc[3::,0] )
+    BITI_Barataria_comp = list( BITI_Barataria_setup.iloc[3::,0] )
+    BITI_Pontchartrain_comp = list( BITI_Pontchartrain_setup.iloc[3::,0] )
+    
+    #Barrier Island Tidal Inlet (BITI) link IDs
+    #These are the links that respresent the tidal inlets in each basin
+    BITI_Terrebonne_link = list(BITI_Terrebonne_setup.iloc[0,1:-2])
+    BITI_Barataria_link = list(BITI_Barataria_setup.iloc[0,1:-2])
+    BITI_Pontchartrain_link = list(BITI_Pontchartrain_setup.iloc[0,1:-2])
+    
+    BITI_Links = [BITI_Terrebonne_link,BITI_Barataria_link,BITI_Pontchartrain_link]
+    
+    #Barrier Island Tidal Inlet (BITI) partition coefficients
+    #Each basin has it's own array of partition coefficients with size m by n,
+    #where m = number of compartments in the basin and n = the number of links in the basin
+    BITI_Terrebonne_partition = np.asarray(BITI_Terrebonne_setup)[3::,1:-2]
+    BITI_Barataria_partition = np.asarray(BITI_Barataria_setup)[3::,1:-2]
+    BITI_Pontchartrain_partition = np.asarray(BITI_Pontchartrain_setup)[3::,1:-2]
+    
+    #Barrier Island Tidal Inlet (BITI) depth to width ratio (dwr) for each link in each basin (Depth/Width)
+    BITI_Terrebonne_dwr = list(BITI_Terrebonne_setup.iloc[1,1:-2])
+    BITI_Barataria_dwr = list(BITI_Barataria_setup.iloc[1,1:-2])
+    BITI_Pontchartrain_dwr = list(BITI_Pontchartrain_setup.iloc[1,1:-2])
+    
+    #Barrier Island Tidal Inlet (BITI) basin-wide factor (BWF) for each basin
+    BITI_Terrebonne_BWF = float(BITI_Terrebonne_setup.iloc[1,-1])
+    BITI_Barataria_BWF = float(BITI_Barataria_setup.iloc[1,-1])
+    BITI_Pontchartrain_BWF = float(BITI_Pontchartrain_setup.iloc[1,-1])
+    
+    #Barrier Island Tidal Inlet (BITI) tidal prism values
+    #Get the tidal prism values for each compartment from the Hydro output
+    BITI_Terrebonne_prism = [EH_prisms.get(comp) for comp in BITI_Terrebonne_comp]
+    BITI_Barataria_prism = [EH_prisms.get(comp) for comp in BITI_Barataria_comp]
+    BITI_Pontchartrain_prism = [EH_prisms.get(comp) for comp in BITI_Pontchartrain_comp]
+    
+    #BITI effective tidal prism and inlet area
+    #kappa and alpha are the Gulf of Mexico constants for unjettied systems (units = metric)
+    kappa = 6.99e-4
+    alpha = 0.86
+    
+    #Calculate the effective tidal prism and cross-sectional area for each link in each basin
+    #effective tidal prism = sum(tidal prism * partitioning coefficient) [summed across all compartments in the basin]
+    #cross-sectional area = kappa *((effective tidal prism)^alpha)
+    BITI_Terrebonne_inlet_area = np.zeros(shape=len(BITI_Terrebonne_link))
+    for n in range(0,len(BITI_Terrebonne_link)):
+        BITI_Terrebonne_effective_prism = sum((BITI_Terrebonne_partition[:,n])*BITI_Terrebonne_prism)
+        BITI_Terrebonne_inlet_area[n] = np.multiply(kappa, np.power(BITI_Terrebonne_effective_prism,alpha))*BITI_Terrebonne_BWF
+    
+    BITI_Barataria_inlet_area = np.zeros(shape=len(BITI_Barataria_link))
+    for n in range(0,len(BITI_Barataria_link)):
+        BITI_Barataria_effective_prism = sum((BITI_Barataria_partition[:,n])*BITI_Barataria_prism)
+        BITI_Barataria_inlet_area[n] = np.multiply(kappa, np.power(BITI_Barataria_effective_prism,alpha))*BITI_Barataria_BWF
+    
+    BITI_Pontchartrain_inlet_area = np.zeros(shape=len(BITI_Pontchartrain_link))
+    for n in range(0,len(BITI_Pontchartrain_link)):
+        BITI_Pontchartrain_effective_prism = sum((BITI_Pontchartrain_partition[:,n])*BITI_Pontchartrain_prism)
+        BITI_Pontchartrain_inlet_area[n] = np.multiply(kappa, np.power(BITI_Pontchartrain_effective_prism,alpha))*BITI_Pontchartrain_BWF
+    
+    BITI_inlet_areas = [BITI_Terrebonne_inlet_area,BITI_Barataria_inlet_area,BITI_Pontchartrain_inlet_area]
+    
+    #BITI depth for each link in each basin
+    #Depth = sqrt(inlet area*(depth to width ratio))
+    BITI_Terrebonne_inlet_depth = np.power(np.multiply(BITI_Terrebonne_inlet_area,BITI_Terrebonne_dwr),0.5)
+    BITI_Barataria_inlet_depth = np.power(np.multiply(BITI_Barataria_inlet_area,BITI_Barataria_dwr),0.5)
+    BITI_Pontchartrain_inlet_depth = np.power(np.multiply(BITI_Pontchartrain_inlet_area,BITI_Pontchartrain_dwr),0.5)
+    
+    BITI_inlet_depth = [BITI_Terrebonne_inlet_depth,BITI_Barataria_inlet_depth,BITI_Pontchartrain_inlet_depth]
+    
+    #BITI width for each link in each basin
+    #Width = sqrt(inlet area/(depth to width ratio))
+    BITI_Terrebonne_inlet_width = np.power(np.divide(BITI_Terrebonne_inlet_area,BITI_Terrebonne_dwr),0.5)
+    BITI_Barataria_inlet_width = np.power(np.divide(BITI_Barataria_inlet_area,BITI_Barataria_dwr),0.5)
+    BITI_Pontchartrain_inlet_width = np.power(np.divide(BITI_Pontchartrain_inlet_area,BITI_Pontchartrain_dwr),0.5)
+    
+    BITI_inlet_width = [BITI_Terrebonne_inlet_width,BITI_Barataria_inlet_width,BITI_Pontchartrain_inlet_width]
+    
+    #BITI dimensions
+    #Create a dictionary where key is link ID, first value is inlet depth, second value is inlet width
+    #This dictionary can be used to update the link attributes. All inlet links are Type 1 links.
+    BITI_inlet_dimensions = {}
+    for n in range(0,len(BITI_Links)):
+        for k in range(0,len(BITI_Links[n])):
+            BITI_inlet_dimensions[BITI_Links[n][k]] = ([BITI_inlet_depth[n][k],BITI_inlet_width[n][k]])
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 #test_hydro_veg#    # create dictionary where key is compartment ID, value is tidal prism (Column 14 of Ecohydro output)
 #test_hydro_veg#    EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
@@ -1630,540 +1956,159 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 #test_hydro_veg#    del BMprof_forWM
 #test_hydro_veg#
 #test_hydro_veg#    
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    ##                SETUP VEGETATION MODEL               ##
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    os.chdir(vegetation_dir)
-#test_hydro_veg#    
-#test_hydro_veg#    if year == startyear + elapsed_hotstart:
-#test_hydro_veg#        print('\n--------------------------------------------------')
-#test_hydro_veg#        print('        CONFIGURING VEGETATION MODEL')
-#test_hydro_veg#        print('      - only during initial year of ICM -')
-#test_hydro_veg#        print('--------------------------------------------------\n')        
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg#        sys.path.append(vegetation_dir)
-#test_hydro_veg#        
-#test_hydro_veg#        import model_v2
-#test_hydro_veg#        
-#test_hydro_veg#        LAVegMod = model_v2.Model()
-#test_hydro_veg#        
-#test_hydro_veg#        try:
-#test_hydro_veg#            LAVegMod.config(VegConfigFile)
-#test_hydro_veg#        except exceptions as error:
-#test_hydro_veg#            print('******ERROR******')
-#test_hydro_veg#            print(error)
-#test_hydro_veg#            sys.exit('\nFailed to initialize Veg model.')
-#test_hydro_veg#
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    ##                RUN VEGETATION MODEL                 ##
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    print('\n--------------------------------------------------')
-#test_hydro_veg#    print('  RUNNING VEGETATION MODEL - Year %s' % year)
-#test_hydro_veg#    print('--------------------------------------------------\n')
-#test_hydro_veg#    
-#test_hydro_veg#    
-#test_hydro_veg#    try:
-#test_hydro_veg#        LAVegMod.step()
-#test_hydro_veg#    except exceptions.RuntimeError as error:
-#test_hydro_veg#        print('\n ******ERROR******')
-#test_hydro_veg#        print(error)
-#test_hydro_veg#        sys.exit('Vegetation model run failed - Year %s.' % year)
-#test_hydro_veg#    
-#test_hydro_veg#    veg_output_file = '%s_O_%02d_%02d_V_vegty.asc+' % (runprefix,elapsedyear,elapsedyear)
-#test_hydro_veg#    veg_deadfloat_file = '%s_O_%02d_%02d_V_deadf.asc' % (runprefix,elapsedyear,elapsedyear)
-#test_hydro_veg#
-#test_hydro_veg#    if os.path.isfile(veg_deadfloat_file) == False:
-#test_hydro_veg#        veg_deadfloat_file = 'NONE'
-#test_hydro_veg#        
-#test_hydro_veg#
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    ##                  RUN MORPHOLOGY MODEL               ##
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    print('\n--------------------------------------------------')
-#test_hydro_veg#    print(r'  RUNNING MORPHOLOGY MODEL - Year %s' % year)
-#test_hydro_veg#    print('--------------------------------------------------\n')
-#test_hydro_veg#    #change working directory to wetland morph folder
-#test_hydro_veg#    os.chdir(wetland_morph_dir)
-#test_hydro_veg#   
-#test_hydro_veg#    #update WM config file with current model year
-#test_hydro_veg#    WM_params[0] = runprefix
-#test_hydro_veg#    WM_params[1] = str(year)
-#test_hydro_veg#
-#test_hydro_veg#    WM_params[54] = EH_grid_out_newfile
-#test_hydro_veg#    WM_params[58] = EH_comp_out_newfile
-#test_hydro_veg#    
-#test_hydro_veg#    if elapsedyear in yearstokeepmorph:
-#test_hydro_veg#        WM_params[62] = 'FALSE'
-#test_hydro_veg#    else:
-#test_hydro_veg#        WM_params[62] = 'TRUE'
-#test_hydro_veg#    
-#test_hydro_veg#    # Update morphology model input parameters for project implemented during current model year
-#test_hydro_veg#    # Implement marsh creation projects
-#test_hydro_veg#    if year in mc_years:
-#test_hydro_veg#        pjindex = mc_years.index(year)
-#test_hydro_veg#        WM_params[6] = mc_shps[pjindex]
-#test_hydro_veg#        WM_params[7] = mc_shps_fields[pjindex]
-#test_hydro_veg#    else:
-#test_hydro_veg#        WM_params[6] = 'NONE'
-#test_hydro_veg#        WM_params[7] = 'NONE'
-#test_hydro_veg#    
-#test_hydro_veg#    # Implement shoreline protetion projects
-#test_hydro_veg#    if year in sp_years:
-#test_hydro_veg#        pjindex = sp_years.index(year)
-#test_hydro_veg#        WM_params[9] = sp_shps[pjindex]
-#test_hydro_veg#        WM_params[10] = sp_shps_fields[pjindex]
-#test_hydro_veg#    else:
-#test_hydro_veg#        WM_params[9] = 'NONE'
-#test_hydro_veg#        WM_params[10] = 'NONE'
-#test_hydro_veg#        
-#test_hydro_veg#    # Implement shoreline protetion projects
-#test_hydro_veg#    if year in levee_years:
-#test_hydro_veg#        pjindex = levee_years.index(year)
-#test_hydro_veg#        WM_params[13] = levee_shps[pjindex]
-#test_hydro_veg#        WM_params[14] = levee_shps_fields1[pjindex]
-#test_hydro_veg#        WM_params[15] = levee_shps_fields2[pjindex]
-#test_hydro_veg#        WM_params[16] = levee_shps_fields3[pjindex]
-#test_hydro_veg#        WM_params[17] = levee_shps_fields4[pjindex]
-#test_hydro_veg#    else:
-#test_hydro_veg#        WM_params[13] = 'NONE'
-#test_hydro_veg#        WM_params[14] = 'NONE'
-#test_hydro_veg#        WM_params[15] = 'NONE'
-#test_hydro_veg#        WM_params[16] = 'NONE'
-#test_hydro_veg#        WM_params[17] = 'NONE'    
-#test_hydro_veg#        
-#test_hydro_veg#    
-#test_hydro_veg#    #run Wetland Morph model
-#test_hydro_veg#    try:
-#test_hydro_veg#        WM.main(WM_params,ecohydro_dir,wetland_morph_dir,EHtemp_path,vegetation_dir,veg_output_file,veg_deadfloat_file,nvegtype,HSI_dir,BMprof_forWMfile,n500grid,n500rows,n500cols,yll500,xll500,n1000grid,elapsedyear)
-#test_hydro_veg#    except Exception, error:
-#test_hydro_veg#        print('******ERROR******')
-#test_hydro_veg#        print(error)
-#test_hydro_veg#        sys.exit('\n Morphology model run failed - Year %s.' % year)
+
+
+
+
+    #########################################################
+    ##                RUN VEGETATION MODEL                 ##
+    #########################################################
+
+    os.chdir(vegetation_dir)
+
+    if year == startyear + elapsed_hotstart:
+        print ('\n--------------------------------------------------')
+        print ('        CONFIGURING VEGETATION MODEL')
+        print ('----------------------------------------------------')
+        sys.path.append(vegetation_dir)
+        import model_v3
+        LAVegMod = model_v3.Model()
+        veg_config = LAVegMod.config(VegConfigFile)
+
+    print('\n--------------------------------------------------')
+    print('  RUNNING VEGETATION MODEL - Year %s' % year)
+    print('--------------------------------------------------\n')
+    veg_run = LAVegMod.step()
+
+
+
+
+    #########################################################
+    ##                   RUN MORPH MODEL                   ##
+    #########################################################
+    os.chdir(par_dir)
+
+    # read in Wetland Morph input file and update variables for year of simulation
+    wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
+
+    with open (wm_param_file, mode='w') as ip_csv:
+        ip_csv.write("%d, start_year -  first year of model run\n" % startyear)
+        ip_csv.write("%d, elapsed_year -  elapsed year of model run\n" % elapsedyear)
+        ip_csv.write("30, dem_res -  XY resolution of DEM (meters)\n")
+        ip_csv.write("-9999, dem_NoDataVal -  value representing nodata in input rasters and XYZ files\n")
+        ip_csv.write("170852857, ndem -  number of DEM pixels - will be an array dimension for all DEM-level data\n")
+        ip_csv.write("1142332, ndem_bi -  number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
+        ip_csv.write("946, ncomp -  number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n")
+        ip_csv.write("187553, ngrid -  number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n")
+        ip_csv.write("32, neco -  number of ecoregions\n")
+        ip_csv.write("5, nlt -  number of landtype classifications\n")
+        ip_csv.write("0.10, ht_above_mwl_est -  elevation (meters) relative to annual mean water level at which point vegetation can establish\n")
+        ip_csv.write("2.57, ptile_Z -  Z-value for quantile definining inundation curve\n")
+        ip_csv.write("0.0058, B0 -  beta-0 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("-0.00207, B1 -  beta-1 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.0809, B2 -  beta-2 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.0892, B3 -  beta-3 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("-0.19, B4 -  beta-4 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.835, ow_bd -  bulk density of water bottoms (g/cm3)\n")
+        ip_csv.write("0.076, om_k1  -  organic matter self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
+        ip_csv.write("2.106, mn_k2 -  mineral soil self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
+        ip_csv.write("0, FIBS_intvals(1)  -  FFIBS score that will serve as lower end for Fresh forested\n")
+        ip_csv.write("0.15, FIBS_intvals(2)  -  FFIBS score that will serve as lower end for Fresh marsh\n")
+        ip_csv.write("1.5, FIBS_intvals(3)  -  FFIBS score that will serve as lower end for Intermediate marsh\n")
+        ip_csv.write("5, FIBS_intvals(4)  -  FFIBS score that will serve as lower end for Brackish marsh\n")
+        ip_csv.write("18, FIBS_intvals(5)  -  FFIBS score that will serve as lower end for Saline marsh\n")
+        ip_csv.write("24, FIBS_intvals(6)  -  FFIBS score that will serve as upper end for Saline marsh\n")
+        ip_csv.write("10, min_accretion_limit_cm -  upper limit to allowable mineral accretion on the marsh surface during any given year [cm]\n")
+        ip_csv.write("50, ow_accretion_limit_cm -  upper limit to allowable accretion on the water bottom during any given year [cm]\n")
+        ip_csv.write("-50, ow_erosion_limit_cm -  upper limit to allowable erosion of the water bottom during any given year [cm]\n")
+        ip_csv.write("0.05, bg_lowerZ_m -  height that bareground is lowered [m]\n")
+        ip_csv.write("0.25, me_lowerDepth_m -  depth to which eroded marsh edge is lowered to [m]\n")
+        ip_csv.write("1.0, flt_lowerDepth_m -  depth to which dead floating marsh is lowered to [m]\n")
+        ip_csv.write("-0.762, mc_depth_threshold - water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n")
+        ip_csv.write("1.1211425, spsal_params[1], SAV parameter - spring salinity parameter 1\n")
+        ip_csv.write("-0.7870841, spsal_params[2], SAV parameter - spring salinity parameter 2\n")
+        ip_csv.write("1.5059876, spsal_params[3], SAV parameter - spring salinity parameter 3\n")
+        ip_csv.write("3.4309696, sptss_params_params[1], SAV parameter - spring TSS parameter 1\n")
+        ip_csv.write("-0.8343315, sptss_params_params_params[2], SAV parameter - TSS salinity parameter 2\n")
+        ip_csv.write("0.9781167, sptss_params[3], SAV parameter - spring TSS parameter 3\n")
+        ip_csv.write("5.934377, dfl_params[1], SAV parameter - distance from land parameter 1\n")
+        ip_csv.write("-1.957326, dfl_params[2], SAV parameter - distance from land parameter 2\n")
+        ip_csv.write("1.258214, dfl_params[3], SAV parameter - distance from land parameter 3\n")
+
+        if year == startyear:
+            ip_csv.write("0,binary_in - read input raster datas from binary files (1) or from ASCI XYZ files (0)\n")
+        else:
+            ip_csv.write("1,binary_in - read input raster datas from binary files (1) or from ASCI XYZ files (0)\n")
+
+        ip_csv.write("1,binary_out - write raster datas to binary format only (1) or to ASCI XYZ files (0)\n")
+
+        if year == startyear:
+            ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n")
+            ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2023lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n")
+        else:
+            ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n" % file_prefix_prv)
+            ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % file_prefix_prv)
+
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017meer30.xyz', meer_file -  file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_polder30.xyz', pldr_file -  file name with relative path to polder file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017comp30.xyz', comp_file -  file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017grid30.xyz', grid_file -  file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2023dpsub30.xyz', dsub_file -  file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n")
+        ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file -  file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
+        ip_csv.write("'geomorph/input/compartment_active_delta.csv', act_del_file -  file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n")
+        ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file -  file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
+        ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file -  file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
+        ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name, with relative path, to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n'")
+
+        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', hydro_comp_out_file -  file name with relative path to compartment_out.csv file saved by ICM-Hydro\n" % year)
+        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file -  file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
+        ip_csv.write("'veg/%s_V_vegty.asc+', veg_out_file -  file name with relative path to *vegty.asc+ file saved by ICM-LAVegMod\n" % file_oprefix)
+        ip_csv.write("'%s', monthly_mean_stage_file -  file name with relative path to compartment summary file with monthly mean water levels\n" % monthly_file_avstg)
+        ip_csv.write("'%s', monthly_max_stage_file -  file name with relative path to compartment summary file with monthly maximum water levels\n" % monthly_file_mxstg)
+        ip_csv.write("'%s', monthly_ow_sed_dep_file -  file name with relative path to compartment summary file with monthly sediment deposition in open water\n" % monthly_file_sdowt)
+        ip_csv.write("'%s', monthly_mi_sed_dep_file -  file name with relative path to compartment summary file with monthly sediment deposition on interior marsh\n" % monthly_file_sdint)
+        ip_csv.write("'%s', monthly_me_sed_dep_file -  file name with relative path to compartment summary file with monthly sediment deposition on marsh edge\n" % monthly_file_sdedg)
+        ip_csv.write("'%s', monthly_mean_sal_file -  file name with relative path to compartment summary file with monthly mean salinity values\n" % monthly_file_avsal)
+        ip_csv.write("'%s', monthly_mean_tss_file -  file name with relative path to compartment summary file with monthly mean suspended sediment concentrations\n" % monthly_file_avtss)
+        ip_csv.write("'%s', bi_dem_xyz_file -  file name with relative path to XYZ DEM file for ICM-BI-DEM model domain - XY resolution must be snapped to XY resolution of main DEM\n" % bidem_xyz_file)
+        ip_csv.write("'geomorph/output/%s_W_edge30.xyz', edge_eoy_xyz_file -  file name with relative path to XYZ raster output file for edge pixels\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_eoy_xyz_file -  file name with relative path to XYZ raster output file for topobathy DEM\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_dz30.xyz', dz_eoy_xyz_file -  file name with relative path to XYZ raster output file for elevation change raster\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lndtyp_eoy_xyz_file -  file name with relative path to XYZ raster output file for land type\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_lndchg30.xyz', lndchng_eoy_xyz_file -  file name with relative path to XYZ raster output file for land change flag\n" % file_prefix)
+        ip_csv.write("'geomorph/output/grid_summary_eoy_%d.csv', grid_summary_eoy_file -  file name with relative path to summary grid file for end-of-year landscape\n" % year)
+        ip_csv.write("'hydro/TempFiles/grid_data_500m_%d.csv', grid_data_file -  file name with relative path to summary grid data file used internally by ICM\n" % year)
+        ip_csv.write("'hsi/GadwallDepths_cm_%d.csv', grid_depth_file_Gdw -  file name with relative path to Gadwall depth grid data file used internally by ICM and HSI\n" % year)
+        ip_csv.write("'hsi/GWTealDepths_cm_%d.csv', grid_depth_file_GwT -  file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % year)
+        ip_csv.write("'hsi/MotDuckDepths_cm_%d.csv', grid_depth_file_MtD -  file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % year)
+        ip_csv.write("'hsi/%s_W_pedge.csv', grid_pct_edge_file -  file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_SAV.csv', grid_sav_file -  file name with relative path to csv output file for SAV presence\n" % file_oprefix)
+        ip_csv.write("'hydro/TempFiles/compelevs_end_%d.csv', comp_elev_file -  file name with relative path to elevation summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("'hydro/TempFiles/PctWater_%d.csv', comp_wat_file -  file name with relative path to percent water summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file -  file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
+        ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
+        ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_50_prefix)
+
+
+
+    morph_run = subprocess.call('./morph_v23.G031.1')
+
+
+
+
 #test_hydro_veg#
 #test_hydro_veg#    # update name of grid data file generated by Morph to include current year in name
 #test_hydro_veg#    new_grid_file = 'grid_data_500m_end%s.csv' % (year)  # this must match name set in "WM.CalculateEcohydroAttributes" with the exception of (year) here instead of CurrentYear
 #test_hydro_veg#    new_grid_filepath = os.path.normpath('%s/%s' % (EHtemp_path,new_grid_file)) # location of grid file after it is generated in "WM.CalculateEcohydroAttributes"
 #test_hydro_veg#
-#test_hydro_veg#    ##############################################
-#test_hydro_veg#    ##    HABITAT SUITABILITY INDICES ~ HSIs    ##
-#test_hydro_veg#    ##############################################
-#test_hydro_veg#    print('\n--------------------------------------------------')
-#test_hydro_veg#    print('  RUNNING HABITAT SUITABILITY INDICES - Year %s' % year)
-#test_hydro_veg#    print('--------------------------------------------------\n')
-#test_hydro_veg#    os.chdir(ecohydro_dir)
-#test_hydro_veg#
-#test_hydro_veg#    # read in Morph output file
-#test_hydro_veg#    print(' Reading in Morphology output files to be used for HSIs.')
-#test_hydro_veg#    # import grid summary file (percent land, elevations) generated by Morphology
-#test_hydro_veg#    griddata = np.genfromtxt(new_grid_filepath,delimiter=',',skip_header=1)
-#test_hydro_veg#    # landdict is a dictionary of percent land (0-100) in each 500-m grid cell, key is gridID
-#test_hydro_veg#    landdict = dict((griddata[n][0],griddata[n][3]) for n in range(0,n500grid))
-#test_hydro_veg#    waterdict = dict((griddata[n][0],griddata[n][5]) for n in range(0,n500grid))
-#test_hydro_veg#    melevdict = dict((griddata[n][0],griddata[n][2]) for n in range(0,n500grid))
-#test_hydro_veg#    wetlanddict = dict((griddata[n][0],griddata[n][4]) for n in range(0,n500grid))
-#test_hydro_veg#    
-#test_hydro_veg#    # Post-process Ecohydro output for HSI calculations
-#test_hydro_veg#    print(' Reading in Ecohydro output files to be used for HSIs.'   )
-#test_hydro_veg#
-#test_hydro_veg#    # import annual Ecohydro output that is summarized by grid ID (Column 0 corresponds to 500m ID#, Column 7 is percent sand, and  Column 17 is average depth)    
-#test_hydro_veg#    EH_grid_out = np.genfromtxt(EH_grid_results_filepath,delimiter = ',',skip_header = 1)
-#test_hydro_veg#    depthdict = dict((EH_grid_out[n][0],EH_grid_out[n][15:17]) for n in range(0,n500grid)) # column 15 is mean summer depth, column 16 is mean annual depth
-#test_hydro_veg#    stagedict = dict((EH_grid_out[n][0],EH_grid_out[n][12]) for n in range(0,n500grid))
-#test_hydro_veg#    # Import percent sand in substrate for HSI data
-#test_hydro_veg#    pctsanddict = dict((EH_grid_out[n][0],EH_grid_out[n][7]) for n in range(0,n500grid))
-#test_hydro_veg#
-#test_hydro_veg#    del(EH_grid_out)
-#test_hydro_veg#
-#test_hydro_veg#    # Import monthly values for HSI data in dictionaries
-#test_hydro_veg#    # import ecohydro monthly output that is summarized by 500-m grid ID (Column 0 corresponds to GridID)    
-#test_hydro_veg#    EH_sal_file = os.path.normpath(ecohydro_dir + '/sal_monthly_ave_500m.out')
-#test_hydro_veg#    sal = np.genfromtxt(EH_sal_file,delimiter = ',',skip_header = 1)
-#test_hydro_veg#    saldict = dict((sal[n][0],sal[n][1:14]) for n in range(0,n500grid))
-#test_hydro_veg#
-#test_hydro_veg#    # Save list of GridIDs from Hydro output file
-#test_hydro_veg#    gridIDs=[]
-#test_hydro_veg#    for n in range(0,n500grid):
-#test_hydro_veg#       gridIDs.append(sal[n][0])
-#test_hydro_veg#    del(sal)
-#test_hydro_veg#    
-#test_hydro_veg#    # Import monthly temperature values for HSI data
-#test_hydro_veg#    EH_tmp_file = os.path.normpath(ecohydro_dir + '/tmp_monthly_ave_500m.out')
-#test_hydro_veg#    tmp = np.genfromtxt(EH_tmp_file,delimiter = ',',skip_header = 1)
-#test_hydro_veg#    tmpdict = dict((tmp[n][0],tmp[n][1:13]) for n in range(0,n500grid))
-#test_hydro_veg#    del(tmp)
-#test_hydro_veg#    
-#test_hydro_veg#    # Import monthly TSS values for HSI data
-#test_hydro_veg#    EH_TSS_file = os.path.normpath(ecohydro_dir + '/TSS_monthly_ave_500m.out')
-#test_hydro_veg#    TSS = np.genfromtxt(EH_TSS_file,delimiter = ',',skip_header = 1)
-#test_hydro_veg#    TSSdict = dict((TSS[n][0],TSS[n][1:13]) for n in range(0,n500grid))
-#test_hydro_veg#    del(TSS)
-#test_hydro_veg#
-#test_hydro_veg#    # Import monthly algae values for HSI data
-#test_hydro_veg#    EH_ChlA_file = os.path.normpath(ecohydro_dir + '/tkn_monthly_ave_500m.out')
-#test_hydro_veg#    ChlA = np.genfromtxt(EH_ChlA_file,delimiter = ',',skip_header = 1)
-#test_hydro_veg#    ChlAdict = dict((ChlA[n][0],ChlA[n][1:13]) for n in range(0,n500grid))
-#test_hydro_veg#    del(ChlA)
-#test_hydro_veg#
-#test_hydro_veg#    veg_output_filepath = os.path.normpath(vegetation_dir + '/' + veg_output_file)
-#test_hydro_veg#
-#test_hydro_veg#    # run HSI function (run in HSI directory so output files are saved there)
-#test_hydro_veg#    os.chdir(HSI_dir)
-#test_hydro_veg#
-#test_hydro_veg#    # import percent edge output from geomorph routine that is summarized by grid ID
-#test_hydro_veg#    pctedge_file = os.path.normpath('%s/%s_N_%02d_%02d_W_pedge.csv'% (HSI_dir,runprefix,elapsedyear,elapsedyear)) # this must match name set in "WM.CalculateEcohydroAttributes" with the exception of (year) here instead of CurrentYear
-#test_hydro_veg#    pedge = np.genfromtxt(pctedge_file,delimiter = ',',skip_header = 1)
-#test_hydro_veg#    pctedgedict = dict((pedge[n][0],pedge[n][1]) for n in range(0,n500grid))
-#test_hydro_veg#    del(pedge)
-#test_hydro_veg#    
-#test_hydro_veg#    
-#test_hydro_veg#    try:
-#test_hydro_veg#        HSI.HSI(gridIDs,stagedict,depthdict,melevdict,saldict,tmpdict,TSSdict,ChlAdict,veg_output_filepath,nvegtype,landdict,waterdict,pctsanddict,pctedgedict,n500grid,n500rows,n500cols,yll500,xll500,year,elapsedyear,HSI_dir,WM_params,vegetation_dir,wetland_morph_dir,runprefix)
-#test_hydro_veg#    except Exception,error :
-#test_hydro_veg#        print('******ERROR******')
-#test_hydro_veg#        print('\n HSI model run failed - Year %s.' % year)
-#test_hydro_veg#        print(error)
-#test_hydro_veg#        
-#test_hydro_veg#
-#test_hydro_veg#    ##########################################
-#test_hydro_veg#    ##       FORMAT DATA FOR EWE MODEL      ##
-#test_hydro_veg#    ##########################################
-#test_hydro_veg#    print('\n--------------------------------------------------')
-#test_hydro_veg#    print(' FORMATTING DATA FOR EWE - Year %s' % year)
-#test_hydro_veg#    print('--------------------------------------------------\n')
-#test_hydro_veg#    print(' Reading in ASCII grid template.')                                               
-#test_hydro_veg#    os.chdir(ewe_dir)
-#test_hydro_veg#    ewe_grid_ascii_file = 'EwE_grid.asc'                                                   
-#test_hydro_veg#                                                                                           
-#test_hydro_veg#    
-#test_hydro_veg#    ascii_grid_lookup = np.genfromtxt(ewe_grid_ascii_file,delimiter=' ',skip_header=6)        
-#test_hydro_veg#                                                                                           
-#test_hydro_veg#    ascii_header='nrows %s \nncols %s \nyllcorner %s \nxllcorner %s \ncellsize 1000 \nnodata_value -9999' % (n1000rows,n1000cols,yll1000,xll1000)
-#test_hydro_veg#
-#test_hydro_veg#    nrows = n1000rows                                                                      
-#test_hydro_veg#    ncols = n1000cols          
-#test_hydro_veg#
-#test_hydro_veg#    EwEGridMap = np.genfromtxt('EwE_Veg_grid_lookup.csv',skip_header=1,delimiter=',')         
-#test_hydro_veg#    EwEGridMapDict = dict((EwEGridMap[n][0],EwEGridMap[n][1:5])for n in range(0,len(EwEGridMap)))
-#test_hydro_veg#    
-#test_hydro_veg#    for output in ['depth']:
-#test_hydro_veg#        print(' - mapping %s output to EwE grid' % output)                                                 
-#test_hydro_veg#        newgrid=np.zeros([nrows,ncols]) 
-#test_hydro_veg#        for m in range(0,nrows):                                                           
-#test_hydro_veg#            for n in range(0,ncols):                                                       
-#test_hydro_veg#                cellID = ascii_grid_lookup[m][n]                                           
-#test_hydro_veg#                if cellID == -9999:                                                        
-#test_hydro_veg#                    newgrid[m][n] = -9999                                                  
-#test_hydro_veg#                else:                                                                      
-#test_hydro_veg#                    try:                                                                   
-#test_hydro_veg#                        value = 0                                                          
-#test_hydro_veg#                        value_n = 0                                                        
-#test_hydro_veg#                        for g in range(0,4):                                               
-#test_hydro_veg#                            grid = EwEGridMapDict[cellID][g]                               
-#test_hydro_veg#                            if grid > 0:                                              
-#test_hydro_veg#                                value += depthdict[grid][1] # depthdict[grid][0] is mean summer depth, depthdict[grid][1] is mean annual depth
-#test_hydro_veg#                                value_n += 1                                               
-#test_hydro_veg#                        newgrid[m][n] = value/value_n                                      
-#test_hydro_veg#                    except:   # if cellID is not a key in the newLULCdictionay - assign cell to NoData
-#test_hydro_veg#                        newgrid[m][n] = -9999                                              
-#test_hydro_veg#
-#test_hydro_veg#        print(' - saving new EwE %s ASCII raster file' % output)
-#test_hydro_veg#        
-#test_hydro_veg#        # save formatted LULC grid to ascii file with appropriate ASCII raster header      
-#test_hydro_veg#        EwEasc = '%s/%s/%s_I_%02d-%02d_E_%s.asc' % (ewe_dir,output,runprefix,elapsedyear,elapsedyear,output)
-#test_hydro_veg#        np.savetxt(EwEasc,newgrid,fmt='%.4f',delimiter=' ',header=ascii_header,comments='')
-#test_hydro_veg#
-#test_hydro_veg#    for output in ['uplnd']:
-#test_hydro_veg#        print(' - mapping %s output to EwE grid' % output)                                                 
-#test_hydro_veg#        newgrid = np.zeros([nrows,ncols]) 
-#test_hydro_veg#        for m in range(0,nrows):                                                           
-#test_hydro_veg#            for n in range(0,ncols):                                                       
-#test_hydro_veg#                cellID = ascii_grid_lookup[m][n]                                           
-#test_hydro_veg#                if cellID == -9999:                                                        
-#test_hydro_veg#                    newgrid[m][n] = -9999                                                  
-#test_hydro_veg#                else:                                                                      
-#test_hydro_veg#                    try:                                                                   
-#test_hydro_veg#                        value = 0
-#test_hydro_veg#                        value_n = 0                                                        
-#test_hydro_veg#                        for g in range(0,4):                                               
-#test_hydro_veg#                            grid = EwEGridMapDict[cellID][g]                               
-#test_hydro_veg#                            if grid > 0:                                              
-#test_hydro_veg#                                upvalue = max(landdict[grid] - wetlanddict[grid],0)
-#test_hydro_veg#                                value += upvalue
-#test_hydro_veg#                                value_n += 1                                               
-#test_hydro_veg#                        newgrid[m][n] = value/value_n                                      
-#test_hydro_veg#                    except:   # if cellID is not a key in the newLULCdictionay - assign cell to NoData
-#test_hydro_veg#                        newgrid[m][n] = -9999                                              
-#test_hydro_veg#
-#test_hydro_veg#        print(' - saving new EwE %s ASCII raster file' % output)
-#test_hydro_veg#        
-#test_hydro_veg#        # save formatted LULC grid to ascii file with appropriate ASCII raster header      
-#test_hydro_veg#        EwEasc = '%s/%s/%s_I_%02d-%02d_E_%s.asc' % (ewe_dir,output,runprefix,elapsedyear,elapsedyear,output)
-#test_hydro_veg#        np.savetxt(EwEasc,newgrid,fmt='%.4f',delimiter=' ',header=ascii_header,comments='')
-#test_hydro_veg#
-#test_hydro_veg#    for output in ['wtlnd']:
-#test_hydro_veg#        print(' - mapping %s output to EwE grid' % output)                                                 
-#test_hydro_veg#        newgrid=np.zeros([nrows,ncols]) 
-#test_hydro_veg#        for m in range(0,nrows):                                                           
-#test_hydro_veg#            for n in range(0,ncols):                                                       
-#test_hydro_veg#                cellID = ascii_grid_lookup[m][n]                                           
-#test_hydro_veg#                if cellID == -9999:                                                        
-#test_hydro_veg#                    newgrid[m][n] = -9999                                                  
-#test_hydro_veg#                else:                                                                      
-#test_hydro_veg#                    try:                                                                   
-#test_hydro_veg#                        value = 0                                                          
-#test_hydro_veg#                        value_n = 0                                                        
-#test_hydro_veg#                        for g in range(0,4):                                               
-#test_hydro_veg#                            grid = EwEGridMapDict[cellID][g]                               
-#test_hydro_veg#                            if grid > 0:                                              
-#test_hydro_veg#                                value += wetlanddict[grid]
-#test_hydro_veg#                                value_n += 1                                               
-#test_hydro_veg#                        newgrid[m][n] = value/value_n                                      
-#test_hydro_veg#                    except:   # if cellID is not a key in the newLULCdictionay - assign cell to NoData
-#test_hydro_veg#                        newgrid[m][n] = -9999                                              
-#test_hydro_veg#
-#test_hydro_veg#        print(' - saving new EwE %s ASCII raster file' % output)
-#test_hydro_veg#        
-#test_hydro_veg#        # save formatted LULC grid to ascii file with appropriate ASCII raster header      
-#test_hydro_veg#        EwEasc = '%s/%s/%s_I_%02d-%02d_E_%s.asc' % (ewe_dir,output,runprefix,elapsedyear,elapsedyear,output)
-#test_hydro_veg#        np.savetxt(EwEasc,newgrid,fmt='%.4f',delimiter=' ',header=ascii_header,comments='')
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg#                                                                                               
-#test_hydro_veg#    monthcols = [0,1,2,3,4,5,6,7,8,9,10,11]                                                
-#test_hydro_veg#    monthtext = ['01','02','03','04','05','06','07','08','09','10','11','12']              
-#test_hydro_veg#    
-#test_hydro_veg#    for output in ['sal','tkn','tmp','tss']:
-#test_hydro_veg#        print(' - mapping %s output to EwE grid' % output)                                                
-#test_hydro_veg#        
-#test_hydro_veg#        if output == 'sal':
-#test_hydro_veg#            monthly_dict = saldict
-#test_hydro_veg#        elif output == 'tkn':
-#test_hydro_veg#            monthly_dict = ChlAdict # ChlA output is actually TKN (see above HSI.HSI where it is read in to the dictionary)
-#test_hydro_veg#        elif output == 'tmp':
-#test_hydro_veg#            monthly_dict = tmpdict
-#test_hydro_veg#        elif output == 'tss':
-#test_hydro_veg#            monthly_dict = TSSdict
-#test_hydro_veg#                                                                                             
-#test_hydro_veg#        # initialize new array that will save model-wide monthly means for output
-#test_hydro_veg#        modelave = np.zeros((1,12))    
-#test_hydro_veg#
-#test_hydro_veg#        # loop through each month and save an ASCII grid raster file for EwE grid
-#test_hydro_veg#        for month in monthcols:                                                                
-#test_hydro_veg#            newgrid=np.zeros([nrows,ncols]) 
-#test_hydro_veg#            for m in range(0,nrows):                                                           
-#test_hydro_veg#                for n in range(0,ncols):                                                       
-#test_hydro_veg#                    cellID = ascii_grid_lookup[m][n]                                           
-#test_hydro_veg#                    if cellID == -9999:                                                        
-#test_hydro_veg#                        newgrid[m][n] = -9999                                                  
-#test_hydro_veg#                    else:                                                                      
-#test_hydro_veg#                        try:                                                                   
-#test_hydro_veg#                            value = 0                                                          
-#test_hydro_veg#                           value_n = 0                                                        
-#test_hydro_veg#                            for g in range(0,4):                                               
-#test_hydro_veg#                                grid = EwEGridMapDict[cellID][g]                               
-#test_hydro_veg#                                if grid > 0:                                              
-#test_hydro_veg#                                    value += monthly_dict[grid][month]                         
-#test_hydro_veg#                                    value_n += 1                                               
-#test_hydro_veg#                            newgrid[m][n] = value/value_n                                      
-#test_hydro_veg#                        except:   # if cellID is not a key in the newLULCdictionay - assign cell to NoData
-#test_hydro_veg#                            newgrid[m][n] = -9999                                              
-#test_hydro_veg#                                                                  '
-#test_hydro_veg#            print(' - saving new %s ASCII raster file for month %s' % (output,monthtext[month]))
-#test_hydro_veg#            
-#test_hydro_veg#            # save formatted LULC grid to ascii file with appropriate ASCII raster header      
-#test_hydro_veg#            EwEasc = '%s/%s/%s_I_%02d-%02d_E_%s%s.asc' % (ewe_dir,output,runprefix,elapsedyear,elapsedyear,output,monthtext[month])
-#test_hydro_veg#            np.savetxt(EwEasc,newgrid,fmt='%.4f',delimiter=' ',header=ascii_header,comments='')
-#test_hydro_veg#            
-#test_hydro_veg#            # save model-wide monthly average value for output type
-#test_hydro_veg#            for row in range(0,len(monthly_dict)):
-#test_hydro_veg#                modelave[0][month] += monthly_dict[row+1][month]/len(monthly_dict)
-#test_hydro_veg#        
-#test_hydro_veg#        print(' - saving model-wide monthly averages for %s' % output)
-#test_hydro_veg#        ave_file = '%s/%s/%s_I_%02d-%02d_E_%s00.csv' % (ewe_dir,output,runprefix,elapsedyear,elapsedyear,output)
-#test_hydro_veg#        ave_file_h = '1,2,3,4,5,6,7,8,9,10,11,12'
-#test_hydro_veg#        np.savetxt(ave_file,modelave,delimiter=',',header=ave_file_h,fmt='%.4f',comments='')
-#test_hydro_veg#    
-#test_hydro_veg#
-#test_hydro_veg#    del (depthdict,saldict,tmpdict,TSSdict,ChlAdict,gridIDs)
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg#    print('\n--------------------------------------------------')
-#test_hydro_veg#    print('  UPLOADING SELECT OUTPUT TO SFTP SERVER.')
-#test_hydro_veg#    print('--------------------------------------------------\n')
-#test_hydro_veg#
-#test_hydro_veg#    
-#test_hydro_veg#    # SFTP settings for data upload
-#test_hydro_veg#    host = 'cimsftp.coastal.la.gov'
-#test_hydro_veg#    un = 'mp2017models'
-#test_hydro_veg#    pw = '0urc0ast1$wa$h1ngAw@y'
-#test_hydro_veg#    pt = 52222
-#test_hydro_veg#
-#test_hydro_veg#    if year == startyear + elapsed_hotstart:
-#test_hydro_veg#        uploadfails = []
-#test_hydro_veg#
-#test_hydro_veg#    
-#test_hydro_veg#    dpath = '%s/output_%02d/Deliverables' % (wetland_morph_dir,elapsedyear)
-#test_hydro_veg#    upfiles = os.listdir(dpath)
-#test_hydro_veg#
-#test_hydro_veg#    gpath = os.path.normpath(r'\MP2017\3.8\%s\%s' % (sterm,gterm))
-#test_hydro_veg#    up_path = os.path.normpath(r'\MP2017\3.8\%s\%s\output_%02d' % (sterm,gterm,elapsedyear))
-#test_hydro_veg#    
-#test_hydro_veg#    try:
-#test_hydro_veg#        with pysftp.Connection(host,username=un,password=pw,port=pt)as sftp:
-#test_hydro_veg#            print('-- SFTP connection successful - uploading files.')
-#test_hydro_veg#            
-#test_hydro_veg#            if sftp.isdir(gpath) == False:
-#test_hydro_veg#                print(' %s is missing on FTP - attempting to make folder.' % gpath)
-#test_hydro_veg#                sdir = os.path.normpath('/MP2017/3.8/%s' % sterm)
-#test_hydro_veg#                sftp.mkdir(gpath)
-#test_hydro_veg#            
-#test_hydro_veg#            sftp.mkdir(up_path)
-#test_hydro_veg#            sftp.chdir(up_path)
-#test_hydro_veg#            for localfile in upfiles:
-#test_hydro_veg#                try:
-#test_hydro_veg#                    uploadfile = '%s/%s' % (dpath,localfile)
-#test_hydro_veg#                    if sftp.isfile(localfile):
-#test_hydro_veg#                        print(' %s is already on the SFTP in %s - Not uploaded!' % (outfile,gpath))
-#test_hydro_veg#                        uploadfails.append(localfile)
-#test_hydro_veg#                    else:
-#test_hydro_veg#                        sftp.put(uploadfile)
-#test_hydro_veg#                except:
-#test_hydro_veg#                    print(' %s failed to upload - trying next file' % outfile)
-#test_hydro_veg#                    uploadfails.append(localfile)
-#test_hydro_veg#                
-#test_hydro_veg#
-#test_hydro_veg#    except:
-#test_hydro_veg#        print('-- SFTP connection unsuccessful for %s model year.' % elapsedyear)
-#test_hydro_veg#        uploadfails.append('All files in year %02d' % elapsedyear)
-#test_hydro_veg#        
-#test_hydro_veg## End Time-stepping loop
-#test_hydro_veg#
-#test_hydro_veg#if len(uploadfails) > 0:
-#test_hydro_veg#    uploadmessage = ' Some SFTP uploads failed - manually upload data for years: %s' % uploadfails
-#test_hydro_veg#else:
-#test_hydro_veg#    uploadmessage = ' All SFTP uploads were successful.'
-    
+#
+
 
 print('\n\n\n')
 print('-----------------------------------------' )
 print(' ICM Model run complete!')
 print('-----------------------------------------\n')
-#print(uploadmessage )
 
 
-# this should eventually be removed.
-## Pause to indicate model run is complete.
-input(' ICM Model run complete. Press <ENTER> to exit simulation.')  
-
-
-##################################
-## WINDOWS ENVIRONMENT SETTINGS ##
-##################################
-##
-## Be sure the 64-bit versions of Python are correctly set in Windows PATH environment variables,
-## and that .py and .exe extensions are added to either a local or system PATHEXT variable
-##
-## 1. Access Windows Environment Variables (Control Panel > System > Advanced System Settings> Environment Variables)
-## 2. The location of the 64-bit Python executable (python.exe) should be the first Python location in the PATH variable
-##      Multiple Python installations can be listed here, but only the first one will be used by Windows (Python278 in the sample below)
-##          Variable name: PATH
-##          Variable value: C:\Python278\;C:\Python276\;C:\SomeOther\InstalledProgramLocation
-## 3. Update the PATHEXT variable to include both .EXE and .PY files (this will keep the model operating within the same shell window)
-##          Variable name: PATHEXT
-##          Variable value: .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY
-##
-## If other versions of Python were installed or updated after the installation of the version used by the ICM,
-## the Windows registry may be pointing to a different verion of Python than the PATH variable. This may result in
-## different versions of Python being used, depending upon how the ICM.py executable is invoked.
-##  
-##      Different ways to run .py files, which will open different versions of Python installed:
-##          1) .py files will be run with python.exe defined in the registry key if:
-##              a. double-clicked, or 
-##              b. called within command prompt as:  C:/Working/Directory> ICM.py
-##          2) .py files will be run with python.exe defined in Windows PATH variable if:
-##              a. Python is directly called before running the file within a console as >python ICM.py
-##
-##      It is recommended that Windows PowerShell be used to run the ICM.
-##      This will keep the model window open after a run is complete (or fails) and output messages will be visible in the console window.
-##
-##          1.) Running the model with the 64-bit python.exe associated with the Windows registry key:
-##                  C:\project\folder> .\ICM.py
-##          2.) Running the model with the 64-bit python.exe defined with the PATH variable:
-##                  C:\project\folder> python .\ICM.py
-##
-##  To ensure that the 64-bit version of Python is called every time the ICM is run (regardless of the registry key):
-##      1.)  be sure to update the PATH variable (see above) to include the correct directory location of the 64-bit python.exe
-##      2.)  run ICM.py with method two above
-##
-## OPTIONAL, ADVANCED SETTINGS: Windows Registry Edits to Python location
-##      (to be done in addition to PATH variable edits above)
-## If you would like to update the registry key setting the python.exe location:
-##      1) open Registry Editor (REGEDIT)
-##      2) the appropriate key to edit is located @ HKEY_CLASSES_ROOT\Python.File\shell\open\command
-##      3) set the key value to: "C:\64bit\Python\install\location\python.exe" "%1" %* 
-##              be sure to include the quotation marks
-##              also be sure to set the location to the correct installation folder
-##   As always, be very careful when editing registry keys. Making mistakes here can break your Windows installation and make things very messy.
-##   It is good practice to export (File>Export) the registry prior to making edits so you have a backup in case you break anything?
-##
-## 
-#################################
-## PYTHON ENVIRONMENT SETTINGS ##
-#################################
-##
-## non-standard modules needed (must be downloaded separately):
-##
-## arcpy
-## numpy
-## scipy
-## lxml
-## pyparsing
-## pytz
-## setuptools
-## shapely
-## six
-## xlrd
-## dateutil     (requires: six)
-## matplotlib (requires: numpy, dateutil, pytz, pyparsing, six)
-## pandas       (requires: numpy, dateutil, pytz, scipy, matplotlib, lxml)
-## dbfpy
-##
-## Windows installer files for all above modules (except dbfpy) can be found @ http://www.lfd.uci.edu/~gohlke/pythonlibs/
-## xlrd not available as Windows binary installer - download tar.gz @ https://pypi.python.org/pypi/xlrd
-## install xlrd via cmd:  C:\folder\where\xlrd\download\was\unzipped> setup.py install
-## 
-##
-############################################################
-## GETTING ARCPY TO WORK IN STANDALONE VERSIONS OF PYTHON ##
-############################################################
-##
-## these instructions can be ignored if all modules are installed into the Python version installed with Arc
-## 
-## In PythonXXX\Lib\site-packages folder, add a .pth file 'Desktop10.2.pth' 
-## **If Python is 64-bit, the file name should be DTBGGP64.pth instead of Desktop10.2.pth
-## 
-## 32-bit Python:
-## On Eric's machine, this 'Desktop10.2.pth' file was saved @ C:\Python276\Lib\site-packages\Desktop10.2.pth
-## 
-## 64-bit Python:
-## On Eric's machine this 'DTBGGP64.pth' was saved @ C:/Python278\Lib\site-packages\Desktop10.2.pth
-## 
-## The .pth files contains three lines of text that correspond to the default location of the arcpy files installed by Arc:
-##          C:\Program Files (x86)\ArcGIS\Desktop10.2\arcpy
-##          C:\Program Files (x86)\ArcGIS\Desktop10.2\bin
-##          C:\Program Files (x86)\ArcGIS\Desktop10.2\ArcToolbox\Scripts
-## 
-## 
-## Alternatively, copy and paste the existing Desktop10.2.pth file from the default Arc Python 
-## installation folder and save it to the site-packages folder of the Python version to be used
-## 
-## In cmd for 32-bit Python:
-## copy C:\Python27\ArcGIS10.2\Lib\site-packages\Desktop10.2.pth C:\Python276\Lib\site-packages\Desktop10.2.pth 
-## 
-## In cmd for 64-bit Python:
-## copy C:\Python27\ArcGISx6410.2\Lib\site-packages\DTBGGP64.pth C:\Python278\Lib\site-packages\DTBGGP64.pth
-## 
-##
 
