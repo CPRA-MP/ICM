@@ -381,12 +381,10 @@ inputs = np.genfromtxt('ICM_control.csv',dtype=str,comments='#',delimiter=',')
 ecohydro_dir = os.path.normpath('%s/%s' % (par_dir,inputs[1,1].lstrip().rstrip()))
 wetland_morph_dir = os.path.normpath('%s/%s' % (par_dir,inputs[2,1].lstrip().rstrip()))
 vegetation_dir = os.path.normpath('%s/%s' % (par_dir,inputs[3,1].lstrip().rstrip()))
-
-
-
 bimode_dir = os.path.normpath('%s/%s' % (par_dir,inputs[4,1].lstrip().rstrip()))
 HSI_dir = os.path.normpath('%s/%s' % (par_dir,inputs[5,1].lstrip().rstrip()))
 ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
+
 # Configuration files used by various ICM components
 VegConfigFile = inputs[7,1].lstrip().rstrip()
 WMConfigFile = inputs[8,1].lstrip().rstrip()
@@ -409,49 +407,63 @@ SummerMeanTempFile = inputs[20,1].lstrip().rstrip()
 TreeEstCondFile = inputs[21,1].lstrip().rstrip()
 HtAbvWaterFile = inputs[22,1].lstrip().rstrip()
 PerLandFile = inputs[23,1].lstrip().rstrip()
+PerWaterFile = inputs[24,1].lstrip().rstrip()
+AcuteSalFile = inputs[25,1].lstrip().rstrip()
 
 ## Simulation Settings
-startyear = int(inputs[24,1].lstrip().rstrip())
-endyear = int(inputs[25,1].lstrip().rstrip())
-nvegtype = int(inputs[26,1].lstrip().rstrip())
-inputStartYear = int(inputs[27,1].lstrip().rstrip())
-hotstart_year = int(inputs[28,1].lstrip().rstrip())
+startyear = int(inputs[26,1].lstrip().rstrip())
+endyear = int(inputs[27,1].lstrip().rstrip())
+ncycle = int(inputs[28,1].lstrip().rstrip())
+startyear_cycle = int(inputs[29,1].lstrip().rstrip())
+endyear_cycle = int(inputs[30,1].lstrip().rstrip())
+inputStartYear = int(inputs[31,1].lstrip().rstrip())
+nvegtype = int(inputs[32,1].lstrip().rstrip())
+update_hydro_attr = int(inputs[33,1].lstrip().rstrip())
+
+# convert calendar years to elapsed years
+hotstart_year = startyear_cycle
 elapsed_hotstart = hotstart_year - startyear
-update_hydro_attr = int(inputs[29,1].lstrip().rstrip())
+cycle_start_elapsed = startyear_cycle - startyear
+cycle_end_elapsed = endyear_cycle - startyear
 
 ## grid information for Veg ASCII grid files
-n500grid= int(inputs[30,1].lstrip().rstrip())
+n500grid= int(inputs[34,1].lstrip().rstrip())
 # n500gridveg = int(inputs[25,1].lstrip().rstrip()) #total number of grid cells in Veg model - including NoData cells
-n500rows = int(inputs[31,1].lstrip().rstrip())
-n500cols = int(inputs[32,1].lstrip().rstrip())
-xll500 = int(inputs[33,1].lstrip().rstrip())
-yll500 = int(inputs[34,1].lstrip().rstrip())
+n500rows = int(inputs[35,1].lstrip().rstrip())
+n500cols = int(inputs[36,1].lstrip().rstrip())
+xll500 = int(inputs[37,1].lstrip().rstrip())
+yll500 = int(inputs[38,1].lstrip().rstrip())
 
 ## grid information for EwE ASCII grid files
-n1000grid = int(inputs[35,1].lstrip().rstrip())
-n1000rows = int(inputs[36,1].lstrip().rstrip())
-n1000cols = int(inputs[37,1].lstrip().rstrip())
-xll1000 = inputs[38,1].lstrip().rstrip()
-yll1000 = inputs[39,1].lstrip().rstrip()
+n1000grid = int(inputs[39,1].lstrip().rstrip())
+n1000rows = int(inputs[40,1].lstrip().rstrip())
+n1000cols = int(inputs[41,1].lstrip().rstrip())
+xll1000 = inputs[42,1].lstrip().rstrip()
+yll1000 = inputs[43,1].lstrip().rstrip()
 
-# file naming settings
-mpterm = inputs[40,1].lstrip().rstrip()
-sterm = inputs[41,1].lstrip().rstrip()
-gterm = inputs[42,1].lstrip().rstrip()
-cterm = inputs[43,1].lstrip().rstrip()
-uterm = inputs[44,1].lstrip().rstrip()
-vterm = inputs[45,1].lstrip().rstrip()
-rterm = inputs[46,1].lstrip().rstrip()
+# file naming convention settings
+mpterm = inputs[44,1].lstrip().rstrip()
+sterm = inputs[45,1].lstrip().rstrip()
+gterm = inputs[46,1].lstrip().rstrip()
+cterm = inputs[47,1].lstrip().rstrip()
+uterm = inputs[48,1].lstrip().rstrip()
+vterm = inputs[49,1].lstrip().rstrip()
+rterm = inputs[50,1].lstrip().rstrip()
+
+# build some file naming convention tags
 runprefix = '%s_%s_%s_%s_%s_%s_%s' % (mpterm,sterm,gterm,cterm,uterm,vterm,rterm)
-
+file_prefix_cycle = r'%s_N_%02d_%02d' % (runprefix,cycle_start_elapsed,cycle_end_elapsed)     
+file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
+    
 # 1D Hydro model information
-n_1D = int(inputs[47,1].lstrip().rstrip())
-RmConfigFile = inputs[48,1].lstrip().rstrip()
+n_1D = int(inputs[51,1].lstrip().rstrip())
+RmConfigFile = inputs[52,1].lstrip().rstrip()
 
-## BIMODE sub-directories
-n_bimode = int(inputs[49,1].lstrip().rstrip())
+## Barrier Island Model settings
+BITIconfig = inputs[53,1].lstrip().rstrip()
+n_bimode = int(inputs[54,1].lstrip().rstrip())
 bimode_folders=[]
-for row in range(50,50+n_bimode):
+for row in range(55,55+n_bimode):
     bimode_folders.append(inputs[row,1].lstrip().rstrip())
 
 
@@ -604,21 +616,27 @@ if os.name == 'nt':
 else:
     path_del = '/'
     lq = "'"
-    
-VegWaveAmpFile =     r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),WaveAmplitudeFile,lq)
-VegMeanSalFile =     r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),MeanSalinityFile,lq)
-VegSummerDepthFile = r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanWaterDepthFile,lq)
-VegSummerSalFile =   r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanSalinityFile,lq)
-VegSummerTempFile =  r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),SummerMeanTempFile,lq)
-VegTreeEstCondFile = r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),TreeEstCondFile,lq)
-VegBIHeightFile =    r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),HtAbvWaterFile,lq)
-VegPerLandFile =     r"%s%s%s%s_N_%02d_%02d_H_%s%s" % (lq,vegetation_dir,path_del,runprefix,(1+elapsed_hotstart),(endyear-startyear+1),PerLandFile,lq)
-vegflag = 0        
+
+# LAVegMod files that are written by ICM-Hydro Fortran (need special leading quotes and path delimiters for passing into Fortran via text I/O files)   
+VegWaveAmpFile     = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,WaveAmplitudeFile,lq)
+VegMeanSalFile     = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,MeanSalinityFile,lq)
+VegSummerDepthFile = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,SummerMeanWaterDepthFile,lq)
+VegSummerSalFile   = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,SummerMeanSalinityFile,lq)
+VegSummerTempFile  = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,SummerMeanTempFile,lq)
+VegTreeEstCondFile = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,TreeEstCondFile,lq)
+VegBIHeightFile    = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,HtAbvWaterFile,lq)
+VegPerLandFile     = r"%s%s%s%s_H_%s%s" % (lq,vegetation_dir,path_del,file_prefix_cycle,PerLandFile,lq)
 ehveg_outfiles = [VegWaveAmpFile,VegMeanSalFile,VegSummerDepthFile,VegSummerSalFile,VegSummerTempFile,VegTreeEstCondFile,VegBIHeightFile,VegPerLandFile]
+
+# LAVegMod files that are written later by ICM.py (no need for special quotation/path delimiters since not being passed into Fortran)
+pwatr_grid_file     = os.path.normpath(r'%s/%s_H_%s'     % (vegetation_dir,file_prefix_cycle,PerWaterFile) )
+acute_sal_grid_file = os.path.normpath(r'%s/%s_H_%s' % (vegetation_dir,file_prefix_cycle,AcuteSalFile) )
+
+vegflag = 0    
 
 for veginfile in ehveg_outfiles:
     if os.path.isfile(veginfile.replace(lq,"")) == True:               # remove any leading quotes from vegfile path
-                vegflag = 1
+        vegflag = 1
 
 if elapsed_hotstart > 0:
     vegflag = 0
@@ -813,7 +831,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     print('\n--------------------------------------------------')
     print('  START OF MODEL TIMESTEPPING LOOP - YEAR %s' % year)
     print('--------------------------------------------------\n')
-    
+   
+    ## calculate elapsed years of model run
+    elapsedyear = year - startyear + 1
+
     ## assign number of days in each month and length of year
     dom = {1:31,2:28,3:31,4:30,5:31,6:30,7:31,8:31,9:30,10:31,11:30,12:31}
 
@@ -825,9 +846,12 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         ndays = 365
         dom[2] = 28
 
-
-
-
+    # set year-specific file name prefixes
+    file_prefix     = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_oprefix    = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
+    
+    
     #########################################################
     ##     SETTING UP 1D HYDRO MODEL FOR CURRENT YEAR      ##
     #########################################################
@@ -1351,10 +1375,9 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     
     # Clean up and set Ecohydro up for next year model run
     print(r' Cleaning up after Hydro Model - Year %s' % year)
+    
     ## update startrun value for next model year
     startrun = endrun + 1
-    ## calculate elapsed years of model run
-    elapsedyear = year - startyear + 1
 
     ## append year to names and move hotstart,config, cells, links, and grid files to temp folder so new ones can be written for next model year
     print(' Cleaning up Hydro output files.')
@@ -1459,42 +1482,20 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             os.rename(RmOutFile,RmOutFileBK)    
 
 
-
-
-    elapsedyear = year - startyear + 1
-    runprefix = r'MP2023_S06_G501_C000_U00_V00_SLA'
-    file_prefix = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
-    file_oprefix = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
-    file_o_01_50_prefix = r'%s_O_01_01' % (runprefix)
-    file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
-
-
-
-
-    pwatr_grid_file = os.path.normpath(r'%s/MP2023_S06_G501_C000_U00_V00_SLA_N_01_01_H_pwatr.asc' % vegetation_dir)
-    acute_sal_grid_file = os.path.normpath(r'%s/MP2023_S06_G501_C000_U00_V00_SLA_N_01_01_H_acsal.asc' % vegetation_dir)
-
-
-
-    stg_ts_file = r'%s/STG.out' % hydro_dir
-    sal_ts_file = r'%s/SAL.out' % hydro_dir
-    tss_ts_file = r'%s/TSS.out' % hydro_dir
-
-
+    stg_ts_file = r'%s/STG.out' % ecohydro_dir
+    sal_ts_file = r'%s/SAL.out' % ecohydro_dir
+    tss_ts_file = r'%s/TSS.out' % ecohydro_dir
+    monthly_file_avstg = os.path.normpath(r'%s/compartment_monthly_mean_stage_%4d.csv'       % (EHtemp_path,year) )
+    monthly_file_mxstg = os.path.normpath(r'%s/compartment_monthly_max_stage_%4d.csv'        % (EHtemp_path,year) )
+    monthly_file_avsal = os.path.normpath(r'%s/compartment_monthly_mean_salinity_%4d.csv'    % (EHtemp_path,year) )
+    monthly_file_avtss = os.path.normpath(r'%s/compartment_monthly_mean_tss_%4d.csv'         % (EHtemp_path,year) )
+    monthly_file_sdowt = os.path.normpath(r'%s/compartment_monthly_sed_dep_wat_%4d.csv'      % (EHtemp_path,year) )
+    monthly_file_sdint = os.path.normpath(r'%s/compartment_monthly_sed_dep_interior_%4d.csv' % (EHtemp_path,year) )
+    monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
     
-
-    monthly_file_avstg = r'hydro/TempFiles/compartment_monthly_mean_stage_%4d.csv' % year
-    monthly_file_mxstg = r'hydro/TempFiles/compartment_monthly_max_stage_%4d.csv' % year
-    monthly_file_avsal = r'hydro/TempFiles/compartment_monthly_mean_salinity_%4d.csv' % year
-    monthly_file_avtss = r'hydro/TempFiles/compartment_monthly_mean_tss_%4d.csv' % year
-
-    monthly_file_sdowt = r'hydro/TempFiles/compartment_monthly_sed_dep_wat_%4d.csv' % year
-    monthly_file_sdint = r'hydro/TempFiles/compartment_monthly_sed_dep_interior_%4d.csv' % year
-    monthly_file_sdedg = r'hydro/TempFiles/compartment_monthly_sed_dep_edge_%4d.csv' % year
-
-    gd_file = os.path.normpath(r'%s/TempFiles/grid_data_500m_%04d.csv' % (hydro_dir,year-1))
-
-    BITI_input_filename = r'[Add path here]\BITI_setup_input.xlsx'
+    gd_file = os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year-1) )
+    bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
+    
     
     ########################################################
     ##  Format ICM-Hydro output data for use in ICM-Morph ##
@@ -1661,7 +1662,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
 
-    bidem_xyz_file = r'bidem/MP2023_S04_G031_C000_U00_V00_SLA_I_00_00_W_2017dem30_bi.xyz'
 
 
 
@@ -1669,20 +1669,22 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
 
+    ########################################################### 
+    ###       Barrier Island Tidal Inlet (BITI) Model       ###
+    ########################################################### 
+    print('\n---------------------------------------------------------')
+    print('  RUNNING BARRIER ISLAND TIDAL INLET MODEL (BITI) - Year %s' % year)
+    print('---------------------------------------------------------\n' )
     
-    
-    
-    
-    #Barrier Island Tidal Inlet (BITI) Model (to be added to the ICM py code)
-
-    # FROM 2017 ICM-Py:
     # create dictionary where key is compartment ID, value is tidal prism (Column 14 of Ecohydro output)
-    # EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
-    ########### EH_comp_out is a numpy array #############
+    EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
+
     
     #Barrier Island Tidal Inlet (BITI) input file
     #The input file only needs to be read once
     #It contains the comp IDs, link IDs, depth to width ratios, partition coefficients, and basin-wide factors.
+    BITI_input_filename = os.path.normpath(r'%s/%s' % (bimode_dir,BITIconfig) )
+    
     BITI_Terrebonne_setup = pandas.read_excel(BITI_input_filename, 'Terrebonne',index_col=None)
     BITI_Barataria_setup = pandas.read_excel(BITI_input_filename, 'Barataria',index_col=None)
     BITI_Pontchartrain_setup = pandas.read_excel(BITI_input_filename, 'Pontchartrain',index_col=None)
@@ -1775,32 +1777,24 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #########################################################
+    ##              RUN BARRIER ISLAND MODEL               ##
+    #########################################################
     
-#test_hydro_veg#    # create dictionary where key is compartment ID, value is tidal prism (Column 14 of Ecohydro output)
-#test_hydro_veg#    EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
-#test_hydro_veg#    
-#test_hydro_veg#    # create dictionary where key is compartment ID, values is mean water (column 3 of Ecohydro output)
-#test_hydro_veg#    EH_MHW = dict((EH_comp_out[n][0],EH_comp_out[n][2]) for n in range(0,len(EH_comp_out)))
-#test_hydro_veg#
+    print('\n--------------------------------------------------' )
+    print('  RUNNING BARRIER ISLAND MODEL - Year %s' % year)
+    print('--------------------------------------------------\n')
+    print(' See separate log files generated by each BIMODE run.')
+
+
+
+
+    # create dictionary where key is compartment ID, values is mean water (column 3 of Ecohydro output)
+    EH_MHW = dict((EH_comp_out[n][0],EH_comp_out[n][2]) for n in range(0,len(EH_comp_out)))
+
+
+
+
 #test_hydro_veg#
 #test_hydro_veg#    # Initialize tidal prism and MHW arrays to zero - will write over previous year's array
 #test_hydro_veg#    BIMODEprisms = np.zeros(shape=len(IslandCompLists))
@@ -1824,14 +1818,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 #test_hydro_veg#
 #test_hydro_veg#    del(EH_comp_out,EH_grid_out)
 #test_hydro_veg#
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#    ##              RUN BARRIER ISLAND MODEL               ##
-#test_hydro_veg#    #########################################################
-#test_hydro_veg#
-#test_hydro_veg#    print('\n--------------------------------------------------' )
-#test_hydro_veg#    print('  RUNNING BARRIER ISLAND MODEL - Year %s' % year)
-#test_hydro_veg#    print('--------------------------------------------------\n')
-#test_hydro_veg#    print(' See separate log files generated by each BIMODE run.')
+
 #test_hydro_veg#    
 #test_hydro_veg#                   
 #test_hydro_veg#    # initialize breach dictionary key for current year to an empty list
@@ -2088,7 +2075,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file -  file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
         ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
-        ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_50_prefix)
+        ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
 
 
 
