@@ -1749,9 +1749,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     BITI_Barataria_prism = [EH_prisms.get(comp) for comp in BITI_Barataria_comp]
     BITI_Pontchartrain_prism = [EH_prisms.get(comp) for comp in BITI_Pontchartrain_comp]
 
-
-    # create liste of ICM compartments that will be used as MHW for each BI group
-    IslandMHWCompLists = [598,493,348,281,43,15]
+    # create liste of ICM compartments that will be used as MHW for each BI group (west-to-east)
+    IslandMHWCompLists = [494,482,316,314,306,303]
 
 
     # Calculate the effective tidal prism and cross-sectional area for each link in each basin
