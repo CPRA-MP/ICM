@@ -176,6 +176,33 @@ def forward2backslash(fs_file):
     return
 
 
+def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
+    # This function reads an irregular XYZ file and linearly interpolates the z values to
+    # a regular grid that is pre-defined.
+    # This function currently assumes that all XYZ files do not have a header and are always space delimited
+    # The output can have headers printed by changing the .to_csv() function call
+    
+    # irregular_xyz_in:  randomly spaced XYZ file to be interpolated to a fixed grid
+    # fixed_xyz_in:      fixed, regular grid that has the desired resolution to interpolate to
+    # fixed_xyz_out:     file name for the output file that saves the interpolation output
+
+    # function originally coded by Diana Dileonardo
+
+    
+    # read in irregular and regular grids
+    results = pd.read_csv( irregular_xyz_in,delim_whitespace=True,names=['x','y','z','trans'] ) 
+    fixed_grid = pd.read_csv( fixed_xyz_in,delim_whitespace=True,names=['x','y','z'] ) 
+
+    # restructure input arrays so that they align for passing into scipy.griddata function
+    results_xy = np.vstack((results.x,results.y)).T
+    results_z = np.array(results.z)
+    fixed_grid_array = np.vstack((fixed_grid.x,fixed_grid.y)).T  #array of fixed output xy locations
+    
+    # linearly interpolate to fixed grid using scipy.griddata()
+    interp_results = griddata(results_xy,results.z,fixed_grid_array,method='linear')
+    
+    interp2write = pd.DataFrame(data = np.hstack((fixed_grid_array,np.expand_dims(interp_results,axis=1))),columns=['x','y','z'])
+    interp2write.to_csv(fixed_xyz_out,sep=' ',index=False, header=False)
 
 #########################################################################################################
 ####                                                                                                 ####   
@@ -197,7 +224,7 @@ import numpy as np
 import xlrd                 # is xlrd used??
 import pandas
 from builtins import Exception as exceptions
-
+from scipy.interpolate import griddata
 
 
 
@@ -391,10 +418,10 @@ WMConfigFile = inputs[8,1].lstrip().rstrip()
 EHConfigFile = inputs[9,1].lstrip().rstrip()
 EHCellsFile = inputs[10,1].lstrip().rstrip()
 EHLinksFile = inputs[11,1].lstrip().rstrip()
-BIPrismFile = inputs[12,1].lstrip().rstrip()
-BIMHWFile = inputs[13,1].lstrip().rstrip()
-EHInterfaceFile = inputs[14,1].lstrip().rstrip()
-BMInterfaceFile = inputs[15,1].lstrip().rstrip()
+BIMHWFile = inputs[12,1].lstrip().rstrip()
+EHInterfaceFile = inputs[13,1].lstrip().rstrip()
+not_used = inputs[15,1].lstrip().rstrip()
+not_used = inputs[14,1].lstrip().rstrip()
 compartment_output_file = 'compartment_out.csv'
 grid_output_file = 'grid_500m_out.csv'
 
@@ -465,7 +492,9 @@ n_bimode = int(inputs[54,1].lstrip().rstrip())
 bimode_folders=[]
 for row in range(55,55+n_bimode):
     bimode_folders.append(inputs[row,1].lstrip().rstrip())
-
+bidem_fixed_grids=[]
+for row in range(55+n_bimode,55+2*n_bimode):
+    bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
 
 # read in asci grid structure
 asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
@@ -763,10 +792,6 @@ ncomp = len(EHCellsArray)
 EH_grid_file = 'grid_data_500m.csv' # this must match file name used in hydro.exe
 EH_grid_filepath = os.path.normpath('%s/%s' % (ecohydro_dir,EH_grid_file)) # location of grid_data_500m.csv when used by hydro.exe
 
-## Read in file linking Ecohydro links to BIMODE profile IDs
-## First column (0) is BIMODE profile ID, second column (1) is Ecohydro link ID
-print(' Reading in file matching Hydro link IDs to BIMODE profile IDs')
-EHBMfile = os.path.normpath(r'%s/%s' % (ecohydro_dir,BMInterfaceFile))
 
 linklup=np.genfromtxt(EHBMfile,delimiter=',',skip_header=1)
 
@@ -775,36 +800,6 @@ linktoprofile = dict((linklup[n,0],linklup[n,1])for n in range(0,len(linklup)))
 
 ## remove temporary variables/arrays that aren't needed
 del(linklup,EHBMfile)
-
-#test_hydro_veg##########################################################
-#test_hydro_veg###      SETTING UP BARRIER ISLAND MODEL ~ BIMODE       ##
-#test_hydro_veg##########################################################
-#test_hydro_veg#print(' Configuring Barrier Island Model ~ BIMODE.')
-#test_hydro_veg#
-#test_hydro_veg##change working directory to wetland morph folder
-#test_hydro_veg#os.chdir(bimode_dir)
-#test_hydro_veg#
-#test_hydro_veg## ICM Compartment IDs for each island's bay areas
-#test_hydro_veg##test_hydro_veg#BI_Dern=[561,566,575,599,609,649]
-#test_hydro_veg#BI_Timb=[353,371,373,377,400,414,419,439,445,484]
-#test_hydro_veg#BI_CamGI=[294,307,313,331,344,366]
-#test_hydro_veg#BI_Bara=[143,168,176,177,181,183,188,195,200,204,205,217,220,222,231,233,239,244,252,257,266,278,280,284,285,289,291,294,295]
-#test_hydro_veg#BI_Bret=[29,34,39,40,42,44,47,49,52,54,55,67,68]
-#test_hydro_veg#BI_Chand=[12,16,19,20,22,24,28,32]
-#test_hydro_veg#
-#test_hydro_veg## Create a list of lists - combines the compartment-to-bay lookup lists
-#test_hydro_veg## - length of each lookup list can vary, flexible dimensions
-#test_hydro_veg#IslandCompLists=[BI_Dern,BI_Timb,BI_CamGI,BI_Bara,BI_Bret,BI_Chand]
-#test_hydro_veg#
-#test_hydro_veg## create liste of ICM compartments that will be used as MHW for each BI group
-#test_hydro_veg#IslandMHWCompLists = [598,493,348,281,43,15]
-#test_hydro_veg#
-#test_hydro_veg## Create blank dictionary to store lists of breached profile locations
-#test_hydro_veg## Each key will be 'YYYY', which is the model year (in integer, NOT string, form)
-#test_hydro_veg## Each year's list should only contain profiles breached in that year
-#test_hydro_veg#breaches = {} 
-#test_hydro_veg#   
-#test_hydro_veg#
 
 
 # check to see if hydro input data start date is different than ICM start year
@@ -822,6 +817,87 @@ for year in range(inputStartYear,hotstart_year):
     else:
         ndays = 365
     startrun = startrun + ndays
+
+
+#########################################################
+##        SETTING UP ICM-BARRIER ISLAND MODEL          ##
+#########################################################
+
+print(' Configuring sea level rise rate files for ICM-BIDEM.')
+
+tide_file = os.path.normpath(r'%s/TideData.csv' % ecohydro_dir)
+tide_data = np.genfromtxt(tide_file,skip_header=1,delimiter=',',dtype='str')
+
+annual_mean_mm = [] 
+for year in range(inputStartYear,endyear):
+    n = 0
+    annual_total = 0
+    for r in tide_data:
+        if int(r[0][0:4]) == year:                  # 1st column in TideData is YYYYMMDD HH:MM
+            annual_total += float(r[3])             # 4th column in TideData is Amerada Pass, LA
+            n+=1                                    # 8760 hours or 8784 hours if leap year      
+    annual_mean_mm.append((annual_total/n)*1000)    # take the mean of the hourly data and convert from m to mm
+
+p = np.polyfit(years, np.asarray(annual_mean_mm),2) # fit a quadratic to the annual mean data
+ESLR_rate_mmyr = []
+for year in range(inputStartYear,endyear):
+    ESLR_rate_mmyr.append((p[0]*2*year)+(p[1]))     # take the first derivative and plug in years to get the rate
+            
+for fol in bimode_folders:
+    ESLR_out_file = r'%s/%s/input/SLR_record4modulation.txt' %(bimode_dir,fol) )
+    with open(ESLR_out_file, mode='w') as outf: 
+        i = 0
+        for i in range(0,len(years)):
+            outf.write("%d %0.2f\n" % (year,ESLR_rate_mmyr[i]))
+            i += 1
+
+print(' Configuring tidal inlet settings for ICM-BITI.')
+# Barrier Island Tidal Inlet (BITI) input file
+# The input file only needs to be read once
+# It contains the comp IDs, link IDs, depth to width ratios, partition coefficients, and basin-wide factors.
+BITI_input_filename = os.path.normpath(r'%s/%s' % (bimode_dir,BITIconfig) )
+
+BITI_Terrebonne_setup = pandas.read_excel(BITI_input_filename, 'Terrebonne',index_col=None)
+BITI_Barataria_setup = pandas.read_excel(BITI_input_filename, 'Barataria',index_col=None)
+BITI_Pontchartrain_setup = pandas.read_excel(BITI_input_filename, 'Pontchartrain',index_col=None)
+
+# Barrier Island Tidal Inlet (BITI) compartment IDs
+# These are the compartments that make up each basin
+BITI_Terrebonne_comp = list( BITI_Terrebonne_setup.iloc[3::,0] )
+BITI_Barataria_comp = list( BITI_Barataria_setup.iloc[3::,0] )
+BITI_Pontchartrain_comp = list( BITI_Pontchartrain_setup.iloc[3::,0] )
+
+# Barrier Island Tidal Inlet (BITI) link IDs
+# These are the links that respresent the tidal inlets in each basin
+BITI_Terrebonne_link = list(BITI_Terrebonne_setup.iloc[0,1:-2])
+BITI_Barataria_link = list(BITI_Barataria_setup.iloc[0,1:-2])
+BITI_Pontchartrain_link = list(BITI_Pontchartrain_setup.iloc[0,1:-2])
+
+BITI_Links = [BITI_Terrebonne_link,BITI_Barataria_link,BITI_Pontchartrain_link]
+
+# Barrier Island Tidal Inlet (BITI) partition coefficients
+# Each basin has it's own array of partition coefficients with size m by n,
+# where m = number of compartments in the basin and n = the number of links in the basin
+BITI_Terrebonne_partition = np.asarray(BITI_Terrebonne_setup)[3::,1:-2]
+BITI_Barataria_partition = np.asarray(BITI_Barataria_setup)[3::,1:-2]
+BITI_Pontchartrain_partition = np.asarray(BITI_Pontchartrain_setup)[3::,1:-2]
+
+# Barrier Island Tidal Inlet (BITI) depth to width ratio (dwr) for each link in each basin (Depth/Width)
+BITI_Terrebonne_dwr = list(BITI_Terrebonne_setup.iloc[1,1:-2])
+BITI_Barataria_dwr = list(BITI_Barataria_setup.iloc[1,1:-2])
+BITI_Pontchartrain_dwr = list(BITI_Pontchartrain_setup.iloc[1,1:-2])
+
+# Barrier Island Tidal Inlet (BITI) basin-wide factor (BWF) for each basin
+BITI_Terrebonne_BWF = float(BITI_Terrebonne_setup.iloc[1,-1])
+BITI_Barataria_BWF = float(BITI_Barataria_setup.iloc[1,-1])
+BITI_Pontchartrain_BWF = float(BITI_Pontchartrain_setup.iloc[1,-1])
+
+# BITI effective tidal prism and inlet area
+# kappa and alpha are the Gulf of Mexico constants for unjettied systems (units = metric)
+kappa = 6.99e-4
+alpha = 0.86
+
+
 
 #########################################################
 ##              START YEARLY TIMESTEPPING              ##
@@ -1291,17 +1367,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 #test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
 #test_hydro_veg#                    EHLinksArray[mm,8] = newelev
 #test_hydro_veg#                
-#test_hydro_veg#
-#test_hydro_veg#                # update link types for barrier island breaches in BIMODE's previous year run
-#test_hydro_veg#                # check if link is representative of a barrier island breach (will be a key in the linktoprofile dict)
-#test_hydro_veg#                if linkID in linktoprofile.keys():
-#test_hydro_veg#                    # check if barrier island breach link is currently dormant
-#test_hydro_veg#                    if linktype < 0:
-#test_hydro_veg#                        # check if corresponding BIMMODE profile was breached in previous year
-#test_hydro_veg#                        if linktoprofile[linkID] in breaches[year-1]:
-#test_hydro_veg#                            newlinktype = -linktype
-#test_hydro_veg#                            EHLinksArray[mm,7] = newlinktype 
-#test_hydro_veg#    
+
 #test_hydro_veg#    ## end update of Hydro compartment attributes            
 #test_hydro_veg#        print(' %s Hydro compartments have updated percent land values for model year %s.' % ((len(EHCellsArray)-flag_cell_upl),year) )
 #test_hydro_veg#        print(' %s Hydro compartments have updated percent water values for model year %s.' % ((len(EHCellsArray)-flag_cell_wat),year) )
@@ -1416,7 +1482,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     # read in grid output from hydro model
     EH_grid_results_file = os.path.normpath('%s/%s') % (ecohydro_dir,grid_output_file)
     EH_grid_out = np.genfromtxt(EH_grid_results_file,dtype='float',delimiter=',',names=True)
-    
+
     #generate single string from names that will be used as header when writing output file
     gridnames = EH_grid_out.dtype.names
     gridheader = gridnames[0]
@@ -1427,8 +1493,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     EH_grid_out_newfile = '%s_%s.%s' % (str.split(grid_output_file,'.')[0],year,str.split(grid_output_file,'.')[1])
     EH_grid_results_filepath = os.path.normpath('%s/%s' % (EHtemp_path,EH_grid_out_newfile))
     np.savetxt(EH_grid_results_filepath,EH_grid_out,delimiter=',',fmt='%.4f',header=gridheader,comments='')
-
-## Copy monthly gridded output used by EwE model to temporary output folder in Hydro directory
+    del(EH_grid_out)
+    
+    
+    ## Copy monthly gridded output used by EwE model to temporary output folder in Hydro directory
     SalMonth = 'sal_monthly_ave_500m'
     SalMonthFile = os.path.normpath(r"%s/%s.out" % (ecohydro_dir,SalMonth))
     move_salmonth = os.path.normpath(r"%s/%s_%02d.out" % (EHtemp_path,SalMonth,elapsedyear))
@@ -1492,8 +1560,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     monthly_file_sdowt = os.path.normpath(r'%s/compartment_monthly_sed_dep_wat_%4d.csv'      % (EHtemp_path,year) )
     monthly_file_sdint = os.path.normpath(r'%s/compartment_monthly_sed_dep_interior_%4d.csv' % (EHtemp_path,year) )
     monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
-    
-    gd_file = os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year-1) )
+    griddata_file = os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year-1) )
     bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
     
     
@@ -1645,7 +1712,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
     print('   - updating percent water grid file for ICM-LAVegMod')
     pwatr_dict = {}
-    with open(gd_file,mode='r') as grid_data:
+    with open(griddata_file,mode='r') as grid_data:
         nline = 0
         for line in grid_data:
             if nline > 0:
@@ -1664,76 +1731,32 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
 
-
-
-
-
-
     ########################################################### 
     ###       Barrier Island Tidal Inlet (BITI) Model       ###
     ########################################################### 
-    print('\n---------------------------------------------------------')
-    print('  RUNNING BARRIER ISLAND TIDAL INLET MODEL (BITI) - Year %s' % year)
-    print('---------------------------------------------------------\n' )
+    print('\n-------------------------------------------------------------')
+    print('  RUNNING BARRIER ISLAND TIDAL INLET MODEL (ICM-BITI) - Year %s' % year)
+    print('-------------------------------------------------------------\n' )
+
+    os.chdir(bimode_dir)
     
     # create dictionary where key is compartment ID, value is tidal prism (Column 14 of Ecohydro output)
     EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
 
-    
-    #Barrier Island Tidal Inlet (BITI) input file
-    #The input file only needs to be read once
-    #It contains the comp IDs, link IDs, depth to width ratios, partition coefficients, and basin-wide factors.
-    BITI_input_filename = os.path.normpath(r'%s/%s' % (bimode_dir,BITIconfig) )
-    
-    BITI_Terrebonne_setup = pandas.read_excel(BITI_input_filename, 'Terrebonne',index_col=None)
-    BITI_Barataria_setup = pandas.read_excel(BITI_input_filename, 'Barataria',index_col=None)
-    BITI_Pontchartrain_setup = pandas.read_excel(BITI_input_filename, 'Pontchartrain',index_col=None)
-    
-    #Barrier Island Tidal Inlet (BITI) compartment IDs
-    #These are the compartments that make up each basin
-    BITI_Terrebonne_comp = list( BITI_Terrebonne_setup.iloc[3::,0] )
-    BITI_Barataria_comp = list( BITI_Barataria_setup.iloc[3::,0] )
-    BITI_Pontchartrain_comp = list( BITI_Pontchartrain_setup.iloc[3::,0] )
-    
-    #Barrier Island Tidal Inlet (BITI) link IDs
-    #These are the links that respresent the tidal inlets in each basin
-    BITI_Terrebonne_link = list(BITI_Terrebonne_setup.iloc[0,1:-2])
-    BITI_Barataria_link = list(BITI_Barataria_setup.iloc[0,1:-2])
-    BITI_Pontchartrain_link = list(BITI_Pontchartrain_setup.iloc[0,1:-2])
-    
-    BITI_Links = [BITI_Terrebonne_link,BITI_Barataria_link,BITI_Pontchartrain_link]
-    
-    #Barrier Island Tidal Inlet (BITI) partition coefficients
-    #Each basin has it's own array of partition coefficients with size m by n,
-    #where m = number of compartments in the basin and n = the number of links in the basin
-    BITI_Terrebonne_partition = np.asarray(BITI_Terrebonne_setup)[3::,1:-2]
-    BITI_Barataria_partition = np.asarray(BITI_Barataria_setup)[3::,1:-2]
-    BITI_Pontchartrain_partition = np.asarray(BITI_Pontchartrain_setup)[3::,1:-2]
-    
-    #Barrier Island Tidal Inlet (BITI) depth to width ratio (dwr) for each link in each basin (Depth/Width)
-    BITI_Terrebonne_dwr = list(BITI_Terrebonne_setup.iloc[1,1:-2])
-    BITI_Barataria_dwr = list(BITI_Barataria_setup.iloc[1,1:-2])
-    BITI_Pontchartrain_dwr = list(BITI_Pontchartrain_setup.iloc[1,1:-2])
-    
-    #Barrier Island Tidal Inlet (BITI) basin-wide factor (BWF) for each basin
-    BITI_Terrebonne_BWF = float(BITI_Terrebonne_setup.iloc[1,-1])
-    BITI_Barataria_BWF = float(BITI_Barataria_setup.iloc[1,-1])
-    BITI_Pontchartrain_BWF = float(BITI_Pontchartrain_setup.iloc[1,-1])
-    
     #Barrier Island Tidal Inlet (BITI) tidal prism values
     #Get the tidal prism values for each compartment from the Hydro output
     BITI_Terrebonne_prism = [EH_prisms.get(comp) for comp in BITI_Terrebonne_comp]
     BITI_Barataria_prism = [EH_prisms.get(comp) for comp in BITI_Barataria_comp]
     BITI_Pontchartrain_prism = [EH_prisms.get(comp) for comp in BITI_Pontchartrain_comp]
-    
-    #BITI effective tidal prism and inlet area
-    #kappa and alpha are the Gulf of Mexico constants for unjettied systems (units = metric)
-    kappa = 6.99e-4
-    alpha = 0.86
-    
-    #Calculate the effective tidal prism and cross-sectional area for each link in each basin
-    #effective tidal prism = sum(tidal prism * partitioning coefficient) [summed across all compartments in the basin]
-    #cross-sectional area = kappa *((effective tidal prism)^alpha)
+
+
+    # create liste of ICM compartments that will be used as MHW for each BI group
+    IslandMHWCompLists = [598,493,348,281,43,15]
+
+
+    # Calculate the effective tidal prism and cross-sectional area for each link in each basin
+    # effective tidal prism = sum(tidal prism * partitioning coefficient) [summed across all compartments in the basin]
+    # cross-sectional area = kappa *((effective tidal prism)^alpha)
     BITI_Terrebonne_inlet_area = np.zeros(shape=len(BITI_Terrebonne_link))
     for n in range(0,len(BITI_Terrebonne_link)):
         BITI_Terrebonne_effective_prism = sum((BITI_Terrebonne_partition[:,n])*BITI_Terrebonne_prism)
@@ -1751,25 +1774,25 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     
     BITI_inlet_areas = [BITI_Terrebonne_inlet_area,BITI_Barataria_inlet_area,BITI_Pontchartrain_inlet_area]
     
-    #BITI depth for each link in each basin
-    #Depth = sqrt(inlet area*(depth to width ratio))
+    # BITI depth for each link in each basin
+    # Depth = sqrt(inlet area*(depth to width ratio))
     BITI_Terrebonne_inlet_depth = np.power(np.multiply(BITI_Terrebonne_inlet_area,BITI_Terrebonne_dwr),0.5)
     BITI_Barataria_inlet_depth = np.power(np.multiply(BITI_Barataria_inlet_area,BITI_Barataria_dwr),0.5)
     BITI_Pontchartrain_inlet_depth = np.power(np.multiply(BITI_Pontchartrain_inlet_area,BITI_Pontchartrain_dwr),0.5)
     
     BITI_inlet_depth = [BITI_Terrebonne_inlet_depth,BITI_Barataria_inlet_depth,BITI_Pontchartrain_inlet_depth]
     
-    #BITI width for each link in each basin
-    #Width = sqrt(inlet area/(depth to width ratio))
+    # BITI width for each link in each basin
+    # Width = sqrt(inlet area/(depth to width ratio))
     BITI_Terrebonne_inlet_width = np.power(np.divide(BITI_Terrebonne_inlet_area,BITI_Terrebonne_dwr),0.5)
     BITI_Barataria_inlet_width = np.power(np.divide(BITI_Barataria_inlet_area,BITI_Barataria_dwr),0.5)
     BITI_Pontchartrain_inlet_width = np.power(np.divide(BITI_Pontchartrain_inlet_area,BITI_Pontchartrain_dwr),0.5)
     
     BITI_inlet_width = [BITI_Terrebonne_inlet_width,BITI_Barataria_inlet_width,BITI_Pontchartrain_inlet_width]
     
-    #BITI dimensions
-    #Create a dictionary where key is link ID, first value is inlet depth, second value is inlet width
-    #This dictionary can be used to update the link attributes. All inlet links are Type 1 links.
+    # BITI dimensions
+    # Create a dictionary where key is link ID, first value is inlet depth, second value is inlet width
+    # This dictionary can be used to update the link attributes. All inlet links are Type 1 links.
     BITI_inlet_dimensions = {}
     for n in range(0,len(BITI_Links)):
         for k in range(0,len(BITI_Links[n])):
@@ -1777,172 +1800,79 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     
 
 
+
     #########################################################
     ##              RUN BARRIER ISLAND MODEL               ##
     #########################################################
     
     print('\n--------------------------------------------------' )
-    print('  RUNNING BARRIER ISLAND MODEL - Year %s' % year)
+    print('  RUNNING BARRIER ISLAND MODEL (ICM-BIDEM) - Year %s' % year)
     print('--------------------------------------------------\n')
-    print(' See separate log files generated by each BIMODE run.')
+    print(' See separate log files generated by each BI region.')
+
+    EH_MHW = dict((EH_comp_out[n][0],EH_comp_out[n][2]) for n in range(0,len(EH_comp_out)))     # create dictionary where key is compartment ID, values is mean water (column 3 of Ecohydro output)
+    del(EH_comp_out)
+    
+    BIMODEmhw = np.zeros(shape=len(IslandMHWCompLists))    # Initialize MHW array to zero - will write over previous year's array
+    for n in range(0,len(IslandMHWCompLists)):
+        comp = IslandMHWCompLists[n]
+        BIMODEmhw[n] = EH_MHW[comp]
+
+    
 
 
 
+    mhw_file_for_bimode = os.path.normpath(r'%s/%s' % (bimode_dir,BIMHWFile))
+    with open(mhw_file_for_bimode,'w') as f:                        
+        f.write('% MHW (m NAVD88)\t%SLR_A\t%SLR_B\t%Region ')                            
+        f.write('\n')
+        for n in range(0,len(IslandMHWCompLists)):
+            bmhw = str(BIMODEmhw[n])+'\t0.000\t0.000\t'+str(n+1)
+            f.write(bmhw)
+            f.write('\n')
+    
+    
+    # loop BI runs over the different folders - each with individual executables and I/O
+    fol_n = 0
+    for fol in bimode_folders:
+        print('\n Modeling %s' % fol)
+        bmdir = os.path.normpath(r'%s/%s' %(bimode_dir,fol))
+        os.chdir(bmdir)
+   
+    
+        
+        # run compiled Fortran executable - will automatically return to Python window when done running
+        print(' Running BIDEM executable for %s region.' % fol)
+        bimoderun = os.system('bidem_v23.0.0')
 
-    # create dictionary where key is compartment ID, values is mean water (column 3 of Ecohydro output)
-    EH_MHW = dict((EH_comp_out[n][0],EH_comp_out[n][2]) for n in range(0,len(EH_comp_out)))
+        if bimoderun != 0:
+            error_msg = '\n BIDEM model run for region %s year %s was unsuccessful.' % (fol,year)
+            sys.exit(error_msg)
 
 
+        print(' Interpolating BIDEM outputs to ICM-Morph DEM')
+        bidem_out = './results/profile_%04d' % elapsed_year
+        fixed_grid_in = bidem_fixed_grids[fol_n]
+        fixed_grid_out = './results/profile_%04d_interp.xyz' % elapsed_year
+        bidem_interp2xyz(bidem_out,fixed_grid_in,fixed_grid_out)
 
+        print(' Appending interpolated regional BIDEM output to coastwide file for use in ICM-Morph')
+        with open(bidem_xyz_file,mode='a') as allout:
+            with open(fixed_grid_out,mode='w') as regout:
+                for line in regout:
+                    allout.write(line)
+        fol_n += 1
+        os.remove(fixed_grid_out) # delete temp file that has region xyz snapped to DEM grid
 
-#test_hydro_veg#
-#test_hydro_veg#    # Initialize tidal prism and MHW arrays to zero - will write over previous year's array
-#test_hydro_veg#    BIMODEprisms = np.zeros(shape=len(IslandCompLists))
-#test_hydro_veg#    BIMODEmhw = np.zeros(shape=len(IslandMHWCompLists))
-#test_hydro_veg#
-#test_hydro_veg#    # Loop through each Barrier Islands Ecohydro compartments
-#test_hydro_veg#    # Add compartment tidal prism volumes to calculate total bay tidal prism for each island    
-#test_hydro_veg#    for n in range(0,len(IslandCompLists)):
-#test_hydro_veg#        BI = IslandCompLists[n]
-#test_hydro_veg#        for k in range(0,len(BI)):
-#test_hydro_veg#            comp=BI[k]
-#test_hydro_veg#    # compartment 296 is split between two different sets of Barrier Islands - therefore its volume is cut in half          
-#test_hydro_veg#            if comp==296:
-#test_hydro_veg#                BIMODEprisms[n] += EH_prisms[comp]/2
-#test_hydro_veg#            else:
-#test_hydro_veg#                BIMODEprisms[n] += EH_prisms[comp]    
-#test_hydro_veg#
-#test_hydro_veg#    for n in range(0,len(IslandMHWCompLists)):
-#test_hydro_veg#        comp = IslandMHWCompLists[n]
-#test_hydro_veg#        BIMODEmhw[n] = EH_MHW[comp]
-#test_hydro_veg#
-#test_hydro_veg#    del(EH_comp_out,EH_grid_out)
-#test_hydro_veg#
+    ## this will overwrite existing file named the same and located here (e.g. the previous year's file)
+    ## write master file with all profile XYZ info to text file that gets read by WM.py function
+    ## this is intentional, since the profile data is all saved individually within BIMODE project folders
 
-#test_hydro_veg#    
-#test_hydro_veg#                   
-#test_hydro_veg#    # initialize breach dictionary key for current year to an empty list
-#test_hydro_veg#    # this will be appended to with the profile numbers that have been breached
-#test_hydro_veg#    breaches[year]=[]
-#test_hydro_veg#    
-#test_hydro_veg#    # initialize array to pass profile output files into Wetland Morph
-#test_hydro_veg#    BMprof_forWM =[]
-#test_hydro_veg#    
-#test_hydro_veg#
-#test_hydro_veg#    
-#test_hydro_veg#    # write Tidal Prism file in made BIMODE folder
-#test_hydro_veg#    # Generate tab-seperated file of tidal prism volumes    
-#test_hydro_veg#    prism_file_for_bimode = os.path.normpath(r'%s/%s' % (bimode_dir,BIPrismFile))
-#test_hydro_veg#    with open(prism_file_for_bimode,'w') as f:                        
-#test_hydro_veg#        f.write('% Tidal Prism\t%Region')                            
-#test_hydro_veg#        f.write('\n')
-#test_hydro_veg#        for n in range(0,len(IslandCompLists)):
-#test_hydro_veg#            prism = str(BIMODEprisms[n])+'\t'+str(n+1)
-#test_hydro_veg#            f.write(prism)
-#test_hydro_veg#            f.write('\n')
-#test_hydro_veg#    
-#test_hydro_veg#    mhw_file_for_bimode = os.path.normpath(r'%s/%s' % (bimode_dir,BIMHWFile))
-#test_hydro_veg#    with open(mhw_file_for_bimode,'w') as f:                        
-#test_hydro_veg#        f.write('% MHW (m NAVD88)\t%SLR_A\t%SLR_B\t%Region ')                            
-#test_hydro_veg#        f.write('\n')
-#test_hydro_veg#        for n in range(0,len(IslandMHWCompLists)):
-#test_hydro_veg#            bmhw = str(BIMODEmhw[n])+'\t0.000\t0.000\t'+str(n+1)
-#test_hydro_veg#            f.write(bmhw)
-#test_hydro_veg#            f.write('\n')
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg#    # loop BIMODE runs over the different folders - each with individual executables and I/O
-#test_hydro_veg#    for fol in bimode_folders:
-#test_hydro_veg#        print('\n Modeling %s' % fol)
-#test_hydro_veg#        bmdir = os.path.normpath(r'%s/%s' %(bimode_dir,fol))
-#test_hydro_veg#        os.chdir(bmdir)
-#test_hydro_veg#    
-#test_hydro_veg#    # copy tidal prism file into specific BIMODE folder (shutil.copy will overwrite any existing tidal prism file that has the same name)
-#test_hydro_veg#        prism_file_for_folder = os.path.normpath('%s/input/%s' %(bmdir,BIPrismFile))
-#test_hydro_veg#        shutil.copy(prism_file_for_bimode,prism_file_for_folder)
-#test_hydro_veg#    # copy MHW file into specific BIMODE folder (shutil.copy will overwrite any existing tidal prism file that has the same name)
-#test_hydro_veg#        mhw_file_for_folder = os.path.normpath('%s/input/%s' %(bmdir,BIMHWFile))
-#test_hydro_veg#        shutil.copy(mhw_file_for_bimode,mhw_file_for_folder)
-#test_hydro_veg#    
-#test_hydro_veg#    
-#test_hydro_veg#        
-#test_hydro_veg## run compiled Fortran executable - will automatically return to Python window when done running
-#test_hydro_veg#        print(' Running BIMODE executable for %s region.' % fol)
-#test_hydro_veg#        bimoderun = os.system('bimo.exe')
-#test_hydro_veg#        
-#test_hydro_veg#        if bimoderun != 0:
-#test_hydro_veg#            print('\n\n  BIMODE did not run for year %s.' % year  )
-#test_hydro_veg#            waittime = random.random()*60
-#test_hydro_veg#            print('\n Retrying BIMODE model run for year %s after waiting %.2f seconds.' % (year,waittime)  )
-#test_hydro_veg#            print(' Waiting...')
-#test_hydro_veg#            time.sleep(waittime)
-#test_hydro_veg#            print(' Done waiting. Retrying BIMODE now.')
-#test_hydro_veg#            bimoderun = os.system('bimo.exe')
-#test_hydro_veg#
-#test_hydro_veg#            if bimoderun != 0:
-#test_hydro_veg#                print('\n\n  BIMODE still did not run for year %s.' % year  )
-#test_hydro_veg#                waittime = random.random()*60
-#test_hydro_veg#                print('\n Retrying BIMODE model run for year %s after waiting %.2f seconds.' % (year,waittime)    )
-#test_hydro_veg#                print(' Waiting...')
-#test_hydro_veg#                time.sleep(waittime)
-#test_hydro_veg#                print(' Done waiting. Retrying BIMODE now.')
-#test_hydro_veg#                bimoderun = os.system('bimo.exe')
-#test_hydro_veg#
-#test_hydro_veg#                if bimoderun != 0:
-#test_hydro_veg#                    error_msg = '\n BIMODE model run for year %s was unsuccessful.' % year
-#test_hydro_veg#                    sys.exit(error_msg)
-#test_hydro_veg#
-#test_hydro_veg#    
-#test_hydro_veg## rename existing tidal prism files by appending model year to file name
-#test_hydro_veg#        print(' Cleaning up BIMODE files for %s region.' % fol)
-#test_hydro_veg#        prismfile_noext = BIPrismFile.split('.')
-#test_hydro_veg#        rename_BMprism = os.path.normpath(r'%s/input/%s_%04d.%s' % (bmdir,prismfile_noext[0],year-startyear+1,prismfile_noext[1]))
-#test_hydro_veg#
-#test_hydro_veg## first try rename, so that a warning is given that the existing tidal prism file is being overwritten (only occurs if old model run data exists)    
-#test_hydro_veg#        try:
-#test_hydro_veg#            os.rename(prism_file_for_folder,rename_BMprism)
-#test_hydro_veg#        except OSError as Exception:
-#test_hydro_veg#            if Exception.errno == errno.EEXIST:
-#test_hydro_veg#                print(' Tidal prism file %s already exists.' % rename_BMprism)
-#test_hydro_veg#                print(' The pre-existing file was deleted and overwritten.')
-#test_hydro_veg#                shutil.copy(prism_file_for_folder,rename_BMprism)
-#test_hydro_veg#
-#test_hydro_veg#        # read in profiles that were breached during model year
-#test_hydro_veg#        breachfile = os.path.normpath('%s/results/Breaching_%04d' %(bmdir,elapsedyear))   #BIMODE uses output files use elapsed years, BIMODE file at end of startyear = filename1
-#test_hydro_veg#        brs = np.genfromtxt(breachfile,skip_header=1)
-#test_hydro_veg#        # read through profiles and append to breach dictionary for year if breached
-#test_hydro_veg#        for n in range(0,len(brs)):
-#test_hydro_veg#            if brs[n,1] == 1.:
-#test_hydro_veg#                   breaches[year].append(brs[n,0])
-#test_hydro_veg#
-#test_hydro_veg#
-#test_hydro_veg#        ## append profile files to array that gets passed to WM.py - use np.vstack if profile array has already been started
-#test_hydro_veg#        print(' Adding BIMODE output profile data for %s into array with profiles from other regions.' % fol)
-#test_hydro_veg#        profilefile = os.path.normpath('%s/results/profile_%04d' %(bmdir,year-startyear+1))
-#test_hydro_veg#        if len(BMprof_forWM) == 0:
-#test_hydro_veg#            BMprof_forWM=np.genfromtxt(profilefile,usecols=[0,1,2]) #ignore last column of file, which is the profile ID #
-#test_hydro_veg#        else:
-#test_hydro_veg#            BMprof_forWM=np.vstack((BMprof_forWM,np.genfromtxt(profilefile,usecols=[0,1,2])))
-#test_hydro_veg#        # check BIMODE results folder for separate 'window file' which is proflies located in island passes
-#test_hydro_veg#        
-#test_hydro_veg#        # if this file exists, append those xyz values to BMprof_forWM with np.vstack
-#test_hydro_veg#        passprofilefile = os.path.normpath('%s/results/window_file_%04d' %(bmdir,year-startyear+1))
-#test_hydro_veg#        if os.path.isfile(passprofilefile) == True:
-#test_hydro_veg#            BMprof_forWM=np.vstack((BMprof_forWM,np.genfromtxt(profilefile,usecols=[0,1,2],skip_header = 1)))
-#test_hydro_veg#        
-#test_hydro_veg#              
-#test_hydro_veg#        
-#test_hydro_veg#    ## write master file with all profile XYZ info to text file that gets read by WM.py function
-#test_hydro_veg#    ## this will overwrite existing file named the same and located here (e.g. the previous year's file)
-#test_hydro_veg#    ## this is intentional, since the profile data is all saved individually within BIMODE project folders
-#test_hydro_veg#
-#test_hydro_veg#    print('\n Writing all BIMODE profiles to single text file to pass to Morphology model.')
-#test_hydro_veg#    BMprof_forWMfile = os.path.normpath(r'%s/BIMODEprofiles.xyz' %(bimode_dir))
-#test_hydro_veg#    np.savetxt(BMprof_forWMfile,BMprof_forWM,delimiter='   ',comments='',fmt=['%.4f','%.4f','%.4f'])
-#test_hydro_veg#    
-#test_hydro_veg#    del BMprof_forWM
-#test_hydro_veg#
-#test_hydro_veg#    
+    print('\n Writing all BIMODE profiles to single text file to pass to Morphology model.')
+    BMprof_forWMfile = os.path.normpath(r'%s/BIMODEprofiles.xyz' %(bimode_dir))
+    np.savetxt(BMprof_forWMfile,BMprof_forWM,delimiter='   ',comments='',fmt=['%.4f','%.4f','%.4f'])
+    
+    del BMprof_forWM
 
 
 
