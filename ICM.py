@@ -1965,12 +1965,13 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n" % file_prefix_prv)
             ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % file_prefix_prv)
 
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017meer30.xyz', meer_file -  file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_polder30.xyz', pldr_file -  file name with relative path to polder file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G500_C000_U00_V00_SLA_I_00_00_W_meer30.xyz', meer_file -  file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_polder.xyz', pldr_file -  file name with relative path to polder file that is same resolution and structure as DEM XYZ\n")
         ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017comp30.xyz', comp_file -  file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017grid30.xyz', grid_file -  file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2023dpsub30.xyz', dsub_file -  file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.xyz', grid_file -  file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n")
+        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_dpsub.xyz', dsub_file -  file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n")
         ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file -  file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
+        ip_csv.write(" %d,column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)", % shallow_subsidence_column)
         ip_csv.write("'geomorph/input/compartment_active_delta.csv', act_del_file -  file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n")
         ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file -  file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
         ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file -  file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
@@ -2008,7 +2009,7 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
 
-    morph_run = subprocess.call('./morph_v23.G031.1')
+    morph_run = subprocess.call('./morph_v23.1.0')
 
 
 
