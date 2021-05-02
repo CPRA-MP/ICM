@@ -14,10 +14,10 @@ Input Configuration Filename for Geomorphology model,input_params.csv
 Input Configuration Filename for Hydrology model,RuncontrolR.dat
 Filename for hydrology compartments file Hydrology model,Cells.csv
 Filename for hydraulic link file for Hydrology model,Links.csv
-Filename for Tidal Prism file prepared by Hydrology model,tidal_prism_ecohydro.txt
 Filename for MHW file prepared by Hydrology model,MHW_ecohydro.txt
 Filename for Hydrology model input file that contains ICM information,ICM_info_into_EH.txt
-Filename for file linking Hydrology model hydraulic links to Barrier Island model profiles,EHlinkBIMODEprofileLookup.csv
+Shallow subsidence column to use for current scenario (1=25th; 2=50th; 3=75th percentiles),1
+Open slot for future variable,-
 #########################################################################,
 ## Filenames for Veg model input,
 Vegetation model input file: Standard deviation in summer water level,wselv.asc
@@ -71,9 +71,15 @@ Number of 1D River Domain,4
 ## Barrier Island Model settings,
 Input Configuration Filename for Tidal Inlet model,BITI_setup_input.xslx
 Number of BIMODE directories,6
-Subfolder in BIMODE directory,IsleDernieres
-Subfolder in BIMODE directory,Timbalier
-Subfolder in BIMODE directory,Caminada
-Subfolder in BIMODE directory,Barataria
-Subfolder in BIMODE directory,Breton
-Subfolder in BIMODE directory,Chandeleurs
+Subfolder in BIDEM directory 1,IsleDernieres
+Subfolder in BIDEM directory 2,Timbalier
+Subfolder in BIDEM directory 3,Caminada
+Subfolder in BIDEM directory 4,Barataria
+Subfolder in BIDEM directory 5,Breton
+Subfolder in BIDEM directory 6,Chandeleurs
+Fixed BIDEM xyz grid for BIDEM directory 1,MP2023_S00_G000_C000_U00_V00_IsleDernieres_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 2,MP2023_S00_G000_C000_U00_V00_Timbalier_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 3,MP2023_S00_G000_C000_U00_V00_Caminada_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 4,MP2023_S00_G000_C000_U00_V00_Barataria_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 5,MP2023_S00_G000_C000_U00_V00_Breton_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 6,MP2023_S00_G000_C000_U00_V00_Chandeleurs_BIDEM_I_00_00_M_dem30.xyz
