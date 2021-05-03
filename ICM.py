@@ -419,11 +419,14 @@ EHConfigFile = inputs[9,1].lstrip().rstrip()
 EHCellsFile = inputs[10,1].lstrip().rstrip()
 EHLinksFile = inputs[11,1].lstrip().rstrip()
 BIMHWFile = inputs[12,1].lstrip().rstrip()
-EHInterfaceFile = inputs[13,1].lstrip().rstrip()
+exist_cond_tag = inputs[13,1].lstrip().rstrip()
+fwoa_init_cond_tag = inputs[14,1].lstrip().rstrip()
 shallow_subsidence_column = int(inputs[15,1].lstrip().rstrip())
-not_used = inputs[14,1].lstrip().rstrip()
+
 compartment_output_file = 'compartment_out.csv'
-grid_output_file = 'grid_500m_out.csv'
+grid_output_file        = 'grid_500m_out.csv'
+EHInterfaceFile         = 'ICM_info_into_EH.txt'
+
 
 # Filenames for Veg model input
 WaveAmplitudeFile = inputs[16,1].lstrip().rstrip()
@@ -481,6 +484,8 @@ rterm = inputs[50,1].lstrip().rstrip()
 runprefix = '%s_%s_%s_%s_%s_%s_%s' % (mpterm,sterm,gterm,cterm,uterm,vterm,rterm)
 file_prefix_cycle = r'%s_N_%02d_%02d' % (runprefix,cycle_start_elapsed,cycle_end_elapsed)     
 file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
+
+
     
 # 1D Hydro model information
 n_1D = int(inputs[51,1].lstrip().rstrip())
@@ -1549,7 +1554,9 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
             RmOutFileBK = os.path.normpath(r'%s/output/SedConSand_output_%s.dat' % (SandConfigFile[i],year))
             os.rename(RmOutFile,RmOutFileBK)    
 
-
+    
+    
+    # set file names for files passed from Hydro into Veg and Morph
     stg_ts_file = r'%s/STG.out' % ecohydro_dir
     sal_ts_file = r'%s/SAL.out' % ecohydro_dir
     tss_ts_file = r'%s/TSS.out' % ecohydro_dir
@@ -1562,8 +1569,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
     griddata_file = os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year-1) )
     bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
-    
-    
+
+
     ########################################################
     ##  Format ICM-Hydro output data for use in ICM-Morph ##
     ########################################################
@@ -1959,17 +1966,18 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         ip_csv.write("1,binary_out - write raster datas to binary format only (1) or to ASCI XYZ files (0)\n")
 
         if year == startyear:
-            ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n")
-            ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2023lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n")
+            ip_csv.write("'geomorph/input/%s_W_dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n" % fwoa_init_cond_tag)
+            ip_csv.write("'geomorph/input/%s_W_lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
         else:
             ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n" % file_prefix_prv)
             ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % file_prefix_prv)
 
-        ip_csv.write("'geomorph/input/MP2023_S00_G500_C000_U00_V00_SLA_I_00_00_W_meer30.xyz', meer_file -  file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_polder.xyz', pldr_file -  file name with relative path to polder file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_2017comp30.xyz', comp_file -  file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.xyz', grid_file -  file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n")
-        ip_csv.write("'geomorph/input/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_dpsub.xyz', dsub_file -  file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n")
+
+        ip_csv.write("'geomorph/input/%s_W_meer30.xyz', meer_file -  file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_polder30.xyz', pldr_file -  file name with relative path to polder file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_comp30.xyz', comp_file -  file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_grid30.xyz', grid_file -  file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/_W_dpsub.xyz', dsub_file -  file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file -  file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
         ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)", % shallow_subsidence_column)
         ip_csv.write("'geomorph/input/compartment_active_delta.csv', act_del_file -  file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n")

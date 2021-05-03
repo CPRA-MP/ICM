@@ -14,10 +14,10 @@ Input Configuration Filename for Geomorphology model,input_params.csv
 Input Configuration Filename for Hydrology model,RuncontrolR.dat
 Filename for hydrology compartments file Hydrology model,Cells.csv
 Filename for hydraulic link file for Hydrology model,Links.csv
-Filename for MHW file prepared by Hydrology model,MHW_ecohydro.txt
-Filename for Hydrology model input file that contains ICM information,ICM_info_into_EH.txt
+Filename for MHW file prepared by Hydrology model for use in Barrier Island Model,MHW_ecohydro.txt
+Filenaming convention tag to use for existing condition files,MP2023_S00_G000_C000_U00_V00_SLA_I_00_00
+Filenaming convention tag to use for FWOA initial condition files,MP2023_S00_G500_C000_U00_V00_SLA_I_00_00
 Shallow subsidence column to use for current scenario (1=25th; 2=50th; 3=75th percentiles),1
-Open slot for future variable,-
 #########################################################################,
 ## Filenames for Veg model input,
 Vegetation model input file: Standard deviation in summer water level,wselv.asc
@@ -58,7 +58,7 @@ Y coordinate(UTM meters) of lower left corner of Fisheries input ASCII file,0
 ## Filenaming settings,
 Filename prefix to use for all files,MP2023
 Scenario term for filename(S22),S06
-Group term for filename(G333),G501
+Group term for filename (G333),G501
 CLARA term for filename(C22),C000
 Uncertainty term for filename(U22),U00
 Variance term for filename(V22),V00
