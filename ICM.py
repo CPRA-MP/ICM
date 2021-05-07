@@ -81,6 +81,26 @@ def daily2max(all_sd,ave_sd,ave_ed,input_file):
     return comp_max
 
 
+def daily2day(all_sd,day2get,input_file):
+    # this function reads a portion of the ICM-Hydro daily timeseries and extracts a single daily value for the day passed into the fuction as day2get
+
+    # if looping through the whole file and batch generating for a bunch of timeslices it will be faster to read in the whole file to a numpy array and iterating over the whole array rather than iteratively calling this function
+
+    # 'all_sd' is the start date of all data included in the daily timeseries file - all_sd is a datetime.date object
+    # 'day2get' is the date to extract  - day2get is a datetime.date object
+
+
+    all_rows = file_len(input_file)
+    skip_head = (day2get - all_sd).days + 1  # number of rows at top of daily timeseries to skip until date to extract is met
+    skip_foot = all_rows - skip_head - 1
+    dataline = np.genfromtxt(input_file,dtype='str',delimiter=',',skip_header=skip_head,skip_footer=skip_foot)
+    comp_day = {}
+    ncol = 0
+    for col in dataline:
+        comp_day[ncol+1]=col        # ICM-Hydro timeseries output files have column numbers with 1-index that corresponds to the ICM-Hydro compartment number
+        ncol += 1
+    return comp_day
+
 def comp2grid(comp_data_dict,grid_comp_dict):
     # this function maps ICM-Hydro compartment level data to the 500-m grid
     # this function returns a dictionary 'grid_data' that has grid ID as the key and the respective compartment-level data as the value
@@ -179,7 +199,9 @@ def forward2backslash(fs_file):
 def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
     # This function reads an irregular XYZ file and linearly interpolates the z values to
     # a regular grid that is pre-defined.
-    # This function currently assumes that all XYZ files do not have a header and are always space delimited
+    #
+    # This function currently assumes that all XYZ model output files do not have a header and are comma delimited
+    # The fixed grid XYZ file snapped to the DEM raster does not have a header and is space delimited
     # The output can have headers printed by changing the .to_csv() function call
     
     # irregular_xyz_in:  randomly spaced XYZ file to be interpolated to a fixed grid
@@ -190,8 +212,8 @@ def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
 
     
     # read in irregular and regular grids
-    results = pd.read_csv( irregular_xyz_in,delim_whitespace=True,names=['x','y','z','trans'] ) 
-    fixed_grid = pd.read_csv( fixed_xyz_in,delim_whitespace=True,names=['x','y','z'] ) 
+    results = pandas.read_csv( irregular_xyz_in,delim_whitespace=False,names=['x','y','z','trans'] ) 
+    fixed_grid = pandas.read_csv( fixed_xyz_in,delim_whitespace=True,names=['x','y','z'] ) 
 
     # restructure input arrays so that they align for passing into scipy.griddata function
     results_xy = np.vstack((results.x,results.y)).T
@@ -199,10 +221,44 @@ def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
     fixed_grid_array = np.vstack((fixed_grid.x,fixed_grid.y)).T  #array of fixed output xy locations
     
     # linearly interpolate to fixed grid using scipy.griddata()
+    # returns a 1-D array with interpolated values for each x-y pair in fixed_grid_array
+    # note that points on the edges of the grid domain *may* return NaN from griddata()
+    # could be handled by passing a default fill value into griddata via fill_value variable
+    # instead it will be handled lower to keep previous values
     interp_results = griddata(results_xy,results.z,fixed_grid_array,method='linear')
     
-    interp2write = pd.DataFrame(data = np.hstack((fixed_grid_array,np.expand_dims(interp_results,axis=1))),columns=['x','y','z'])
-    interp2write.to_csv(fixed_xyz_out,sep=' ',index=False, header=False)
+    with open(fixed_xyz_out,mode='w') as interp2write:
+        nanflag = 0
+        for ni in range(0,len(interp_results)):
+            x = fixed_grid_array[ni][0]
+            y = fixed_grid_array[ni][1]
+            z = interp_results[ni]
+            if np.isnan(z):
+                nanflag = 1
+                if ni == 0:
+                    z = np.mean(interp_results)
+                else:
+                    z = last_good_z
+            else:
+                last_good_z = z    
+            writeout = interp2write.write( '%d %d %0.4f\n' % (x,y,z) )
+    
+    if nanflag == 1:
+        print('\n***************************************************')
+        print('*******  INTERPOLATION RETURNED NaN VALUES  *******')
+        print('***************************************************')
+        print('\nAt least one interpolated profile had a NaN value returned at the edge of the interpolation grid domain.')
+        print('The NaN was filled with the last known interpolated Z value. This could result in holes or spikes if the last')
+        print('known good interpolated value was from a different profile.')
+        print('')
+        print('However, based on visual QA - the NaNs appeared to be on the back-end of each grid domain, so this *should* be')
+        print('a fairly safe NaN-filling approach.\n')
+        print('***************************************************')
+        print('*******  INTERPOLATION RETURNED NaN VALUES  *******')
+        print('***************************************************\n')
+    
+    #interp2write = pandas.DataFrame(data = np.hstack((fixed_grid_array,np.expand_dims(interp_results,axis=1))),columns=['x','y','z'])
+    #interp2write.to_csv(fixed_xyz_out,sep=' ',index=False, header=False)
 
 #########################################################################################################
 ####                                                                                                 ####   
@@ -507,7 +563,7 @@ asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='in
 asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
 
 # read in compartment-to-grid structure
-grid_lookup_file = '%s/grid_lookup_500m.csv' % hydro_dir
+grid_lookup_file = '%s/grid_lookup_500m.csv' % ecohydro_dir
 grid_comp_np = np.genfromtxt(grid_lookup_file,delimiter=',',skip_header=1,usecols=[0,1],dtype='int')
 grid_comp_dict = {rows[0]:rows[1] for rows in grid_comp_np}
 del(grid_comp_np)
@@ -612,32 +668,32 @@ if n_1D > 0:
         SalConfigFile[i]     = SalConfigFile[i].replace('"','')
             
         
-
-# change working directory to hydro folder
-os.chdir(ecohydro_dir)
-
-## Check if output files from Ecohydro model exist in the project directory.
-## These are opened and written to in 'append' mode in the Fortran code, so they cannot exist in the model 
-## directory before ICM year 1 is run.
-## In the first model year, these files will not exist, so Fortran will automatically generate them.
-## In all subsequent model years, results will be appended to end of existing output files.
-eh_outfiles = os.listdir(ecohydro_dir)
-
-ehflag = 0
-for files in eh_outfiles:
-        if files.endswith('.out'):
-                ehflag = 1
-
-if elapsed_hotstart > 0:
-    ehflag = 0
-
-if ehflag == 1:
-    print('\n**************ERROR**************')
-    print('\n Hydro output files already exist in Hydro project directory.')
-
-    exitmsg='\n Manually remove *.out files and re-run ICM.'
-    sys.exit(exitmsg)
-    
+#test BIDEM and Morph#
+#test BIDEM and Morph## change working directory to hydro folder
+#test BIDEM and Morph#os.chdir(ecohydro_dir)
+#test BIDEM and Morph#
+#test BIDEM and Morph### Check if output files from Ecohydro model exist in the project directory.
+#test BIDEM and Morph### These are opened and written to in 'append' mode in the Fortran code, so they cannot exist in the model 
+#test BIDEM and Morph### directory before ICM year 1 is run.
+#test BIDEM and Morph### In the first model year, these files will not exist, so Fortran will automatically generate them.
+#test BIDEM and Morph### In all subsequent model years, results will be appended to end of existing output files.
+#test BIDEM and Morph#eh_outfiles = os.listdir(ecohydro_dir)
+#test BIDEM and Morph#
+#test BIDEM and Morph#ehflag = 0
+#test BIDEM and Morph#for files in eh_outfiles:
+#test BIDEM and Morph#        if files.endswith('.out'):
+#test BIDEM and Morph#                ehflag = 1
+#test BIDEM and Morph#
+#test BIDEM and Morph#if elapsed_hotstart > 0:
+#test BIDEM and Morph#    ehflag = 0
+#test BIDEM and Morph#
+#test BIDEM and Morph#if ehflag == 1:
+#test BIDEM and Morph#    print('\n**************ERROR**************')
+#test BIDEM and Morph#    print('\n Hydro output files already exist in Hydro project directory.')
+#test BIDEM and Morph#
+#test BIDEM and Morph#    exitmsg='\n Manually remove *.out files and re-run ICM.'
+#test BIDEM and Morph#    sys.exit(exitmsg)
+#test BIDEM and Morph#    
 ## repeat check for output files - but look in Veg folder for files generated by hydro.exe Fortran program
 ## change working directory to veg folder
 os.chdir(vegetation_dir)
@@ -666,22 +722,22 @@ ehveg_outfiles = [VegWaveAmpFile,VegMeanSalFile,VegSummerDepthFile,VegSummerSalF
 pwatr_grid_file     = os.path.normpath(r'%s/%s_H_%s'     % (vegetation_dir,file_prefix_cycle,PerWaterFile) )
 acute_sal_grid_file = os.path.normpath(r'%s/%s_H_%s' % (vegetation_dir,file_prefix_cycle,AcuteSalFile) )
 
-vegflag = 0    
-
-for veginfile in ehveg_outfiles:
-    if os.path.isfile(veginfile.replace(lq,"")) == True:               # remove any leading quotes from vegfile path
-        vegflag = 1
-
-if elapsed_hotstart > 0:
-    vegflag = 0
-
-
-if vegflag == 1:
-    print('\n**************ERROR**************')
-    print('\n Hydro output files formatted for Veg model already exist in Veg project directory.\n Move or delete files and re-run ICM.')
-    exitmsg='\n Manually remove files from Veg directory and re-run ICM.'
-    sys.exit(exitmsg)       
-
+#test BIDEM and Morph#vegflag = 0    
+#test BIDEM and Morph#
+#test BIDEM and Morph#for veginfile in ehveg_outfiles:
+#test BIDEM and Morph#    if os.path.isfile(veginfile.replace(lq,"")) == True:               # remove any leading quotes from vegfile path
+#test BIDEM and Morph#        vegflag = 1
+#test BIDEM and Morph#
+#test BIDEM and Morph#if elapsed_hotstart > 0:
+#test BIDEM and Morph#    vegflag = 0
+#test BIDEM and Morph#
+#test BIDEM and Morph#
+#test BIDEM and Morph#if vegflag == 1:
+#test BIDEM and Morph#    print('\n**************ERROR**************')
+#test BIDEM and Morph#    print('\n Hydro output files formatted for Veg model already exist in Veg project directory.\n Move or delete files and re-run ICM.')
+#test BIDEM and Morph#    exitmsg='\n Manually remove files from Veg directory and re-run ICM.'
+#test BIDEM and Morph#    sys.exit(exitmsg)       
+#test BIDEM and Morph#
 ## change working directory to hydro folder
 os.chdir(ecohydro_dir)        
                                            
@@ -698,27 +754,27 @@ if os.path.isdir(EHtemp_path):
 if elapsed_hotstart > 0:
     rnflag = 0
 
-if rnflag == 1:   
-    print('\n**************ERROR**************')
-    print('\n Temporary folder for Hydro files already exists.')
-    exitmsg='\n Manually delete TempFiles directory and re-run ICM.'
-    sys.exit(exitmsg)    
-    
-if elapsed_hotstart == 0:
-    try:                                
-        os.makedirs(EHtemp_path)
-    
-    except OSError as Exception:        
-        print('******ERROR******'       )
-        error_msg = ' Error encountered during Hydrology Model configuration.\n'+str(Exception)+'\n Check error and re-run ICM.'
-        ## re-write error message if it was explictily an 'existing file' error.
-        if Exception.errno == errno.EEXIST:
-            error_msg = '\n Temporary folder for Hydro files already exists.\n Rename existing folder if files are needed, otherwise delete and re-run ICM.'
-             
-
-del (ehflag,vegflag,rnflag)
-print(' Writing file to be passed to Hydro routine containing location of files shared with Vegetation Model.')
-                                    
+#test BIDEM and Morph#if rnflag == 1:   
+#test BIDEM and Morph#    print('\n**************ERROR**************')
+#test BIDEM and Morph#    print('\n Temporary folder for Hydro files already exists.')
+#test BIDEM and Morph#    exitmsg='\n Manually delete TempFiles directory and re-run ICM.'
+#test BIDEM and Morph#    sys.exit(exitmsg)    
+#test BIDEM and Morph#    
+#test BIDEM and Morph#if elapsed_hotstart == 0:
+#test BIDEM and Morph#    try:                                
+#test BIDEM and Morph#        os.makedirs(EHtemp_path)
+#test BIDEM and Morph#    
+#test BIDEM and Morph#    except OSError as Exception:        
+#test BIDEM and Morph#        print('******ERROR******'       )
+#test BIDEM and Morph#        error_msg = ' Error encountered during Hydrology Model configuration.\n'+str(Exception)+'\n Check error and re-run ICM.'
+#test BIDEM and Morph#        ## re-write error message if it was explictily an 'existing file' error.
+#test BIDEM and Morph#        if Exception.errno == errno.EEXIST:
+#test BIDEM and Morph#            error_msg = '\n Temporary folder for Hydro files already exists.\n Rename existing folder if files are needed, otherwise delete and re-run ICM.'
+#test BIDEM and Morph#             
+#test BIDEM and Morph#
+#test BIDEM and Morph#del (ehflag,vegflag,rnflag)
+#test BIDEM and Morph#print(' Writing file to be passed to Hydro routine containing location of files shared with Vegetation Model.')
+#test BIDEM and Morph#                                    
 
 max_string = max(len(VegWaveAmpFile),len(VegMeanSalFile),len(VegSummerDepthFile),len(VegSummerSalFile),len(VegSummerTempFile),len(VegTreeEstCondFile),len(VegPerLandFile))
 
@@ -798,14 +854,6 @@ EH_grid_file = 'grid_data_500m.csv' # this must match file name used in hydro.ex
 EH_grid_filepath = os.path.normpath('%s/%s' % (ecohydro_dir,EH_grid_file)) # location of grid_data_500m.csv when used by hydro.exe
 
 
-linklup=np.genfromtxt(EHBMfile,delimiter=',',skip_header=1)
-
-## Save profile-link lookup as a dictionary, key is EH link ID, value is BIMODE profile
-linktoprofile = dict((linklup[n,0],linklup[n,1])for n in range(0,len(linklup)))
-
-## remove temporary variables/arrays that aren't needed
-del(linklup,EHBMfile)
-
 
 # check to see if hydro input data start date is different than ICM start year
 if inputStartYear > startyear:
@@ -842,17 +890,17 @@ for year in range(inputStartYear,endyear):
             annual_total += float(r[3])             # 4th column in TideData is Amerada Pass, LA
             n+=1                                    # 8760 hours or 8784 hours if leap year      
     annual_mean_mm.append((annual_total/n)*1000)    # take the mean of the hourly data and convert from m to mm
-
-p = np.polyfit(years, np.asarray(annual_mean_mm),2) # fit a quadratic to the annual mean data
+yrs4polyfit = range(inputStartYear,endyear)
+p = np.polyfit(yrs4polyfit, np.asarray(annual_mean_mm),2) # fit a quadratic to the annual mean data
 ESLR_rate_mmyr = []
 for year in range(inputStartYear,endyear):
     ESLR_rate_mmyr.append((p[0]*2*year)+(p[1]))     # take the first derivative and plug in years to get the rate
             
 for fol in bimode_folders:
-    ESLR_out_file = r'%s/%s/input/SLR_record4modulation.txt' %(bimode_dir,fol) )
+    ESLR_out_file = r'%s/%s/input/SLR_record4modulation.txt' %(bimode_dir,fol)
     with open(ESLR_out_file, mode='w') as outf: 
         i = 0
-        for i in range(0,len(years)):
+        for year in range(inputStartYear,endyear):
             outf.write("%d %0.2f\n" % (year,ESLR_rate_mmyr[i]))
             i += 1
 
@@ -860,6 +908,8 @@ print(' Configuring tidal inlet settings for ICM-BITI.')
 # Barrier Island Tidal Inlet (BITI) input file
 # The input file only needs to be read once
 # It contains the comp IDs, link IDs, depth to width ratios, partition coefficients, and basin-wide factors.
+# The Pandas.iloc pointer is used below and must be updated if input file changes structure
+
 BITI_input_filename = os.path.normpath(r'%s/%s' % (bimode_dir,BITIconfig) )
 
 BITI_Terrebonne_setup = pandas.read_excel(BITI_input_filename, 'Terrebonne',index_col=None)
@@ -1138,298 +1188,305 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     ## run various steps that update Ecohydro input files with new values
     ## skip if this is first year of ICM run
     if year != startyear+elapsed_hotstart:
-#test_hydro_veg#        print(' Importing updated landscape attributes from Morphology output files - Year %s' % year)
-#test_hydro_veg#        ## set output hotstart file generated from last model timestep to be new input hotstart file
+        print(' Importing updated landscape attributes from Morphology output files - Year %s' % year)
+        ## set output hotstart file generated from last model timestep to be new input hotstart file
         os.rename('hotstart_out.dat', 'hotstart_in.dat')
-#test_hydro_veg#        ## update LW ratio in Cells.csv (compartment attributes table)
-#test_hydro_veg#        # new pct water from WM output saved in temp folder during last model year (year-1)
-#test_hydro_veg#        PctWaterFile = os.path.normpath(r'%s/PctWater_%s.csv' % (EHtemp_path,year-1))  # this must match name set in "WM.CalculateEcohydroAttributes" with the exception of (year-1) here instead of CurrentYear
-#test_hydro_veg#        new_pctwater = np.genfromtxt(PctWaterFile,delimiter=',')
-#test_hydro_veg#        new_pctwater_dict=dict((new_pctwater[n,0],new_pctwater[n,1]) for n in range(0,len(new_pctwater)))
-#test_hydro_veg#        
-#test_hydro_veg#        # move grid data file from location saved by previous year's Morph run to the Hydro directory (new_grid_filepath not defined until after Morph is run each year)
-#test_hydro_veg#        os.rename(new_grid_filepath,EH_grid_filepath)
-#test_hydro_veg#                
-#test_hydro_veg#        # new pct upland from WM output saved in temp folder during last model year (year-1)
-#test_hydro_veg#        PctUplandFile = os.path.normpath(r'%s/PctUpland_%s.csv' % (EHtemp_path,year-1))  # this must match name set in "WM.CalculateEcohydroAttributes" with the exception of (year-1) here instead of CurrentYear
-#test_hydro_veg#        new_pctupland = np.genfromtxt(PctUplandFile,delimiter=',')
-#test_hydro_veg#        new_pctupland_dict=dict((new_pctupland[n,0],new_pctupland[n,1]) for n in range(0,len(new_pctupland)))
-#test_hydro_veg#        
-#test_hydro_veg#        ## read in updated bed and land elevation values for compartments - save in dictionaries where compartment ID is the key
-#test_hydro_veg#        ## column 1 = compartment ID, column 2 = bed elev, column 3 = land elev, column 4 - marsh edge length
-#test_hydro_veg#        # The marsh elevation value is filtered in WM.CalculateEcohydroAttributes() such that the average marsh elevation can be no lower than the average bed elevation
-#test_hydro_veg#        CompElevFile = os.path.normpath(r'%s/compelevs_end_%s.csv' % (EHtemp_path,year-1))  # this must match name set in "WM.CalculateEcohydroAttributes" with the exception of (year-1) here instead of CurrentYear
-#test_hydro_veg#        new_compelev = np.genfromtxt(CompElevFile,delimiter=',',skip_header=1)
-#test_hydro_veg#                
-#test_hydro_veg#        new_OWelev_dict = dict((new_compelev[n,0],new_compelev[n,1]) for n in range(0,len(new_compelev)))
-#test_hydro_veg#        new_Melev_dict = dict((new_compelev[n,0],new_compelev[n,2]) for n in range(0,len(new_compelev)))
-#test_hydro_veg#        new_Medge_dict = dict((new_compelev[n,0],new_compelev[n,3]) for n in range(0,len(new_compelev)))
-#test_hydro_veg#
-#test_hydro_veg#        ## create blank dictionaries that will save changes in compartment attributes and initialize flags for counting updated compartments
-#test_hydro_veg#        bedchange_dict={}
-#test_hydro_veg#        marshchange_dict={}
-#test_hydro_veg#        new_bed_dict={}
-#test_hydro_veg#        new_marsh_dict={}
-#test_hydro_veg#        
-#test_hydro_veg#        orig_marsh_area = {}
-#test_hydro_veg#        new_marsh_area = {}
-#test_hydro_veg#        
-#test_hydro_veg#        flag_cell_wat = 0
-#test_hydro_veg#        flag_cell_upl = 0
-#test_hydro_veg#        flag_bed_ch = 0
-#test_hydro_veg#        flag_mar_ch = 0
-#test_hydro_veg#        flag_edge_ch = 0
-#test_hydro_veg#        
-#test_hydro_veg### update Hydro compartment water/upland/marsh area attributes
-#test_hydro_veg#        print(' Updating land/water ratios and bed/marsh elevation attributes for Hydro compartments - Year %s' % year)   
-#test_hydro_veg#        for nn in range(0,len(EHCellsArray)):
-#test_hydro_veg#            cellID = EHCellsArray[nn,0]
-#test_hydro_veg#            cellarea = EHCellsArray[nn,1]         
-#test_hydro_veg#            # update percent water only if new value was calculated in Morph (e.g. dicitionary has a key of cellID and value that is not -9999), otherwise keep last year value
-#test_hydro_veg#            try:
-#test_hydro_veg#                if new_pctwater_dict[cellID] != -9999:
-#test_hydro_veg#                    EHCellsArray[nn,2] = new_pctwater_dict[cellID]
-#test_hydro_veg#                else:
-#test_hydro_veg#                    flag_cell_wat =+ 1
-#test_hydro_veg#            except:
-#test_hydro_veg#                flag_cell_wat += 1
-#test_hydro_veg#            
-#test_hydro_veg#            # update percent upland only if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999), otherwise keep last year value
-#test_hydro_veg#            try:
-#test_hydro_veg#                if new_pctupland_dict[cellID] != -9999:
-#test_hydro_veg#                    EHCellsArray[nn,3] = new_pctupland_dict[cellID]
-#test_hydro_veg#                else:
-#test_hydro_veg#                    flag_cell_upl += 1
-#test_hydro_veg#            except:
-#test_hydro_veg#                flag_cell_upl += 1
-#test_hydro_veg#                
-#test_hydro_veg#            
-#test_hydro_veg#            # update marsh edge area, in attributes array
-#test_hydro_veg#            try:
-#test_hydro_veg#                if new_Medge_dict[cellID] != -9999:
-#test_hydro_veg#                    EHCellsArray[nn,5] = new_Medge_dict[cellID]
-#test_hydro_veg#            except:
-#test_hydro_veg#                    flag_edge_ch += 1
-#test_hydro_veg#            
-#test_hydro_veg#            # update percent marsh - use cell array, rather than new dictionaries to account for compartments that weren't updated by Morph
-#test_hydro_veg#            orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
-#test_hydro_veg#            EHCellsArray[nn,4] = max((1-EHCellsArray[nn,2]-EHCellsArray[nn,3]),0)
-#test_hydro_veg#            new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
-#test_hydro_veg#            
-#test_hydro_veg#            # update Hydro compartment/link elevation attributes (if turned on as model option)
-#test_hydro_veg#        if update_hydro_attr == 0:
-#test_hydro_veg#            print(' Hydro link and compartment attributes are not being updated (update_hydro_attr = 0)')
-#test_hydro_veg#        
-#test_hydro_veg#        else:
-#test_hydro_veg#            
-#test_hydro_veg#            # calculate change in bed elevation if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999)
-#test_hydro_veg#            # set change value to zero if value is NoData or if key does not exist
-#test_hydro_veg#            try:
-#test_hydro_veg#                if new_OWelev_dict[cellID] != -9999:
-#test_hydro_veg#                    bedchange_dict[cellID] = new_OWelev_dict[cellID]-EHCellsArray[nn,7]
-#test_hydro_veg#                else:
-#test_hydro_veg#                    bedchange_dict[cellID] = 0.0
-#test_hydro_veg#                    flag_bed_ch += 1
-#test_hydro_veg#            except:
-#test_hydro_veg#                bedchange_dict[cellID] = 0.0
-#test_hydro_veg#                flag_bed_ch += 1
-#test_hydro_veg#            
-#test_hydro_veg#            # calculate change in marsh elevation if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999)
-#test_hydro_veg#            # set change value to zero if value is NoData or if key does not exist
-#test_hydro_veg#            # as noted above, the new marsh elevation value is filtered in WM.CalculateEcohydroAttributes() such that the average marsh elevation can never be below average bed elevation
-#test_hydro_veg#            try:
-#test_hydro_veg#                if new_Melev_dict[cellID] != -9999:
-#test_hydro_veg#                    marshchange_dict[cellID] = new_Melev_dict[cellID]-EHCellsArray[nn,25]
-#test_hydro_veg#                else:
-#test_hydro_veg#                    marshchange_dict[cellID] = 0.0
-#test_hydro_veg#                    flag_mar_ch += 1
-#test_hydro_veg#            except:
-#test_hydro_veg#                marshchange_dict[cellID] = 0.0
-#test_hydro_veg#                flag_mar_ch += 1
-#test_hydro_veg#            
-#test_hydro_veg#            # update elevation of marsh area, in attributes array
-#test_hydro_veg#            EHCellsArray[nn,25] += marshchange_dict[cellID]
-#test_hydro_veg#            # update bed elevation of open water area in attributes array
-#test_hydro_veg#            EHCellsArray[nn,7] += bedchange_dict[cellID]
-#test_hydro_veg#            
-#test_hydro_veg#            # save updated elevations into dictionaries to use for filtering link elevations in next section
-#test_hydro_veg#            new_bed_dict[cellID] = EHCellsArray[nn,7]
-#test_hydro_veg#            new_marsh_dict[cellID] = EHCellsArray[nn,25]
-#test_hydro_veg#                
-#test_hydro_veg#            
-#test_hydro_veg#
-#test_hydro_veg#            ## update Hydro link attributes                                 
-#test_hydro_veg#            print(' Updating elevation attributes for Hydro links - Year %s' % year)
-#test_hydro_veg#            for mm in range(0,len(EHLinksArray)):
-#test_hydro_veg#                linkID = EHLinksArray[mm,0]
-#test_hydro_veg#                linktype = EHLinksArray[mm,7]
-#test_hydro_veg#                us_comp = EHLinksArray[mm,1]
-#test_hydro_veg#                ds_comp = EHLinksArray[mm,2]
-#test_hydro_veg#                
-#test_hydro_veg#                # determine maximum of updated upstream and downstream bed elevations
-#test_hydro_veg#                limiting_bed_elev = max(new_bed_dict[us_comp],new_bed_dict[ds_comp])
-#test_hydro_veg#                limiting_marsh_elev = max(new_marsh_dict[us_comp],new_marsh_dict[ds_comp])
-#test_hydro_veg#                
-#test_hydro_veg#                ## update link invert elevations for channels
-#test_hydro_veg#                if linktype == 1:
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
-#test_hydro_veg#                    ## invert elevation is attribute1 for channels (column 8 in links array)
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev
-#test_hydro_veg#                    
-#test_hydro_veg#                    ## only one channel bank elevation, it is equal to the lower of the US or DS marsh elevations
-#test_hydro_veg#                    ## channel bank elevation is attribute2 for channels (column 9 in links array)
-#test_hydro_veg#                    EHLinksArray[mm,9] = limiting_marsh_elev
-#test_hydro_veg#                    
-#test_hydro_veg#                ## update bed elevations for weirs
-#test_hydro_veg#                elif linktype == 2:
-#test_hydro_veg#                    ## upstream elevations are not allowed to be below the US bed elevation
-#test_hydro_veg#                    ## upstream elevation is attribute2 for weirs and ridges/levees (column 9 in links array)
-#test_hydro_veg#                    newelevus = max((EHLinksArray[mm,9] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
-#test_hydro_veg#                    EHLinksArray[mm,9] = newelevus
-#test_hydro_veg#                
-#test_hydro_veg#                    ## downstream elevations are not allowed to be below the DS bed elevation
-#test_hydro_veg#                    ## downstream elevation is attribute3 for weirs (column 10 in links array)
-#test_hydro_veg#                    newelevds = max((EHLinksArray[mm,10] + bedchange_dict[ds_comp]),new_bed_dict[ds_comp])
-#test_hydro_veg#                    EHLinksArray[mm,10] = newelevds
-#test_hydro_veg#                
-#test_hydro_veg#                ## update link invert elevations for locks            
-#test_hydro_veg#                elif linktype == 3:
-#test_hydro_veg#                    ## updated from change in OW bed elevation in upstream compartment
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev            
-#test_hydro_veg#            
-#test_hydro_veg#                ## update elevations for tide gates
-#test_hydro_veg#                elif linktype == 4:
-#test_hydro_veg#                    ## invert elevation is attribute1 for tide gates (column 8 in links array)
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev
-#test_hydro_veg#                    
-#test_hydro_veg#                    ## invert elevation is attribute3 for tide gates (column 10 in links array)
-#test_hydro_veg#                    ## upstream elevation is not allowed to be below either the US bed elevation
-#test_hydro_veg#                    newelevus = max((EHLinksArray[mm,10] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
-#test_hydro_veg#                    EHLinksArray[mm,10] = newelevus
-#test_hydro_veg#                    
-#test_hydro_veg#                    ## invert elevation is attribute5 for tide gates (column 12 in links array)
-#test_hydro_veg#                    ## downstream elevation is not allowed to be below either the DS bed elevation
-#test_hydro_veg#                    newelevds = max((EHLinksArray[mm,12] + bedchange_dict[us_comp]),new_bed_dict[ds_comp])
-#test_hydro_veg#                    EHLinksArray[mm,12] = newelevds
-#test_hydro_veg#                
-#test_hydro_veg#                ## update elevations for orifices
-#test_hydro_veg#                elif linktype == 5:
-#test_hydro_veg#                    ## invert elevation is attribute1 for orifices (column 8 in links array)
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev
-#test_hydro_veg#                    
-#test_hydro_veg#                    ## invert elevation is attribute3 for orifices (column 10 in links array)
-#test_hydro_veg#                    ## upstream elevation is not allowed to be below either the US bed elevation
-#test_hydro_veg#                    newelevus = max((EHLinksArray[mm,10] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
-#test_hydro_veg#                    EHLinksArray[mm,10] = newelevus
-#test_hydro_veg#                    
-#test_hydro_veg#                    ## invert elevation is attribute5 for orifices (column 12 in links array)
-#test_hydro_veg#                    ## downstream elevation is not allowed to be below either the DS bed elevation
-#test_hydro_veg#                    newelevds = max((EHLinksArray[mm,12] + bedchange_dict[us_comp]),new_bed_dict[ds_comp])
-#test_hydro_veg#                    EHLinksArray[mm,12] = newelevds
-#test_hydro_veg#                                
-#test_hydro_veg#                ## update elevations for culverts
-#test_hydro_veg#                elif linktype == 6:
-#test_hydro_veg#                    ## invert elevation is attribute1 for culverts (column 8 in links array)
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev
-#test_hydro_veg#                
-#test_hydro_veg#                ## don't need to update anything for pumps
-#test_hydro_veg#                ##  elif linktype == 7:
-#test_hydro_veg#                    
-#test_hydro_veg#                ## update marsh elevation for marsh links
-#test_hydro_veg#                elif linktype == 8:
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS marsh elevation
-#test_hydro_veg#                    ## unlike the bank elevation calculation for link type 1 this calculates the change from the original invert elevation (as opposed to just using the new marsh elevation) in case the original elevation defining marsh overland flow is above the average marsh elevation
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + marshchange_dict[us_comp]),(EHLinksArray[mm,8] + marshchange_dict[ds_comp]),limiting_marsh_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev            
-#test_hydro_veg#                
-#test_hydro_veg#                ## update bed elevations for ridge/levee link types
-#test_hydro_veg#                elif linktype ==9:
-#test_hydro_veg#                    ## upstream elevations are not allowed to be below the US bed elevation
-#test_hydro_veg#                    ## upstream elevation is attribute2 for ridges/levees (column 9 in links array)
-#test_hydro_veg#                    ## unlike the bank elevation calculation for link type 1 this calculates the change from the original invert elevation (as opposed to just using the new marsh elevation) because the original elevation defining ridge overland flow is above the average marsh elevation
-#test_hydro_veg#                    newelevus = max((EHLinksArray[mm,9] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
-#test_hydro_veg#                    EHLinksArray[mm,9] = newelevus
-#test_hydro_veg#                    
-#test_hydro_veg#                    ## downstream elevations are not allowed to be below the DS bed elevation
-#test_hydro_veg#                    ## downstream elevation is attribute10 for ridges/levees (column 18 in links array)
-#test_hydro_veg#                    ## unlike the bank elevation calculation for link type 1 this calculates the change from the original invert elevation (as opposed to just using the new marsh elevation) because the original elevation defining ridge overland flow is above the average marsh elevation
-#test_hydro_veg#                    newelevds = max((EHLinksArray[mm,18] + bedchange_dict[ds_comp]),new_bed_dict[ds_comp])
-#test_hydro_veg#                    EHLinksArray[mm,18] = newelevds
-#test_hydro_veg#                    
-#test_hydro_veg#                ## update link invert elevations for regime channels
-#test_hydro_veg#                elif linktype == 10:
-#test_hydro_veg#                    ## updated from change in OW bed elevation in upstream compartment
-#test_hydro_veg#                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
-#test_hydro_veg#                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
-#test_hydro_veg#                    EHLinksArray[mm,8] = newelev
-#test_hydro_veg#                
+        ## update LW ratio in Cells.csv (compartment attributes table)
+        # new pct water from WM output saved in temp folder during last model year (year-1)
+        PctWaterFile = os.path.normpath(r'%s/PctWater_%s.csv' % (EHtemp_path,year-1))  # this must match filename set as 'comp_wat_file' variable written to ICM-Morph input_params.csv
+        new_pctwater = np.genfromtxt(PctWaterFile,delimiter=',')
+        new_pctwater_dict=dict((new_pctwater[n,0],new_pctwater[n,1]) for n in range(0,len(new_pctwater)))
+        
+        # move grid data file from location saved by previous year's Morph run to the Hydro directory (new_grid_filepath not defined until after Morph is run each year)
+        os.rename(new_grid_filepath,EH_grid_filepath)
+                
+        # new pct upland from WM output saved in temp folder during last model year (year-1)
+        PctUplandFile = os.path.normpath(r'%s/PctUpland_%s.csv' % (EHtemp_path,year-1))  # this must match filename set as 'comp_upl_file' variable written to ICM-Morph input_params.csv
+        new_pctupland = np.genfromtxt(PctUplandFile,delimiter=',')
+        new_pctupland_dict=dict((new_pctupland[n,0],new_pctupland[n,1]) for n in range(0,len(new_pctupland)))
+        
+        ## read in original bed and land elevation values for compartments as calculated from DEM- save in dictionaries where compartment ID is the key
+        ## column 1 = compartment ID, column 2 = bed elev, column 3 = land elev, column 4 - marsh edge length
+        # this file is used to calcualte elevation change for the year, which is then applied to the values in Cells.csv
+        # this will allow for any manual manipulation of landscape elevations to the ICM-Hydro comps made during calibration to remain in place
+        OrigCompElevFile = os.path.normpath(r'%s/compelevs_initial_conditions.csv' % ecohydro_dir )
+        orig_compelev = np.genfromtxt(OrigCompElevFile,delimiter=',',skip_header=1)
+        orig_OWelev_dict = dict((orig_compelev[n,0],orig_compelev[n,1]) for n in range(0,len(orig_compelev)))
+        orig_Melev_dict = dict((orig_compelev[n,0],orig_compelev[n,2]) for n in range(0,len(orig_compelev)))
+        
+        ## read in updated bed and land elevation values for compartments - save in dictionaries where compartment ID is the key
+        ## column 1 = compartment ID, column 2 = bed elev, column 3 = land elev, column 4 - marsh edge length
+        # The marsh elevation value is filtered in WM.CalculateEcohydroAttributes() such that the average marsh elevation can be no lower than the average bed elevation
+        CompElevFile = os.path.normpath(r'%s/compelevs_end_%s.csv' % (EHtemp_path,year-1))  # this must match filename set as 'comp_elev_file' variable written to ICM-Morph input_params.csv
+        new_compelev = np.genfromtxt(CompElevFile,delimiter=',',skip_header=1)
+                
+        new_OWelev_dict = dict((new_compelev[n,0],new_compelev[n,1]) for n in range(0,len(new_compelev)))
+        new_Melev_dict = dict((new_compelev[n,0],new_compelev[n,2]) for n in range(0,len(new_compelev)))
+        new_Medge_dict = dict((new_compelev[n,0],new_compelev[n,3]) for n in range(0,len(new_compelev)))
 
-#test_hydro_veg#    ## end update of Hydro compartment attributes            
-#test_hydro_veg#        print(' %s Hydro compartments have updated percent land values for model year %s.' % ((len(EHCellsArray)-flag_cell_upl),year) )
-#test_hydro_veg#        print(' %s Hydro compartments have updated percent water values for model year %s.' % ((len(EHCellsArray)-flag_cell_wat),year) )
-#test_hydro_veg#        print(' %s Hydro compartments have updated average bed elevations for model year %s.' % ((len(EHCellsArray)-flag_bed_ch),year) )
-#test_hydro_veg#        print(' %s Hydro compartments have updated average marsh elevations for model year %s.' % ((len(EHCellsArray)-flag_mar_ch),year) )
-#test_hydro_veg#        print(' %s Hydro compartments have updated marsh edge lengths for model year %s.' % ((len(EHCellsArray)-flag_edge_ch),year) )
-#test_hydro_veg#        
-#test_hydro_veg#        # update links for project implmentation
-#test_hydro_veg#        # if project links are to be changed during model year update those links by looping through link attributes array
-#test_hydro_veg#        if year in link_years:
-#test_hydro_veg#            print('  Some links are set to be activated or deactivated for this model year due to project implementation.')
-#test_hydro_veg#            for mm in range(0,len(EHLinksArray)):
-#test_hydro_veg#                linkID = EHLinksArray[mm,0]
-#test_hydro_veg#                if linkID in links_to_change:
-#test_hydro_veg#                    yearindex = links_to_change.index(linkID)    
-#test_hydro_veg#                    if year == link_years[yearindex]:
-#test_hydro_veg#                        print(' Link type for link %s is being activated (or deactivated if already active).' % linkID)
-#test_hydro_veg#                        oldlinktype = EHLinksArray[mm,7]
-#test_hydro_veg#                        newlinktype = -1*oldlinktype
-#test_hydro_veg#                        EHLinksArray[mm,7] = newlinktype
-#test_hydro_veg#                
-#test_hydro_veg#        ## update link width for 'composite' marsh links if marsh creation project was implemented in previous year
-#test_hydro_veg#        # link length is attribute 3 (column 11 in links array)
-#test_hydro_veg#        # link width is attribute 4 (column 12 in links array)   
-#test_hydro_veg#        if year in mc_links_years:
-#test_hydro_veg#            print('  Some composite marsh flow links are being updated due to marsh creation projects implemented during last year.')
-#test_hydro_veg#            for mm in range(0,len(EHLinksArray)):
-#test_hydro_veg#                linkID = EHLinksArray[mm,0]
-#test_hydro_veg#                linktype = EHLinksArray[mm,7]
-#test_hydro_veg#                us_comp = EHLinksArray[mm,1]
-#test_hydro_veg#                ds_comp = EHLinksArray[mm,2]    
-#test_hydro_veg#                if linktype == 11:
-#test_hydro_veg#                    if linkID in mc_links:
-#test_hydro_veg#                        linkindex = mc_links.index(linkID)
-#test_hydro_veg#                        if year == mc_links_years[linkindex]:
-#test_hydro_veg#                            print(' Updating composite marsh flow link (link %s) for marsh creation project implemented in previous year.' % mm)
-#test_hydro_veg#                            darea_us = new_marsh_area[us_comp] - orig_marsh_area[us_comp]            
-#test_hydro_veg#                            darea_ds = new_marsh_area[ds_comp] - orig_marsh_area[ds_comp]
-#test_hydro_veg#                            origwidth = EHLinksArray[mm,12]
-#test_hydro_veg#                            length = EHLinksArray[mm,11]
-#test_hydro_veg#                            # change in link area is equal to the increase in marsh area between the two compartments
-#test_hydro_veg#                            newwidth = origwidth*length - (darea_us + darea_ds)/length
-#test_hydro_veg#                            EHLinksArray[mm,12] = max(newwidth,30) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
-#test_hydro_veg#        
+        ## create blank dictionaries that will save changes in compartment attributes and initialize flags for counting updated compartments
+        bedchange_dict={}
+        marshchange_dict={}
+        new_bed_dict={}
+        new_marsh_dict={}
+        
+        orig_marsh_area = {}
+        new_marsh_area = {}
+        
+        flag_cell_wat = 0
+        flag_cell_upl = 0
+        flag_bed_ch = 0
+        flag_mar_ch = 0
+        flag_edge_ch = 0
+        
+## update Hydro compartment water/upland/marsh area attributes
+        print(' Updating land/water ratios and bed/marsh elevation attributes for Hydro compartments - Year %s' % year)   
+        for nn in range(0,len(EHCellsArray)):
+            cellID = EHCellsArray[nn,0]
+            cellarea = EHCellsArray[nn,1]         
+            # update percent water only if new value was calculated in Morph (e.g. dicitionary has a key of cellID and value that is not -9999), otherwise keep last year value
+            try:
+                if new_pctwater_dict[cellID] != -9999:
+                    EHCellsArray[nn,2] = new_pctwater_dict[cellID]
+                else:
+                    flag_cell_wat =+ 1
+            except:
+                flag_cell_wat += 1
+            
+            # update percent upland only if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999), otherwise keep last year value
+            try:
+                if new_pctupland_dict[cellID] != -9999:
+                    EHCellsArray[nn,3] = new_pctupland_dict[cellID]
+                else:
+                    flag_cell_upl += 1
+            except:
+                flag_cell_upl += 1
+                
+            
+            # update marsh edge area, in attributes array
+            try:
+                if new_Medge_dict[cellID] != -9999:
+                    EHCellsArray[nn,5] = new_Medge_dict[cellID]
+            except:
+                    flag_edge_ch += 1
+            
+            # update percent marsh - use cell array, rather than new dictionaries to account for compartments that weren't updated by Morph
+            orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
+            EHCellsArray[nn,4] = max((1-EHCellsArray[nn,2]-EHCellsArray[nn,3]),0)
+            new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
+            
+            # update Hydro compartment/link elevation attributes (if turned on as model option)
+        if update_hydro_attr == 0:
+            print(' Hydro link and compartment attributes are not being updated (update_hydro_attr = 0)')
+        
+        else:
+            # calculate change in bed elevation if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999)
+            # set change value to zero if value is NoData or if key does not exist
+            try:
+                if new_OWelev_dict[cellID] != -9999:
+                    bedchange_dict[cellID] = new_OWelev_dict[cellID] - orig_OWelev_dict[cellID] # EHCellsArray[nn,7]
+                else:
+                    bedchange_dict[cellID] = 0.0
+                    flag_bed_ch += 1
+            except:
+                bedchange_dict[cellID] = 0.0
+                flag_bed_ch += 1
+            
+            # calculate change in marsh elevation if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999)
+            # set change value to zero if value is NoData or if key does not exist
+            # as noted above, the new marsh elevation value is filtered in WM.CalculateEcohydroAttributes() such that the average marsh elevation can never be below average bed elevation
+            try:
+                if new_Melev_dict[cellID] != -9999:
+                    marshchange_dict[cellID] = new_Melev_dict[cellID] - orig_Melev_dict[cellID] # EHCellsArray[nn,25]
+                else:
+                    marshchange_dict[cellID] = 0.0
+                    flag_mar_ch += 1
+            except:
+                marshchange_dict[cellID] = 0.0
+                flag_mar_ch += 1
+            
+            # update elevation of marsh area, in attributes array
+            EHCellsArray[nn,25] += marshchange_dict[cellID]
+            # update bed elevation of open water area in attributes array
+            EHCellsArray[nn,7] += bedchange_dict[cellID]
+            
+            # save updated elevations into dictionaries to use for filtering link elevations in next section
+            new_bed_dict[cellID] = EHCellsArray[nn,7]
+            new_marsh_dict[cellID] = EHCellsArray[nn,25]
+
+
+            ## update Hydro link attributes                                 
+            print(' Updating elevation attributes for Hydro links - Year %s' % year)
+            for mm in range(0,len(EHLinksArray)):
+                linkID = EHLinksArray[mm,0]
+                linktype = EHLinksArray[mm,7]
+                us_comp = EHLinksArray[mm,1]
+                ds_comp = EHLinksArray[mm,2]
+                
+                # determine maximum of updated upstream and downstream bed elevations
+                limiting_bed_elev = max(new_bed_dict[us_comp],new_bed_dict[ds_comp])
+                limiting_marsh_elev = max(new_marsh_dict[us_comp],new_marsh_dict[ds_comp])
+                
+                ## update link invert elevations for channels
+                if linktype == 1:
+                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
+                    ## invert elevation is attribute1 for channels (column 8 in links array)
+                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
+                    EHLinksArray[mm,8] = newelev
+                    
+                    ## only one channel bank elevation, it is equal to the lower of the US or DS marsh elevations
+                    ## channel bank elevation is attribute2 for channels (column 9 in links array)
+                    EHLinksArray[mm,9] = limiting_marsh_elev
+                    
+                ## update bed elevations for weirs
+                elif linktype == 2:
+                    ## upstream elevations are not allowed to be below the US bed elevation
+                    ## upstream elevation is attribute2 for weirs and ridges/levees (column 9 in links array)
+                    newelevus = max((EHLinksArray[mm,9] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
+                    EHLinksArray[mm,9] = newelevus
+                
+                    ## downstream elevations are not allowed to be below the DS bed elevation
+                    ## downstream elevation is attribute3 for weirs (column 10 in links array)
+                    newelevds = max((EHLinksArray[mm,10] + bedchange_dict[ds_comp]),new_bed_dict[ds_comp])
+                    EHLinksArray[mm,10] = newelevds
+                
+                ## update link invert elevations for locks            
+                elif linktype == 3:
+                    ## updated from change in OW bed elevation in upstream compartment
+                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
+                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
+                    EHLinksArray[mm,8] = newelev            
+            
+                ## update elevations for tide gates
+                elif linktype == 4:
+                    ## invert elevation is attribute1 for tide gates (column 8 in links array)
+                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
+                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
+                    EHLinksArray[mm,8] = newelev
+                    
+                    ## invert elevation is attribute3 for tide gates (column 10 in links array)
+                    ## upstream elevation is not allowed to be below either the US bed elevation
+                    newelevus = max((EHLinksArray[mm,10] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
+                    EHLinksArray[mm,10] = newelevus
+                    
+                    ## invert elevation is attribute5 for tide gates (column 12 in links array)
+                    ## downstream elevation is not allowed to be below either the DS bed elevation
+                    newelevds = max((EHLinksArray[mm,12] + bedchange_dict[us_comp]),new_bed_dict[ds_comp])
+                    EHLinksArray[mm,12] = newelevds
+                
+                ## update elevations for orifices
+                elif linktype == 5:
+                    ## invert elevation is attribute1 for orifices (column 8 in links array)
+                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
+                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
+                    EHLinksArray[mm,8] = newelev
+                    
+                    ## invert elevation is attribute3 for orifices (column 10 in links array)
+                    ## upstream elevation is not allowed to be below either the US bed elevation
+                    newelevus = max((EHLinksArray[mm,10] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
+                    EHLinksArray[mm,10] = newelevus
+                    
+                    ## invert elevation is attribute5 for orifices (column 12 in links array)
+                    ## downstream elevation is not allowed to be below either the DS bed elevation
+                    newelevds = max((EHLinksArray[mm,12] + bedchange_dict[us_comp]),new_bed_dict[ds_comp])
+                    EHLinksArray[mm,12] = newelevds
+                                
+                ## update elevations for culverts
+                elif linktype == 6:
+                    ## invert elevation is attribute1 for culverts (column 8 in links array)
+                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
+                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
+                    EHLinksArray[mm,8] = newelev
+                
+                ## don't need to update anything for pumps
+                ##  elif linktype == 7:
+                    
+                ## update marsh elevation for marsh links
+                elif linktype == 8:
+                    ## only one invert elevation, it is not allowed to be below either the US or DS marsh elevation
+                    ## unlike the bank elevation calculation for link type 1 this calculates the change from the original invert elevation (as opposed to just using the new marsh elevation) in case the original elevation defining marsh overland flow is above the average marsh elevation
+                    newelev = max((EHLinksArray[mm,8] + marshchange_dict[us_comp]),(EHLinksArray[mm,8] + marshchange_dict[ds_comp]),limiting_marsh_elev)
+                    EHLinksArray[mm,8] = newelev            
+                
+                ## update bed elevations for ridge/levee link types
+                elif linktype ==9:
+                    ## upstream elevations are not allowed to be below the US bed elevation
+                    ## upstream elevation is attribute2 for ridges/levees (column 9 in links array)
+                    ## unlike the bank elevation calculation for link type 1 this calculates the change from the original invert elevation (as opposed to just using the new marsh elevation) because the original elevation defining ridge overland flow is above the average marsh elevation
+                    newelevus = max((EHLinksArray[mm,9] + bedchange_dict[us_comp]),new_bed_dict[us_comp])
+                    EHLinksArray[mm,9] = newelevus
+                    
+                    ## downstream elevations are not allowed to be below the DS bed elevation
+                    ## downstream elevation is attribute10 for ridges/levees (column 18 in links array)
+                    ## unlike the bank elevation calculation for link type 1 this calculates the change from the original invert elevation (as opposed to just using the new marsh elevation) because the original elevation defining ridge overland flow is above the average marsh elevation
+                    newelevds = max((EHLinksArray[mm,18] + bedchange_dict[ds_comp]),new_bed_dict[ds_comp])
+                    EHLinksArray[mm,18] = newelevds
+                    
+                ## update link invert elevations for regime channels
+                elif linktype == 10:
+                    ## updated from change in OW bed elevation in upstream compartment
+                    ## only one invert elevation, it is not allowed to be below either the US or DS bed elevation
+                    newelev = max((EHLinksArray[mm,8] + bedchange_dict[us_comp]),limiting_bed_elev)
+                    EHLinksArray[mm,8] = newelev
+                
+
+    ## end update of Hydro compartment attributes            
+        print(' %s Hydro compartments have updated percent land values for model year %s.' % ((len(EHCellsArray)-flag_cell_upl),year) )
+        print(' %s Hydro compartments have updated percent water values for model year %s.' % ((len(EHCellsArray)-flag_cell_wat),year) )
+        print(' %s Hydro compartments have updated average bed elevations for model year %s.' % ((len(EHCellsArray)-flag_bed_ch),year) )
+        print(' %s Hydro compartments have updated average marsh elevations for model year %s.' % ((len(EHCellsArray)-flag_mar_ch),year) )
+        print(' %s Hydro compartments have updated marsh edge lengths for model year %s.' % ((len(EHCellsArray)-flag_edge_ch),year) )
+        
+        # update links for project implmentation
+        # if project links are to be changed during model year update those links by looping through link attributes array
+        if year in link_years:
+            print('  Some links are set to be activated or deactivated for this model year due to project implementation.')
+            for mm in range(0,len(EHLinksArray)):
+                linkID = EHLinksArray[mm,0]
+                if linkID in links_to_change:
+                    yearindex = links_to_change.index(linkID)    
+                    if year == link_years[yearindex]:
+                        print(' Link type for link %s is being activated (or deactivated if already active).' % linkID)
+                        oldlinktype = EHLinksArray[mm,7]
+                        newlinktype = -1*oldlinktype
+                        EHLinksArray[mm,7] = newlinktype
+                
+        ## update link width for 'composite' marsh links if marsh creation project was implemented in previous year
+        # link length is attribute 3 (column 11 in links array)
+        # link width is attribute 4 (column 12 in links array)   
+        if year in mc_links_years:
+            print('  Some composite marsh flow links are being updated due to marsh creation projects implemented during last year.')
+            for mm in range(0,len(EHLinksArray)):
+                linkID = EHLinksArray[mm,0]
+                linktype = EHLinksArray[mm,7]
+                us_comp = EHLinksArray[mm,1]
+                ds_comp = EHLinksArray[mm,2]    
+                if linktype == 11:
+                    if linkID in mc_links:
+                        linkindex = mc_links.index(linkID)
+                        if year == mc_links_years[linkindex]:
+                            print(' Updating composite marsh flow link (link %s) for marsh creation project implemented in previous year.' % mm)
+                            darea_us = new_marsh_area[us_comp] - orig_marsh_area[us_comp]            
+                            darea_ds = new_marsh_area[ds_comp] - orig_marsh_area[ds_comp]
+                            origwidth = EHLinksArray[mm,12]
+                            length = EHLinksArray[mm,11]
+                            # change in link area is equal to the increase in marsh area between the two compartments
+                            newwidth = origwidth*length - (darea_us + darea_ds)/length
+                            EHLinksArray[mm,12] = max(newwidth,30) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
+        
         ## save updated Cell and Link attributes to text files read into Hydro model                      
         np.savetxt(EHCellsFile,EHCellsArray,fmt='%.12f',header=cellsheader,delimiter=',',comments='')
         np.savetxt(EHLinksFile,EHLinksArray,fmt='%.12f',header=linksheader,delimiter=',',comments='')
     
-#test_hydro_veg#    if year in hyd_switch_years:
-#test_hydro_veg#        for nnn in range(0,len(hyd_file_orig)):
-#test_hydro_veg#            oldfile = hyd_file_orig[nnn]
-#test_hydro_veg#            newfile = hyd_file_new[nnn]
-#test_hydro_veg#            bkfile = hyd_file_bk[nnn]
-#test_hydro_veg#            print(' Copying %s to use as the new %s.' % (newfile, oldfile))
-#test_hydro_veg#            print(' Saving original %s as %s.' % (oldfile,bkfile))
-#test_hydro_veg#            os.rename(oldfile,bkfile)
-#test_hydro_veg#            os.rename(newfile,oldfile)
+#switch exe code#    if year in hyd_switch_years:
+#switch exe code#        for nnn in range(0,len(hyd_file_orig)):
+#switch exe code#            oldfile = hyd_file_orig[nnn]
+#switch exe code#            newfile = hyd_file_new[nnn]
+#switch exe code#            bkfile = hyd_file_bk[nnn]
+#switch exe code#            print(' Copying %s to use as the new %s.' % (newfile, oldfile))
+#switch exe code#            print(' Saving original %s as %s.' % (oldfile,bkfile))
+#switch exe code#            os.rename(oldfile,bkfile)
+#switch exe code#            os.rename(newfile,oldfile)
     
     print('\n--------------------------------------------------')
     print('  RUNNING HYDRO MODEL - Year %s' % year)
@@ -1437,8 +1494,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     print(' See %s for Hydro runtime logs.' % hydro_logfile)
      
     # run compiled Fortran executable - will automatically return to Python window when done running
-#    hydrorun = os.system('hydro_v23.2.0.exe')
     hydrorun = subprocess.call('./hydro_v23.2.0')   
+
     if hydrorun != 0:
         print('******ERROR******')
         error_msg = '\n Hydro model run for year %s was unsuccessful.' % year
@@ -1557,9 +1614,12 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     
     
     # set file names for files passed from Hydro into Veg and Morph
-    stg_ts_file = r'%s/STG.out' % ecohydro_dir
-    sal_ts_file = r'%s/SAL.out' % ecohydro_dir
-    tss_ts_file = r'%s/TSS.out' % ecohydro_dir
+    stg_ts_file = r'%s/STG.out'              % ecohydro_dir
+    sal_ts_file = r'%s/SAL.out'              % ecohydro_dir
+    tss_ts_file = r'%s/TSS.out'              % ecohydro_dir
+    sed_ow_file = r'%s/SedAcc.out'           % ecohydro_dir
+    sed_mi_file = r'%s/SedAcc_MarshInt.out'  % ecohydro_dir
+    sed_me_file = r'%s/SedAcc_MarshEdge.out' % ecohydro_dir
     monthly_file_avstg = os.path.normpath(r'%s/compartment_monthly_mean_stage_%4d.csv'       % (EHtemp_path,year) )
     monthly_file_mxstg = os.path.normpath(r'%s/compartment_monthly_max_stage_%4d.csv'        % (EHtemp_path,year) )
     monthly_file_avsal = os.path.normpath(r'%s/compartment_monthly_mean_salinity_%4d.csv'    % (EHtemp_path,year) )
@@ -1568,7 +1628,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     monthly_file_sdint = os.path.normpath(r'%s/compartment_monthly_sed_dep_interior_%4d.csv' % (EHtemp_path,year) )
     monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
     griddata_file = os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year-1) )
+    new_grid_filepath = os.path.normpath(r'%s/grid_data_500m_end%s.csv' % (EHtemp_path,year) )
     bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
+
+
 
 
     ########################################################
@@ -1655,20 +1718,19 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 wrt_string = '%s,%s' % (wrt_string,tss_mon[mon][comp])
             mon_file.write('%s\n'% wrt_string)
 
-    # read in average sediment deposition data
+    # read in cumulative sediment deposition data
     print(' - formatting sedimentation output for ICM-Morph')
     sed_ow = {}
     sed_mi = {}
     sed_me = {}
     for mon in range(1,13):
-        sed_ow[mon] = {}
-        sed_mi[mon] = {}
-        sed_me[mon] = {}
-        for row in EH_comp_out:
-            comp = int(float(row[0]))
-            sed_ow[mon][comp] = float(row[10])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
-            sed_mi[mon][comp] = float(row[11])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
-            sed_me[mon][comp] = float(row[12])/12.         # reading in annual sediment loading - divide by twelve to convert to average monthly for now
+        print('     - month: %02d' % mon)
+        data_start = dt.date(startyear,1,1)              # start date of all data included in the daily timeseries file (YYYY,M,D)
+        day2get = dt.date(year,mon,dom[mon])            # end date of averaging window, inclusive (YYYY,M,D)
+        sed_ow[mon] = daily2day(data_start,day2get,sed_ow_file)
+        sed_mi[mon] = daily2day(data_start,day2get,sed_mi_file)
+        sed_me[mon] = daily2day(data_start,day2get,sed_me_file)
+    
 
     # write monthly sediment deposition in open water file for use in ICM-Morph
     with open(monthly_file_sdowt,mode='w') as mon_file:
@@ -1679,7 +1741,12 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         for comp in range(1,ncomp+1):
             wrt_string = comp
             for mon in range(1,13):
-                wrt_string = '%s,%s' % (wrt_string,sed_ow[mon][comp])
+                prvmon_sum = 0
+                if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
+                    for prvmon in range(1,mon-1):
+                        prvmon_sum += sed_ow[prvmon][comp]
+                val2write = sed_ow[mon][comp] - prvmon_sum
+                wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
     # write monthly sediment deposition in marsh interior file for use in ICM-Morph
@@ -1691,7 +1758,12 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         for comp in range(1,ncomp+1):
             wrt_string = comp
             for mon in range(1,13):
-                wrt_string = '%s,%s' % (wrt_string,sed_mi[mon][comp])
+                prvmon_sum = 0
+                if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
+                    for prvmon in range(1,mon-1):
+                        prvmon_sum += sed_mi[prvmon][comp]
+                val2write = sed_mi[mon][comp] - prvmon_sum
+                wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
     # write monthly sediment deposition in marsh edge zone file for use in ICM-Morph
@@ -1703,7 +1775,12 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         for comp in range(1,ncomp+1):
             wrt_string = comp
             for mon in range(1,13):
-                wrt_string = '%s,%s' % (wrt_string,sed_me[mon][comp])
+                prvmon_sum = 0
+                if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
+                    for prvmon in range(1,mon-1):
+                        prvmon_sum += sed_me[prvmon][comp]
+                val2write = sed_me[mon][comp] - prvmon_sum
+                wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
 
@@ -1825,61 +1902,47 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         BIMODEmhw[n] = EH_MHW[comp]
 
     
-
-
-
-    mhw_file_for_bimode = os.path.normpath(r'%s/%s' % (bimode_dir,BIMHWFile))
-    with open(mhw_file_for_bimode,'w') as f:                        
-        f.write('% MHW (m NAVD88)\t%SLR_A\t%SLR_B\t%Region ')                            
-        f.write('\n')
-        for n in range(0,len(IslandMHWCompLists)):
-            bmhw = str(BIMODEmhw[n])+'\t0.000\t0.000\t'+str(n+1)
-            f.write(bmhw)
-            f.write('\n')
-    
-    
     # loop BI runs over the different folders - each with individual executables and I/O
     fol_n = 0
     for fol in bimode_folders:
         print('\n Modeling %s' % fol)
         bmdir = os.path.normpath(r'%s/%s' %(bimode_dir,fol))
         os.chdir(bmdir)
-   
+        
+        print(' Writing mean water level file for %s region.' % fol)
+        mhw_file_for_bimode = os.path.normpath(r'%s/input/%s' % (bmdir,BIMHWFile))
+        with open(mhw_file_for_bimode,'w') as f:                        
+            f.write('% MHW (m NAVD88)\t%SLR_A\t%SLR_B\t%Region ')                            
+            f.write('\n')
+            for n in range(0,len(IslandMHWCompLists)):
+                bmhw = str(BIMODEmhw[n])+'\t0.000\t0.000\t'+str(n+1)
+                f.write(bmhw)
+                f.write('\n')
     
         
         # run compiled Fortran executable - will automatically return to Python window when done running
         print(' Running BIDEM executable for %s region.' % fol)
-        bimoderun = os.system('bidem_v23.0.0')
+        bimoderun = os.system('./bidem_v23.0.0')
 
         if bimoderun != 0:
             error_msg = '\n BIDEM model run for region %s year %s was unsuccessful.' % (fol,year)
             sys.exit(error_msg)
 
 
-        print(' Interpolating BIDEM outputs to ICM-Morph DEM')
-        bidem_out = './results/profile_%04d' % elapsed_year
+        print(' Interpolating BIDEM outputs for %s to ICM-Morph DEM' % fol)
+        bidem_out = './results/profile_%04d' % elapsedyear
         fixed_grid_in = bidem_fixed_grids[fol_n]
-        fixed_grid_out = './results/profile_%04d_interp.xyz' % elapsed_year
+        fixed_grid_out = './results/profile_%04d_interp.xyz' % elapsedyear
         bidem_interp2xyz(bidem_out,fixed_grid_in,fixed_grid_out)
 
-        print(' Appending interpolated regional BIDEM output to coastwide file for use in ICM-Morph')
+        print(' Appending interpolated %s regional BIDEM output to coastwide file for use in ICM-Morph' % fol)
         with open(bidem_xyz_file,mode='a') as allout:
-            with open(fixed_grid_out,mode='w') as regout:
+            with open(fixed_grid_out,mode='r') as regout:
                 for line in regout:
                     allout.write(line)
         fol_n += 1
+        
         os.remove(fixed_grid_out) # delete temp file that has region xyz snapped to DEM grid
-
-    ## this will overwrite existing file named the same and located here (e.g. the previous year's file)
-    ## write master file with all profile XYZ info to text file that gets read by WM.py function
-    ## this is intentional, since the profile data is all saved individually within BIMODE project folders
-
-    print('\n Writing all BIMODE profiles to single text file to pass to Morphology model.')
-    BMprof_forWMfile = os.path.normpath(r'%s/BIMODEprofiles.xyz' %(bimode_dir))
-    np.savetxt(BMprof_forWMfile,BMprof_forWM,delimiter='   ',comments='',fmt=['%.4f','%.4f','%.4f'])
-    
-    del BMprof_forWM
-
 
 
 
@@ -1915,48 +1978,48 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
 
     with open (wm_param_file, mode='w') as ip_csv:
-        ip_csv.write("%d, start_year -  first year of model run\n" % startyear)
-        ip_csv.write("%d, elapsed_year -  elapsed year of model run\n" % elapsedyear)
-        ip_csv.write("30, dem_res -  XY resolution of DEM (meters)\n")
-        ip_csv.write("-9999, dem_NoDataVal -  value representing nodata in input rasters and XYZ files\n")
-        ip_csv.write("170852857, ndem -  number of DEM pixels - will be an array dimension for all DEM-level data\n")
-        ip_csv.write("1142332, ndem_bi -  number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
-        ip_csv.write("946, ncomp -  number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n")
-        ip_csv.write("187553, ngrid -  number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n")
-        ip_csv.write("32, neco -  number of ecoregions\n")
-        ip_csv.write("5, nlt -  number of landtype classifications\n")
-        ip_csv.write("0.10, ht_above_mwl_est -  elevation (meters) relative to annual mean water level at which point vegetation can establish\n")
-        ip_csv.write("2.57, ptile_Z -  Z-value for quantile definining inundation curve\n")
-        ip_csv.write("0.0058, B0 -  beta-0 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("-0.00207, B1 -  beta-1 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("0.0809, B2 -  beta-2 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("0.0892, B3 -  beta-3 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("-0.19, B4 -  beta-4 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("0.835, ow_bd -  bulk density of water bottoms (g/cm3)\n")
-        ip_csv.write("0.076, om_k1  -  organic matter self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
-        ip_csv.write("2.106, mn_k2 -  mineral soil self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
-        ip_csv.write("0, FIBS_intvals(1)  -  FFIBS score that will serve as lower end for Fresh forested\n")
-        ip_csv.write("0.15, FIBS_intvals(2)  -  FFIBS score that will serve as lower end for Fresh marsh\n")
-        ip_csv.write("1.5, FIBS_intvals(3)  -  FFIBS score that will serve as lower end for Intermediate marsh\n")
-        ip_csv.write("5, FIBS_intvals(4)  -  FFIBS score that will serve as lower end for Brackish marsh\n")
-        ip_csv.write("18, FIBS_intvals(5)  -  FFIBS score that will serve as lower end for Saline marsh\n")
-        ip_csv.write("24, FIBS_intvals(6)  -  FFIBS score that will serve as upper end for Saline marsh\n")
-        ip_csv.write("10, min_accretion_limit_cm -  upper limit to allowable mineral accretion on the marsh surface during any given year [cm]\n")
-        ip_csv.write("50, ow_accretion_limit_cm -  upper limit to allowable accretion on the water bottom during any given year [cm]\n")
-        ip_csv.write("-50, ow_erosion_limit_cm -  upper limit to allowable erosion of the water bottom during any given year [cm]\n")
-        ip_csv.write("0.05, bg_lowerZ_m -  height that bareground is lowered [m]\n")
-        ip_csv.write("0.25, me_lowerDepth_m -  depth to which eroded marsh edge is lowered to [m]\n")
-        ip_csv.write("1.0, flt_lowerDepth_m -  depth to which dead floating marsh is lowered to [m]\n")
+        ip_csv.write("%d, start_year - first year of model run\n" % startyear)
+        ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsedyear)
+        ip_csv.write("30, dem_res - XY resolution of DEM (meters)\n")
+        ip_csv.write("-9999, dem_NoDataVal - value representing nodata in input rasters and XYZ files\n")
+        ip_csv.write("171284090, ndem - number of DEM pixels - will be an array dimension for all DEM-level data\n")
+        ip_csv.write("2904131, ndem_bi - number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
+        ip_csv.write("1778, ncomp - number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n")
+        ip_csv.write("173898, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n")
+        ip_csv.write("32, neco - number of ecoregions\n")
+        ip_csv.write("5, nlt - number of landtype classifications\n")
+        ip_csv.write("0.10, ht_above_mwl_est - elevation (meters) relative to annual mean water level at which point vegetation can establish\n")
+        ip_csv.write("2.57, ptile_Z - Z-value for quantile definining inundation curve\n")
+        ip_csv.write("0.0058, B0 - beta-0 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("-0.00207, B1 - beta-1 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.0809, B2 - beta-2 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.0892, B3 - beta-3 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("-0.19, B4 - beta-4 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.835, ow_bd - bulk density of water bottoms (g/cm3)\n")
+        ip_csv.write("0.076, om_k1 - organic matter self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
+        ip_csv.write("2.106, mn_k2- mineral soil self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
+        ip_csv.write("0, FIBS_intvals(1) - FFIBS score that will serve as lower end for Fresh forested\n")
+        ip_csv.write("0.15, FIBS_intvals(2) - FFIBS score that will serve as lower end for Fresh marsh\n")
+        ip_csv.write("1.5, FIBS_intvals(3) - FFIBS score that will serve as lower end for Intermediate marsh\n")
+        ip_csv.write("5, FIBS_intvals(4) - FFIBS score that will serve as lower end for Brackish marsh\n")
+        ip_csv.write("18, FIBS_intvals(5) - FFIBS score that will serve as lower end for Saline marsh\n")
+        ip_csv.write("24, FIBS_intvals(6) - FFIBS score that will serve as upper end for Saline marsh\n")
+        ip_csv.write("10, min_accretion_limit_cm - upper limit to allowable mineral accretion on the marsh surface during any given year [cm]\n")
+        ip_csv.write("50, ow_accretion_limit_cm - upper limit to allowable accretion on the water bottom during any given year [cm]\n")
+        ip_csv.write("-50, ow_erosion_limit_cm - upper limit to allowable erosion of the water bottom during any given year [cm]\n")
+        ip_csv.write("0.05, bg_lowerZ_m - height that bareground is lowered [m]\n")
+        ip_csv.write("0.25, me_lowerDepth_m - depth to which eroded marsh edge is lowered to [m]\n")
+        ip_csv.write("1.0, flt_lowerDepth_m - depth to which dead floating marsh is lowered to [m]\n")
         ip_csv.write("-0.762, mc_depth_threshold - water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n")
-        ip_csv.write("1.1211425, spsal_params[1], SAV parameter - spring salinity parameter 1\n")
-        ip_csv.write("-0.7870841, spsal_params[2], SAV parameter - spring salinity parameter 2\n")
-        ip_csv.write("1.5059876, spsal_params[3], SAV parameter - spring salinity parameter 3\n")
-        ip_csv.write("3.4309696, sptss_params_params[1], SAV parameter - spring TSS parameter 1\n")
-        ip_csv.write("-0.8343315, sptss_params_params_params[2], SAV parameter - TSS salinity parameter 2\n")
-        ip_csv.write("0.9781167, sptss_params[3], SAV parameter - spring TSS parameter 3\n")
-        ip_csv.write("5.934377, dfl_params[1], SAV parameter - distance from land parameter 1\n")
-        ip_csv.write("-1.957326, dfl_params[2], SAV parameter - distance from land parameter 2\n")
-        ip_csv.write("1.258214, dfl_params[3], SAV parameter - distance from land parameter 3\n")
+        ip_csv.write("1.1211425, spsal_params[1] - SAV parameter - spring salinity parameter 1\n")
+        ip_csv.write("-0.7870841, spsal_params[2] - SAV parameter - spring salinity parameter 2\n")
+        ip_csv.write("1.5059876, spsal_params[3] - SAV parameter - spring salinity parameter 3\n")
+        ip_csv.write("3.4309696, sptss_params_params[1] - SAV parameter - spring TSS parameter 1\n")
+        ip_csv.write("-0.8343315, sptss_params_params_params[2] - SAV parameter - TSS salinity parameter 2\n")
+        ip_csv.write("0.9781167, sptss_params[3] - SAV parameter - spring TSS parameter 3\n")
+        ip_csv.write("5.934377, dfl_params[1] - SAV parameter - distance from land parameter 1\n")
+        ip_csv.write("-1.957326, dfl_params[2] - SAV parameter - distance from land parameter 2\n")
+        ip_csv.write("1.258214, dfl_params[3] - SAV parameter - distance from land parameter 3\n")
 
         if year == startyear:
             ip_csv.write("0,binary_in - read input raster datas from binary files (1) or from ASCI XYZ files (0)\n")
@@ -1966,51 +2029,54 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         ip_csv.write("1,binary_out - write raster datas to binary format only (1) or to ASCI XYZ files (0)\n")
 
         if year == startyear:
-            ip_csv.write("'geomorph/input/%s_W_dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n" % fwoa_init_cond_tag)
-            ip_csv.write("'geomorph/input/%s_W_lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
+            ip_csv.write("'geomorph/input/%s_W_dem30.xyz', dem_file - file name with relative path to DEM XYZ file\n" % fwoa_init_cond_tag)
+            ip_csv.write("'geomorph/input/%s_W_lndtyp30.xyz', lwf_file - file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
         else:
-            ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_file -  file name with relative path to DEM XYZ file\n" % file_prefix_prv)
-            ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lwf_file -  file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % file_prefix_prv)
+            ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_file - file name with relative path to DEM XYZ file\n" % file_prefix_prv)
+            ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lwf_file - file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % file_prefix_prv)
 
 
-        ip_csv.write("'geomorph/input/%s_W_meer30.xyz', meer_file -  file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
-        ip_csv.write("'geomorph/input/%s_W_polder30.xyz', pldr_file -  file name with relative path to polder file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
-        ip_csv.write("'geomorph/input/%s_W_comp30.xyz', comp_file -  file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
-        ip_csv.write("'geomorph/input/%s_W_grid30.xyz', grid_file -  file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
-        ip_csv.write("'geomorph/input/_W_dpsub.xyz', dsub_file -  file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
-        ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file -  file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
-        ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)", % shallow_subsidence_column)
-        ip_csv.write("'geomorph/input/compartment_active_delta.csv', act_del_file -  file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n")
-        ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file -  file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
-        ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file -  file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
-        ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name, with relative path, to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n'")
+        ip_csv.write("'geomorph/input/%s_W_meer30.xyz', meer_file - file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_polder30.xyz', pldr_file - file name with relative path to polder file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_comp30.xyz', comp_file - file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_grid30.xyz', grid_file - file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_dpsub30.xyz', dsub_file - file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file - file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
+        ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)\n" % shallow_subsidence_column)
+        ip_csv.write("'geomorph/input/compartment_active_delta.csv', act_del_file - file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n")
+        ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file - file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
+        ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file - file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
+        ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name with relative path to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n")
 
-        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', hydro_comp_out_file -  file name with relative path to compartment_out.csv file saved by ICM-Hydro\n" % year)
-        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file -  file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
-        ip_csv.write("'veg/%s_V_vegty.asc+', veg_out_file -  file name with relative path to *vegty.asc+ file saved by ICM-LAVegMod\n" % file_oprefix)
-        ip_csv.write("'%s', monthly_mean_stage_file -  file name with relative path to compartment summary file with monthly mean water levels\n" % monthly_file_avstg)
-        ip_csv.write("'%s', monthly_max_stage_file -  file name with relative path to compartment summary file with monthly maximum water levels\n" % monthly_file_mxstg)
-        ip_csv.write("'%s', monthly_ow_sed_dep_file -  file name with relative path to compartment summary file with monthly sediment deposition in open water\n" % monthly_file_sdowt)
-        ip_csv.write("'%s', monthly_mi_sed_dep_file -  file name with relative path to compartment summary file with monthly sediment deposition on interior marsh\n" % monthly_file_sdint)
-        ip_csv.write("'%s', monthly_me_sed_dep_file -  file name with relative path to compartment summary file with monthly sediment deposition on marsh edge\n" % monthly_file_sdedg)
-        ip_csv.write("'%s', monthly_mean_sal_file -  file name with relative path to compartment summary file with monthly mean salinity values\n" % monthly_file_avsal)
-        ip_csv.write("'%s', monthly_mean_tss_file -  file name with relative path to compartment summary file with monthly mean suspended sediment concentrations\n" % monthly_file_avtss)
-        ip_csv.write("'%s', bi_dem_xyz_file -  file name with relative path to XYZ DEM file for ICM-BI-DEM model domain - XY resolution must be snapped to XY resolution of main DEM\n" % bidem_xyz_file)
-        ip_csv.write("'geomorph/output/%s_W_edge30.xyz', edge_eoy_xyz_file -  file name with relative path to XYZ raster output file for edge pixels\n" % file_prefix)
-        ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_eoy_xyz_file -  file name with relative path to XYZ raster output file for topobathy DEM\n" % file_prefix)
-        ip_csv.write("'geomorph/output/%s_W_dz30.xyz', dz_eoy_xyz_file -  file name with relative path to XYZ raster output file for elevation change raster\n" % file_prefix)
-        ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lndtyp_eoy_xyz_file -  file name with relative path to XYZ raster output file for land type\n" % file_prefix)
-        ip_csv.write("'geomorph/output/%s_W_lndchg30.xyz', lndchng_eoy_xyz_file -  file name with relative path to XYZ raster output file for land change flag\n" % file_prefix)
-        ip_csv.write("'geomorph/output/grid_summary_eoy_%d.csv', grid_summary_eoy_file -  file name with relative path to summary grid file for end-of-year landscape\n" % year)
-        ip_csv.write("'hydro/TempFiles/grid_data_500m_%d.csv', grid_data_file -  file name with relative path to summary grid data file used internally by ICM\n" % year)
-        ip_csv.write("'hsi/GadwallDepths_cm_%d.csv', grid_depth_file_Gdw -  file name with relative path to Gadwall depth grid data file used internally by ICM and HSI\n" % year)
-        ip_csv.write("'hsi/GWTealDepths_cm_%d.csv', grid_depth_file_GwT -  file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % year)
-        ip_csv.write("'hsi/MotDuckDepths_cm_%d.csv', grid_depth_file_MtD -  file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % year)
-        ip_csv.write("'hsi/%s_W_pedge.csv', grid_pct_edge_file -  file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % file_prefix)
-        ip_csv.write("'geomorph/output/%s_W_SAV.csv', grid_sav_file -  file name with relative path to csv output file for SAV presence\n" % file_oprefix)
-        ip_csv.write("'hydro/TempFiles/compelevs_end_%d.csv', comp_elev_file -  file name with relative path to elevation summary compartment file used internally by ICM\n" % year)
-        ip_csv.write("'hydro/TempFiles/PctWater_%d.csv', comp_wat_file -  file name with relative path to percent water summary compartment file used internally by ICM\n" % year)
-        ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file -  file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro\n" % year)
+        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
+        ip_csv.write("'veg/%s_V_vegty.asc+', veg_out_file - file name with relative path to *vegty.asc+ file saved by ICM-LAVegMod\n" % file_oprefix)
+        ip_csv.write("'%s', monthly_mean_stage_file - file name with relative path to compartment summary file with monthly mean water levels\n" % monthly_file_avstg)
+        ip_csv.write("'%s', monthly_max_stage_file - file name with relative path to compartment summary file with monthly maximum water levels\n" % monthly_file_mxstg)
+        ip_csv.write("'%s', monthly_ow_sed_dep_file - file name with relative path to compartment summary file with monthly sediment deposition in open water\n" % monthly_file_sdowt)
+        ip_csv.write("'%s', monthly_mi_sed_dep_file - file name with relative path to compartment summary file with monthly sediment deposition on interior marsh\n" % monthly_file_sdint)
+        ip_csv.write("'%s', monthly_me_sed_dep_file - file name with relative path to compartment summary file with monthly sediment deposition on marsh edge\n" % monthly_file_sdedg)
+        ip_csv.write("'%s', monthly_mean_sal_file - file name with relative path to compartment summary file with monthly mean salinity values\n" % monthly_file_avsal)
+        ip_csv.write("'%s', monthly_mean_tss_file - file name with relative path to compartment summary file with monthly mean suspended sediment concentrations\n" % monthly_file_avtss)
+        ip_csv.write("'%s', bi_dem_xyz_file - file name with relative path to XYZ DEM file for ICM-BI-DEM model domain - XY resolution must be snapped to XY resolution of main DEM\n" % bidem_xyz_file)
+        ip_csv.write("'geomorph/output/%s_W_edge30.xyz', edge_eoy_xyz_file - file name with relative path to XYZ raster output file for edge pixels\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_eoy_xyz_file - file name with relative path to XYZ raster output file for topobathy DEM\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_dz30.xyz', dz_eoy_xyz_file - file name with relative path to XYZ raster output file for elevation change raster\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lndtyp_eoy_xyz_file - file name with relative path to XYZ raster output file for land type\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_lndchg30.xyz', lndchng_eoy_xyz_file - file name with relative path to XYZ raster output file for land change flag\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_salav30.xyz', salav_xyz_file - file name with relative path to XYZ raster output file for average salinity\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_salmx30.xyz', salmx_xyz_file - file name with relative path to XYZ raster output file for maximum salinity\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_inun30.xyz', inun_xyz_file - file name with relative path to XYZ raster output file for average inundation depth\n" % file_prefix)
+        ip_csv.write("'geomorph/output/grid_summary_eoy_%d.csv', grid_summary_eoy_file - file name with relative path to summary grid file for end-of-year landscape\n" % year)
+        ip_csv.write("'%s', grid_data_file - file name with relative path to summary grid data file used internally by ICM\n" % new_grid_filepath)
+        ip_csv.write("'hsi/GadwallDepths_cm_%d.csv', grid_depth_file_Gdw - file name with relative path to Gadwall depth grid data file used internally by ICM and HSI\n" % year)
+        ip_csv.write("'hsi/GWTealDepths_cm_%d.csv', grid_depth_file_GwT - file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % year)
+        ip_csv.write("'hsi/MotDuckDepths_cm_%d.csv', grid_depth_file_MtD - file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % year)
+        ip_csv.write("'hsi/%s_W_pedge.csv', grid_pct_edge_file - file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % file_prefix)
+        ip_csv.write("'geomorph/output/%s_W_SAV.csv', grid_sav_file - file name with relative path to csv output file for SAV presence\n" % file_oprefix)
+        ip_csv.write("'hydro/TempFiles/compelevs_end_%d.csv', comp_elev_file - file name with relative path to elevation summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("'hydro/TempFiles/PctWater_%d.csv', comp_wat_file - file name with relative path to percent water summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
         ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
         ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
@@ -2021,13 +2087,6 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
 
 
 
-
-#test_hydro_veg#
-#test_hydro_veg#    # update name of grid data file generated by Morph to include current year in name
-#test_hydro_veg#    new_grid_file = 'grid_data_500m_end%s.csv' % (year)  # this must match name set in "WM.CalculateEcohydroAttributes" with the exception of (year) here instead of CurrentYear
-#test_hydro_veg#    new_grid_filepath = os.path.normpath('%s/%s' % (EHtemp_path,new_grid_file)) # location of grid file after it is generated in "WM.CalculateEcohydroAttributes"
-#test_hydro_veg#
-#
 
 
 print('\n\n\n')
