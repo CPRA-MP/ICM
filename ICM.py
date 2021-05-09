@@ -91,7 +91,7 @@ def daily2day(all_sd,day2get,input_file):
 
 
     all_rows = file_len(input_file)
-    skip_head = (day2get - all_sd).days + 1  # number of rows at top of daily timeseries to skip until date to extract is met
+    skip_head = (day2get - all_sd).days  # number of rows at top of daily timeseries to skip until date to extract is met
     skip_foot = all_rows - skip_head - 1
     dataline = np.genfromtxt(input_file,dtype='str',delimiter=',',skip_header=skip_head,skip_footer=skip_foot)
     comp_day = {}
@@ -1075,10 +1075,10 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                     f2.write("%sinput/Lateral/lateral_q_con_%s.txt%s            ! File that contains lateral Q and Con (1, 2, ..., Nlat)\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 10:
-                    f2.write("%sinput/Wind/U10_GI_ncep_%s.txt%s                 !Wind U10 input\n" % (lq,year,lq))
+                    f2.write("%sinput/Wind/U10_%s.txt%s                 !Wind U10 input\n" % (lq,year,lq))
                     idx2 += 1
                 elif idx2 == 11:
-                    f2.write("%sinput/Tbk/Tback_GI_ncep_%s.txt%s                !Tback input\n"  % (lq,year,lq))
+                    f2.write("%sinput/Tbk/Tback_%s.txt%s                !Tback input\n"  % (lq,year,lq))
                     idx2 += 1     
                 else:
                     f2.writelines(pl)
@@ -1744,8 +1744,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 prvmon_sum = 0
                 if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
                     for prvmon in range(1,mon-1):
-                        prvmon_sum += sed_ow[prvmon][comp]
-                val2write = sed_ow[mon][comp] - prvmon_sum
+                        prvmon_sum += float(sed_ow[prvmon][comp])
+                val2write = float(sed_ow[mon][comp]) - prvmon_sum
                 wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
@@ -1761,8 +1761,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 prvmon_sum = 0
                 if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
                     for prvmon in range(1,mon-1):
-                        prvmon_sum += sed_mi[prvmon][comp]
-                val2write = sed_mi[mon][comp] - prvmon_sum
+                        prvmon_sum += float(sed_mi[prvmon][comp])
+                val2write = float(sed_mi[mon][comp]) - prvmon_sum
                 wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
@@ -1778,8 +1778,8 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
                 prvmon_sum = 0
                 if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
                     for prvmon in range(1,mon-1):
-                        prvmon_sum += sed_me[prvmon][comp]
-                val2write = sed_me[mon][comp] - prvmon_sum
+                        prvmon_sum += float(sed_me[prvmon][comp])
+                val2write = float(sed_me[mon][comp]) - prvmon_sum
                 wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
@@ -2049,7 +2049,12 @@ for year in range(startyear+elapsed_hotstart,endyear+1):
         ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name with relative path to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n")
 
         ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro\n" % year)
-        ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
+        
+        if year == startyear:
+            ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year))
+        else:
+            ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
+        
         ip_csv.write("'veg/%s_V_vegty.asc+', veg_out_file - file name with relative path to *vegty.asc+ file saved by ICM-LAVegMod\n" % file_oprefix)
         ip_csv.write("'%s', monthly_mean_stage_file - file name with relative path to compartment summary file with monthly mean water levels\n" % monthly_file_avstg)
         ip_csv.write("'%s', monthly_max_stage_file - file name with relative path to compartment summary file with monthly maximum water levels\n" % monthly_file_mxstg)

@@ -2,7 +2,7 @@ Description,Input Parameter
 #########################################################################,
 ## Folder structure directories for ICM components,
 Working folder for Hydro model,./hydro
-Working folder for Geomorphology model,./morph
+Working folder for Geomorphology model,./geomorph
 Working folder for Vegetation model,./veg
 Working folder for Barrier Island model,./bidem
 Working folder for Habitat Suitability Indices,./hsi
@@ -36,7 +36,7 @@ Start year of full simulation (e.g. year 0 of spin-up),2019
 Final year of full simulation (equals start year for a 1 year run),2070
 Current cycle (full model run can be split into cycles for HPC batch runs),0
 First year of current cycle (e.g. hotstart year) (set to Start Year if only one cycle),2019
-Last year of current cycle (set to Final Year if only one cycle,2070
+Last year of current cycle (set to Final Year if only one cycle,2020
 First year of data in Hydro input files,2019
 Vegetation types modeled,43
 Update elevation attributes of hydro links and compartments (1 if yes - 0 if no),0
@@ -69,7 +69,7 @@ Number of 1D River Domain,4
 1D River Model main setup file,region_input.txt
 #########################################################################,
 ## Barrier Island Model settings,
-Input Configuration Filename for Tidal Inlet model,BITI_setup_input.xslx
+Input Configuration Filename for Tidal Inlet model,BITI_setup_input.xlsx
 Number of BIMODE directories,6
 Subfolder in BIDEM directory 1,IsleDernieres
 Subfolder in BIDEM directory 2,Timbalier
