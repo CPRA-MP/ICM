@@ -44,8 +44,8 @@ with open(old_ctrl, mode='r') as cf:
             elif nl == 39:                                  # cyc_e:  update end year of simulation cycle 
                 out = wf.write('%s,%d\n' % (var,cyc_e) )
             elif nl == 60:                                  # fnc_s:  update scenario number for file naming convention tag 
-                out = wf.write('%s,%s\n' % (var,fnc_s) )
+                out = wf.write('%s,S%02d\n' % (var,fnc_s) )
             elif nl == 61:                                  # fnc_g:  update model group number for file naming convention tag
-                out = wf.write('%s,%s\n' % (var,fnc_g) )
+                out = wf.write('%s,G%03d\n' % (var,fnc_g) )
             else:
                 out = wf.write(line)
