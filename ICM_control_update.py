@@ -12,8 +12,8 @@
 import sys
 import os
 
-fnc_s = sys.argv[1]
-fnc_g = sys.argv[2]
+fnc_s = int(sys.argv[1])
+fnc_g = int(sys.argv[2])
 cyc_n = int(sys.argv[3])
 cyc_s = int(sys.argv[4])
 cyc_e = int(sys.argv[5])
