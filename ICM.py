@@ -1736,7 +1736,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     for n in range(1,len(compnames)):
         compheader +=',%s' % compnames[n]
 
-    # re-write compartment output file with year appended to name - file is re-written (as opposed to moved) to ensure floating point format will be correct for import into WM.ImportEcohydroResults - corrects issues with Fortran formatting
+    # re-write compartment output file with year appended to name - file is re-written (as opposed to moved) to ensure floating point format will be correct for Fortran formatting
     EH_comp_out_newfile = '%s_%s.%s' % (str.split(compartment_output_file,'.')[0],year,str.split(compartment_output_file,'.')[1])
     EH_comp_results_filepath = os.path.normpath('%s/%s' % (EHtemp_path,EH_comp_out_newfile))
     np.savetxt(EH_comp_results_filepath,EH_comp_out,delimiter=',',fmt='%.4f',header=compheader,comments='')
