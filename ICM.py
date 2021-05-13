@@ -730,7 +730,7 @@ rterm = inputs[50,1].lstrip().rstrip()
 
 # build some file naming convention tags
 runprefix = '%s_%s_%s_%s_%s_%s_%s' % (mpterm,sterm,gterm,cterm,uterm,vterm,rterm)
-file_prefix_cycle = r'%s_N_%02d_%02d' % (runprefix,cycle_start_elapsed+1,cycle_end_elapsed)
+file_prefix_cycle = r'%s_N_%02d_%02d' % (runprefix,cycle_start_elapsed,cycle_end_elapsed)
 file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
 
 
