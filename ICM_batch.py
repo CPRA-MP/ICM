@@ -70,6 +70,8 @@ if check == 'y':
 else:
     sys.exit('Glad we asked. Exiting now so you can get thing straightened out.\n')
 
+hstxt = ''                                                                  # string that will report out whether current cycle is a hotstart or not
+prv_jobnum = -9999                                                          # flag for previous job number - will not be re-set until after first job in batch is successfully submitted
 
 for cyc_n in sorted(cycles.keys()):
     cyc_s = cycles[cyc_n][0]                                                    # starting year for cycle
@@ -81,7 +83,7 @@ for cyc_n in sorted(cycles.keys()):
     sub_n       = shsub_col['S%02d' % s]
     ctrl_str    = 'ICM_control_update.py %s %s %d %04d %04d %d' % (s, g, cyc_n, cyc_s, cyc_e, sub_n) 
     
-    hstxt = ''                                                                  # string that will report out whether current cycle is a hotstart or not
+
     
     if cyc_n == min(cycles.keys()):                                             # check if job for cycle should be dependent on previous cycle or not
         if cyc_s != cyc0_s:                                                     # check if hotstarting
@@ -117,8 +119,8 @@ for cyc_n in sorted(cycles.keys()):
     if (status == 0 ):
         print('%s is job: %s' % (tag,jobnum) )
         with open(batlog,mode='a') as qlog:
-            if prv_jobnum > -9999:
-                qlog.write('%s (%04d-%04d) is job %s and has no job dependencies.%s\n' % (tag,cyc_s,cyc_e,jobnum,prv_jobnum,hstxt) )
+            if prv_jobnum == -9999:
+                qlog.write('%s (%04d-%04d) is job %s and has no job dependencies.%s\n' % (tag,cyc_s,cyc_e,jobnum,hstxt) )
             else:
                 qlog.write('%s (%04d-%04d) is job %s and depends on job %s finishing successfully.%s\n' % (tag,cyc_s,cyc_e,jobnum,prv_jobnum,hstxt) )
     else:
