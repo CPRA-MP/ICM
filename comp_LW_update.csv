@@ -1,0 +1,1658 @@
+ICM_ID,boundary,landchange_allowed
+1,2D compartment,1
+2,2D compartment,1
+3,2D compartment,1
+4,2D compartment,1
+5,2D compartment,1
+6,2D compartment,1
+7,2D compartment,1
+8,2D compartment,1
+9,2D compartment,1
+10,2D compartment,1
+11,2D tributary boundary (Qmult > 0),0
+12,2D compartment,1
+13,2D compartment,1
+14,2D compartment,1
+15,2D compartment,1
+16,FWOA diversion outfall - Maurepas,1
+17,2D compartment,1
+18,2D compartment,1
+19,FWOA diversion outfall - Maurepas,1
+20,2D compartment,1
+21,2D compartment,1
+22,2D compartment,1
+23,2D compartment,1
+24,2D compartment,1
+25,2D compartment,1
+26,2D compartment,1
+27,2D compartment,1
+28,2D compartment,1
+29,2D compartment,1
+30,2D compartment,1
+31,2D compartment,1
+32,2D compartment,1
+33,2D tributary boundary (Qmult > 0),0
+34,2D compartment,1
+35,2D compartment,1
+36,2D compartment,1
+37,2D tributary boundary (Qmult > 0),0
+38,2D tributary boundary (Qmult > 0),0
+39,2D compartment,1
+40,2D compartment,1
+41,2D compartment,1
+42,2D compartment,1
+43,2D compartment,1
+44,2D compartment,1
+45,2D compartment,1
+46,2D compartment,1
+47,2D compartment,1
+48,2D compartment,1
+49,2D compartment,1
+50,2D compartment,1
+51,2D compartment,1
+52,2D compartment,1
+53,2D compartment,1
+54,2D compartment,1
+55,2D compartment,1
+56,2D compartment,1
+57,2D compartment,1
+58,2D compartment,1
+59,2D compartment,1
+60,2D compartment,1
+61,2D compartment,1
+62,2D compartment,1
+63,2D compartment,1
+64,2D compartment,1
+65,2D compartment,1
+66,2D compartment,1
+67,2D compartment,1
+68,2D compartment - GoM,0
+69,2D tributary boundary (Qmult > 0),0
+70,2D compartment,1
+71,2D compartment - GoM,0
+72,2D compartment - GoM,0
+73,2D compartment,1
+74,2D compartment - GoM,0
+75,2D compartment - GoM,0
+76,2D compartment - GoM,0
+77,2D compartment - GoM,0
+78,2D compartment - GoM,0
+79,2D compartment,1
+80,2D compartment,1
+81,2D compartment,1
+82,2D compartment,1
+83,2D compartment,1
+84,2D compartment,1
+85,2D compartment,1
+86,2D compartment,1
+87,2D compartment,1
+88,2D compartment,1
+89,2D compartment,1
+90,2D compartment,1
+91,2D compartment,1
+92,FWOA diversion outfall - Mid-Breton,1
+93,FWOA diversion outfall - Mid-Breton,1
+94,2D compartment,1
+95,2D tributary boundary (Qmult > 0),0
+96,2D compartment,1
+97,2D compartment,1
+98,2D compartment,1
+99,2D compartment,1
+100,2D compartment,1
+101,2D compartment,1
+102,2D compartment,1
+103,2D compartment,1
+104,2D compartment,1
+105,2D compartment,1
+106,2D compartment,1
+107,2D compartment,1
+108,2D compartment,1
+109,2D compartment,1
+110,2D compartment,1
+111,2D compartment,1
+112,2D compartment,1
+113,2D compartment,1
+114,2D compartment,1
+115,2D compartment,1
+116,2D compartment,1
+117,2D compartment,1
+118,2D compartment,1
+119,2D compartment,1
+120,2D compartment,1
+121,2D compartment,1
+122,2D compartment,1
+123,2D compartment,1
+124,2D compartment,1
+125,2D compartment,1
+126,2D compartment,1
+127,2D compartment,1
+128,1D lateral connection,0
+129,1D lateral connection,0
+130,2D compartment,1
+131,2D compartment,1
+132,2D compartment,1
+133,2D compartment,1
+134,1D lateral connection,0
+135,1D lateral connection,0
+136,1D lateral connection,0
+137,2D compartment,1
+138,2D compartment,1
+139,2D compartment,1
+140,2D compartment,1
+141,2D compartment,1
+142,2D compartment,1
+143,2D compartment - GoM,0
+144,2D compartment - GoM,0
+145,2D compartment,1
+146,2D compartment,1
+147,2D compartment,1
+148,2D compartment,1
+149,2D compartment,1
+150,2D compartment,1
+151,2D tributary boundary (Qmult > 0),0
+152,2D compartment,1
+153,2D compartment,1
+154,2D compartment,1
+155,2D compartment,1
+156,2D compartment,1
+157,2D compartment,1
+158,2D compartment,1
+159,2D compartment,1
+160,2D compartment,1
+161,2D compartment,1
+162,2D compartment,1
+163,2D compartment,1
+164,2D compartment,1
+165,2D compartment,1
+166,2D compartment,1
+167,2D compartment,1
+168,2D compartment,1
+169,2D compartment,1
+170,2D compartment,1
+171,2D compartment,1
+172,2D compartment,1
+173,2D compartment,1
+174,2D compartment,1
+175,2D compartment,1
+176,2D compartment,1
+177,2D compartment,1
+178,2D compartment,1
+179,2D compartment,1
+180,2D compartment,1
+181,2D compartment,1
+182,2D compartment,1
+183,2D compartment,1
+184,2D compartment,1
+185,2D compartment,1
+186,2D compartment,1
+187,2D compartment,1
+188,2D compartment,1
+189,2D compartment,1
+190,2D compartment,1
+191,2D compartment,1
+192,2D compartment,1
+193,2D compartment,1
+194,2D compartment,1
+195,2D compartment,1
+196,2D compartment,1
+197,2D compartment,1
+198,2D compartment,1
+199,2D compartment,1
+200,2D compartment,1
+201,2D compartment,1
+202,2D compartment,1
+203,2D compartment,1
+204,2D compartment,1
+205,2D compartment,1
+206,2D compartment,1
+207,2D compartment,1
+208,2D compartment,1
+209,2D compartment,1
+210,2D compartment,1
+211,2D compartment,1
+212,2D compartment,1
+213,2D compartment,1
+214,2D compartment,1
+215,2D compartment,1
+216,2D compartment,1
+217,2D compartment,1
+218,2D compartment,1
+219,2D compartment,1
+220,2D compartment,1
+221,2D compartment,1
+222,2D compartment,1
+223,2D compartment,1
+224,2D tributary boundary (Qmult > 0),0
+225,2D compartment,1
+226,FWOA diversion outfall - Mid-Barataria,1
+227,2D compartment,1
+228,2D compartment,1
+229,2D compartment,1
+230,2D compartment,1
+231,2D compartment,1
+232,2D compartment,1
+233,2D compartment,1
+234,2D tributary boundary (Qmult > 0),0
+235,2D compartment,1
+236,2D compartment,1
+237,2D compartment,1
+238,2D compartment,1
+239,2D compartment,1
+240,2D compartment,1
+241,2D compartment,1
+242,2D compartment,1
+243,2D compartment,1
+244,2D compartment,1
+245,2D compartment,1
+246,2D compartment,1
+247,2D compartment,1
+248,2D compartment,1
+249,2D compartment,1
+250,2D compartment,1
+251,2D compartment,1
+252,2D compartment,1
+253,2D compartment,1
+254,2D compartment,1
+255,2D compartment,1
+256,2D compartment,1
+257,2D compartment,1
+258,2D compartment,1
+259,2D compartment,1
+260,2D compartment,1
+261,2D compartment,1
+262,2D compartment,1
+263,2D compartment,1
+264,2D compartment,1
+265,2D compartment,1
+266,1D lateral connection,0
+267,2D compartment,1
+268,2D compartment,1
+269,2D compartment,1
+270,2D compartment,1
+271,2D compartment,1
+272,2D compartment,1
+273,2D compartment,1
+274,2D compartment,1
+275,2D compartment,1
+276,2D compartment,1
+277,2D compartment,1
+278,2D compartment,1
+279,2D compartment,1
+280,2D compartment,1
+281,2D compartment,1
+282,2D compartment,1
+283,2D compartment,1
+284,2D compartment,1
+285,2D compartment,1
+286,2D compartment,1
+287,1D lateral connection,0
+288,1D lateral connection,0
+289,2D compartment,1
+290,2D compartment,1
+291,2D compartment,1
+292,1D lateral connection,0
+293,2D compartment,1
+294,2D compartment,1
+295,2D compartment,1
+296,2D compartment,1
+297,1D lateral connection,0
+298,1D terminal connection,0
+299,2D compartment - GoM,0
+300,2D tributary boundary (Qmult > 0),0
+301,2D tributary boundary (Qmult > 0),0
+302,2D compartment - GoM,0
+303,2D compartment,1
+304,2D compartment,1
+305,2D compartment,1
+306,2D compartment,1
+307,2D compartment,1
+308,2D compartment,1
+309,2D compartment,1
+310,2D compartment,1
+311,2D compartment,1
+312,2D compartment,1
+313,2D compartment - GoM,0
+314,2D compartment - GoM,0
+315,2D compartment - GoM,0
+316,2D compartment - GoM,0
+317,2D compartment - GoM,0
+318,2D compartment - GoM,0
+319,2D compartment - GoM,0
+320,2D compartment - GoM,0
+321,2D compartment - GoM,0
+322,2D compartment - GoM,0
+323,2D compartment - GoM,0
+324,2D compartment - GoM,0
+325,2D compartment - GoM,0
+326,2D compartment - GoM,0
+327,2D compartment - GoM,0
+328,2D compartment - GoM,0
+329,2D compartment - GoM,0
+330,2D compartment - GoM,0
+331,2D compartment - GoM,0
+332,2D compartment - GoM,0
+333,2D compartment - GoM,0
+334,2D compartment - GoM,0
+335,2D compartment - GoM,0
+336,2D compartment - GoM,0
+337,2D compartment - GoM,0
+338,2D compartment - GoM,0
+339,2D compartment - GoM,0
+340,2D compartment - GoM,0
+341,2D compartment - GoM,0
+342,2D compartment - GoM,0
+343,2D compartment - GoM,0
+344,2D compartment - GoM,0
+345,2D compartment - GoM,0
+346,2D offshore boundary compartment,0
+347,2D offshore boundary compartment,0
+348,2D offshore boundary compartment,0
+349,2D offshore boundary compartment,0
+350,2D offshore boundary compartment,0
+351,2D offshore boundary compartment,0
+352,2D offshore boundary compartment,0
+353,2D offshore boundary compartment,0
+354,2D offshore boundary compartment,0
+355,2D compartment,1
+356,2D compartment,1
+357,2D compartment,1
+358,2D compartment,1
+359,2D compartment,1
+360,2D compartment,1
+361,2D compartment,1
+362,2D compartment,1
+363,2D compartment,1
+364,2D compartment,1
+365,2D compartment,1
+366,2D compartment,1
+367,2D tributary boundary (Qmult > 0),0
+368,2D compartment,1
+369,2D tributary boundary (Qmult > 0),0
+370,2D tributary boundary (Qmult > 0),0
+371,2D compartment,1
+372,2D compartment,1
+373,2D compartment,1
+374,1D lateral connection,0
+375,2D compartment,1
+376,1D lateral connection,0
+377,1D lateral connection,0
+378,1D lateral connection,0
+379,2D compartment,1
+380,1D lateral connection,0
+381,2D compartment,1
+382,2D compartment,1
+383,2D compartment - GoM,0
+384,2D offshore boundary compartment,0
+385,1D upstream connection & 1D lateral connection,0
+386,2D compartment - GoM,0
+387,2D compartment - GoM,0
+388,2D compartment,1
+389,1D lateral connection,0
+390,modeled as 1D reach,0
+391,2D compartment,1
+392,1D lateral connection,0
+393,2D compartment,1
+394,1D lateral connection,0
+395,modeled as 1D reach,0
+396,2D compartment,1
+397,1D lateral connection,0
+398,2D compartment,1
+399,2D compartment,1
+400,2D compartment,1
+401,2D compartment,1
+402,2D compartment,1
+403,2D compartment,1
+404,2D compartment,1
+405,2D compartment,1
+406,2D compartment,1
+407,2D compartment,1
+408,1D lateral connection,0
+409,1D lateral connection,0
+410,2D compartment,1
+411,2D compartment,1
+412,2D compartment,1
+413,2D compartment,1
+414,2D compartment,1
+415,1D lateral connection,0
+416,2D compartment,1
+417,1D lateral connection,0
+418,1D lateral connection,0
+419,2D compartment,1
+420,2D compartment,1
+421,2D compartment,1
+422,2D compartment,1
+423,2D compartment,1
+424,2D compartment,1
+425,2D compartment,1
+426,2D compartment,1
+427,2D compartment,1
+428,2D compartment,1
+429,2D tributary boundary (Qmult > 0),0
+430,2D compartment,1
+431,2D compartment,1
+432,2D compartment,1
+433,2D compartment,1
+434,1D lateral connection,0
+435,2D compartment,1
+436,2D compartment,1
+437,2D compartment,1
+438,2D compartment,1
+439,2D compartment,1
+440,2D compartment,1
+441,1D lateral connection,0
+442,1D lateral connection,0
+443,2D compartment,1
+444,2D compartment,1
+445,1D lateral connection,0
+446,2D compartment,1
+447,2D compartment,1
+448,2D compartment,1
+449,1D lateral connection,0
+450,2D compartment,1
+451,2D compartment,1
+452,2D compartment,1
+453,2D compartment,1
+454,2D compartment,1
+455,2D compartment,1
+456,2D compartment,1
+457,2D compartment,1
+458,2D compartment,1
+459,2D compartment,1
+460,1D lateral connection,0
+461,2D compartment,1
+462,2D compartment,1
+463,2D compartment,1
+464,2D compartment,1
+465,1D lateral connection,0
+466,2D compartment,1
+467,2D compartment,1
+468,2D compartment,1
+469,2D compartment,1
+470,2D compartment,1
+471,2D compartment,1
+472,2D compartment,1
+473,2D compartment,1
+474,2D compartment,1
+475,2D compartment,1
+476,2D compartment,1
+477,2D compartment,1
+478,2D compartment,1
+479,2D compartment,1
+480,2D compartment,1
+481,2D compartment,1
+482,2D compartment - GoM,0
+483,2D compartment,1
+484,2D compartment,1
+485,2D compartment,1
+486,2D compartment,1
+487,2D compartment,1
+488,2D compartment,1
+489,2D compartment,1
+490,2D compartment,1
+491,2D compartment,1
+492,2D compartment,1
+493,2D compartment,1
+494,2D compartment - GoM,0
+495,2D compartment,1
+496,2D compartment,1
+497,2D compartment,1
+498,2D offshore boundary compartment,0
+499,1D lateral connection,0
+500,2D compartment,1
+501,2D compartment,1
+502,2D compartment,1
+503,2D compartment,1
+504,2D compartment,1
+505,2D compartment,1
+506,2D compartment,1
+507,2D compartment,1
+508,2D compartment,1
+509,2D compartment,1
+510,2D compartment,1
+511,2D compartment,1
+512,2D compartment,1
+513,2D compartment,1
+514,2D compartment,1
+515,2D compartment,1
+516,2D compartment,1
+517,2D compartment,1
+518,2D compartment,1
+519,2D compartment,1
+520,2D compartment,1
+521,2D compartment,1
+522,2D compartment,1
+523,2D compartment,1
+524,2D compartment,1
+525,2D compartment,1
+526,2D compartment,1
+527,2D compartment,1
+528,2D compartment,1
+529,1D lateral connection,0
+530,2D compartment,1
+531,2D compartment,1
+532,2D compartment,1
+533,2D compartment,1
+534,2D compartment,1
+535,2D compartment,1
+536,2D compartment,1
+537,2D compartment,1
+538,2D compartment,1
+539,2D compartment,1
+540,2D compartment,1
+541,2D compartment,1
+542,2D compartment,1
+543,2D compartment,1
+544,2D compartment,1
+545,2D compartment,1
+546,2D compartment,1
+547,2D compartment,1
+548,2D compartment,1
+549,2D compartment,1
+550,2D compartment,1
+551,2D compartment,1
+552,2D compartment,1
+553,2D compartment,1
+554,2D compartment - GoM,0
+555,2D compartment - GoM,0
+556,2D compartment,1
+557,2D compartment,1
+558,2D compartment,1
+559,2D compartment,1
+560,2D compartment,1
+561,2D compartment - GoM,0
+562,2D compartment,1
+563,2D compartment,1
+564,2D compartment,1
+565,2D compartment,1
+566,2D compartment,1
+567,2D compartment,1
+568,2D compartment,1
+569,2D compartment,1
+570,2D compartment,1
+571,2D compartment,1
+572,2D offshore boundary compartment,0
+573,2D compartment,1
+574,2D compartment,1
+575,2D compartment,1
+576,2D compartment,1
+577,1D lateral connection,0
+578,2D compartment,1
+579,2D compartment,1
+580,2D compartment,1
+581,2D compartment,1
+582,1D lateral connection,0
+583,1D lateral connection,0
+584,2D compartment,1
+585,2D compartment,1
+586,2D compartment,1
+587,2D compartment,1
+588,2D compartment,1
+589,1D lateral connection,0
+590,1D lateral connection,0
+591,2D compartment,1
+592,1D lateral connection,0
+593,2D compartment,1
+594,2D compartment,1
+595,1D lateral connection,0
+596,1D lateral connection,0
+597,2D compartment,1
+598,2D compartment,1
+599,2D compartment,1
+600,2D compartment,1
+601,2D compartment,1
+602,2D compartment,1
+603,2D compartment,1
+604,1D lateral connection,0
+605,2D compartment,1
+606,2D compartment,1
+607,1D lateral connection,0
+608,2D compartment,1
+609,2D compartment,1
+610,2D compartment,1
+611,2D compartment,1
+612,2D compartment,1
+613,2D compartment,1
+614,2D compartment,1
+615,1D terminal connection,0
+616,2D compartment,1
+617,2D compartment,1
+618,2D compartment,1
+619,2D compartment,1
+620,2D compartment,1
+621,2D compartment,1
+622,2D compartment,1
+623,2D compartment,1
+624,2D compartment,1
+625,2D compartment,1
+626,2D compartment,1
+627,1D lateral connection,0
+628,1D lateral connection,0
+629,2D compartment,1
+630,2D compartment,1
+631,2D compartment,1
+632,2D compartment,1
+633,2D compartment,1
+634,2D compartment,1
+635,2D compartment,1
+636,2D compartment,1
+637,2D compartment,1
+638,2D compartment,1
+639,2D compartment,1
+640,2D compartment,1
+641,2D compartment,1
+642,2D compartment,1
+643,2D compartment,1
+644,2D compartment,1
+645,2D compartment,1
+646,2D compartment,1
+647,2D compartment,1
+648,2D compartment,1
+649,2D compartment,1
+650,2D compartment,1
+651,2D compartment,1
+652,2D compartment,1
+653,2D compartment,1
+654,2D compartment,1
+655,2D compartment,1
+656,2D compartment,1
+657,2D compartment,1
+658,2D compartment,1
+659,2D compartment,1
+660,2D compartment,1
+661,2D compartment,1
+662,2D compartment,1
+663,1D lateral connection,0
+664,2D compartment,1
+665,2D compartment,1
+666,2D compartment,1
+667,2D compartment,1
+668,2D compartment,1
+669,2D compartment,1
+670,2D compartment,1
+671,2D compartment - GoM,0
+672,2D compartment,1
+673,2D compartment,1
+674,2D compartment,1
+675,2D compartment,1
+676,2D compartment,1
+677,2D compartment - GoM,0
+678,2D compartment,1
+679,2D compartment,1
+680,2D compartment,1
+681,2D compartment,1
+682,2D compartment - GoM,0
+683,2D compartment,1
+684,2D compartment,1
+685,2D compartment,1
+686,2D compartment,1
+687,2D compartment,1
+688,2D compartment,1
+689,2D compartment,1
+690,2D compartment,1
+691,2D compartment,1
+692,2D compartment,1
+693,2D compartment,1
+694,2D compartment,1
+695,2D compartment,1
+696,2D compartment,1
+697,2D compartment,1
+698,2D compartment,1
+699,2D compartment,1
+700,2D compartment,1
+701,2D compartment,1
+702,2D compartment - GoM,0
+703,2D offshore boundary compartment,0
+704,2D compartment,1
+705,2D offshore boundary compartment,0
+706,2D compartment,1
+707,2D compartment - GoM,0
+708,2D compartment,1
+709,2D compartment,1
+710,2D compartment,1
+711,2D compartment,1
+712,2D compartment,1
+713,2D compartment,1
+714,2D compartment - GoM,0
+715,2D compartment,1
+716,2D compartment,1
+717,2D compartment,1
+718,2D compartment,1
+719,2D compartment,1
+720,2D compartment,1
+721,2D compartment,1
+722,2D compartment,1
+723,2D compartment,1
+724,2D compartment,1
+725,2D compartment,1
+726,2D offshore boundary compartment,0
+727,2D compartment - GoM,0
+728,2D compartment,1
+729,2D compartment - GoM,0
+730,2D compartment - GoM,0
+731,2D compartment,1
+732,2D compartment,1
+733,2D compartment,1
+734,2D compartment - GoM,0
+735,1D lateral connection,0
+736,1D lateral connection,0
+737,1D lateral connection,0
+738,2D compartment,1
+739,2D compartment,1
+740,2D compartment,1
+741,2D compartment,1
+742,2D compartment,1
+743,2D compartment,1
+744,2D compartment,1
+745,2D compartment,1
+746,2D compartment,1
+747,2D compartment,1
+748,2D compartment,1
+749,2D compartment,1
+750,2D compartment,1
+751,2D compartment,1
+752,1D lateral connection,0
+753,1D lateral connection,0
+754,1D lateral connection,0
+755,1D lateral connection,0
+756,1D lateral connection,0
+757,1D lateral connection,0
+758,1D lateral connection,0
+759,1D lateral connection,0
+760,1D lateral connection,0
+761,2D compartment,1
+762,2D compartment,1
+763,2D compartment,1
+764,2D compartment,1
+765,2D compartment,1
+766,2D compartment,1
+767,2D compartment,1
+768,2D compartment,1
+769,2D compartment,1
+770,2D compartment,1
+771,2D compartment,1
+772,2D compartment,1
+773,2D compartment,1
+774,2D compartment,1
+775,2D compartment,1
+776,2D compartment,1
+777,2D compartment,1
+778,2D compartment,1
+779,2D compartment,1
+780,1D lateral connection,0
+781,2D compartment,1
+782,2D compartment,1
+783,2D compartment,1
+784,2D compartment,1
+785,2D compartment,1
+786,1D lateral connection,0
+787,2D compartment,1
+788,1D lateral connection,0
+789,2D compartment,1
+790,2D compartment,1
+791,2D compartment,1
+792,2D compartment,1
+793,2D compartment,1
+794,2D compartment,1
+795,2D compartment,1
+796,1D lateral connection,0
+797,2D compartment,1
+798,2D compartment,1
+799,2D compartment,1
+800,2D compartment,1
+801,2D compartment,1
+802,2D compartment,1
+803,2D compartment,1
+804,2D compartment,1
+805,2D compartment,1
+806,2D compartment,1
+807,2D compartment,1
+808,2D compartment,1
+809,2D compartment,1
+810,2D compartment,1
+811,2D compartment,1
+812,2D compartment,1
+813,2D compartment,1
+814,2D compartment,1
+815,2D compartment,1
+816,2D compartment,1
+817,2D compartment,1
+818,2D compartment,1
+819,1D lateral connection,0
+820,2D compartment,1
+821,2D compartment,1
+822,2D compartment,1
+823,2D compartment,1
+824,2D compartment,1
+825,2D compartment,1
+826,2D compartment,1
+827,2D compartment,1
+828,2D compartment,1
+829,2D compartment,1
+830,1D lateral connection,0
+831,1D lateral connection,0
+832,1D lateral connection,0
+833,2D compartment,1
+834,2D compartment,1
+835,2D compartment,1
+836,2D compartment,1
+837,2D compartment,1
+838,2D compartment,1
+839,2D compartment,1
+840,2D compartment,1
+841,2D compartment,1
+842,2D compartment,1
+843,2D compartment,1
+844,2D compartment,1
+845,2D compartment,1
+846,2D compartment,1
+847,2D compartment,1
+848,2D compartment,1
+849,2D compartment,1
+850,2D compartment,1
+851,2D compartment,1
+852,2D compartment,1
+853,2D compartment,1
+854,2D compartment,1
+855,2D compartment,1
+856,2D compartment,1
+857,2D compartment,1
+858,2D compartment,1
+859,2D compartment,1
+860,2D compartment,1
+861,2D compartment,1
+862,2D compartment,1
+863,2D compartment,1
+864,2D compartment,1
+865,2D compartment,1
+866,2D compartment,1
+867,2D compartment,1
+868,2D compartment,1
+869,2D compartment,1
+870,1D lateral connection,0
+871,1D terminal connection,0
+872,2D compartment,1
+873,2D compartment,1
+874,2D compartment,1
+875,modeled as 1D reach,0
+876,2D compartment,1
+877,2D compartment,1
+878,modeled as 1D reach,0
+879,modeled as 1D reach,0
+880,2D compartment,1
+881,2D compartment,1
+882,2D compartment,1
+883,2D compartment,1
+884,modeled as 1D reach,0
+885,modeled as 1D reach,0
+886,2D compartment,1
+887,modeled as 1D reach,0
+888,1D lateral connection,0
+889,modeled as 1D reach,0
+890,2D compartment,1
+891,2D compartment,1
+892,2D compartment,1
+893,2D compartment,1
+894,2D compartment,1
+895,2D compartment,1
+896,2D compartment,1
+897,modeled as 1D reach,0
+898,modeled as 1D reach,0
+899,1D lateral connection,0
+900,2D compartment,1
+901,2D compartment,1
+902,2D compartment,1
+903,2D compartment,1
+904,2D compartment,1
+905,2D compartment,1
+906,2D compartment,1
+907,2D compartment,1
+908,2D compartment,1
+909,2D compartment - GoM,0
+910,2D compartment,1
+911,2D tributary boundary (Qmult > 0),0
+912,2D compartment,1
+913,2D compartment,1
+914,2D compartment,1
+915,2D compartment,1
+916,2D compartment,1
+917,2D compartment,1
+918,2D compartment,1
+919,2D compartment,1
+920,2D compartment,1
+921,2D compartment,1
+922,2D compartment,1
+923,2D compartment,1
+924,2D compartment,1
+925,2D compartment,1
+926,2D compartment,1
+927,2D compartment,1
+928,2D compartment,1
+929,1D lateral connection,0
+930,2D compartment,1
+931,1D lateral connection,0
+932,2D compartment - GoM,0
+933,2D compartment,1
+934,2D compartment,1
+935,2D compartment,1
+936,2D compartment,1
+937,2D compartment,1
+938,2D compartment,1
+939,2D compartment,1
+940,2D compartment,1
+941,2D compartment,1
+942,2D compartment,1
+943,2D compartment,1
+944,2D compartment,1
+945,2D compartment,1
+946,modeled as 1D reach,0
+947,2D compartment,1
+948,2D compartment,1
+949,2D compartment,1
+950,2D compartment,1
+951,2D compartment,1
+952,1D lateral connection,0
+953,2D compartment,1
+954,2D compartment,1
+955,2D compartment,1
+956,2D compartment,1
+957,2D compartment,1
+958,2D compartment,1
+959,2D compartment,1
+960,2D compartment,1
+961,2D compartment,1
+962,2D compartment,1
+963,2D compartment - GoM,0
+964,2D compartment - GoM,0
+965,2D compartment - GoM,0
+966,2D compartment - GoM,0
+967,2D compartment - GoM,0
+968,2D compartment - GoM,0
+969,2D compartment - GoM,0
+970,2D compartment - GoM,0
+971,2D compartment - GoM,0
+972,2D compartment - GoM,0
+973,2D compartment - GoM,0
+974,2D compartment - GoM,0
+975,2D compartment - GoM,0
+976,2D compartment - GoM,0
+977,2D compartment - GoM,0
+978,2D compartment - GoM,0
+979,2D offshore boundary compartment,0
+980,2D compartment,1
+981,2D compartment,1
+982,1D lateral connection,0
+983,1D lateral connection,0
+984,1D lateral connection,0
+985,1D lateral connection,0
+986,2D compartment,1
+987,2D compartment,1
+988,2D compartment,1
+989,1D lateral connection,0
+990,2D compartment,1
+991,upland areas; non-wetland,0
+992,upland areas; non-wetland,0
+993,1D lateral connection,0
+994,1D lateral connection,0
+995,2D compartment,1
+996,1D lateral connection,0
+997,2D compartment,1
+998,1D lateral connection,0
+999,1D lateral connection,0
+1000,1D lateral connection,0
+1001,2D compartment,1
+1002,1D lateral connection,0
+1003,2D compartment,1
+1004,2D compartment,1
+1005,2D compartment,1
+1006,2D compartment,1
+1007,1D lateral connection,0
+1008,2D compartment,1
+1009,2D compartment,1
+1010,2D compartment,1
+1011,1D lateral connection,0
+1012,modeled as 1D reach,0
+1013,modeled as 1D reach,0
+1014,modeled as 1D reach,0
+1015,modeled as 1D reach,0
+1016,modeled as 1D reach,0
+1017,modeled as 1D reach,0
+1018,1D lateral connection,0
+1019,2D compartment,1
+1020,2D compartment - GoM,0
+1021,1D lateral connection,0
+1022,1D lateral connection,0
+1023,2D compartment,1
+1024,2D compartment,1
+1025,2D compartment,1
+1026,2D compartment,1
+1027,2D compartment,1
+1028,2D compartment,1
+1029,2D compartment,1
+1030,2D compartment,1
+1031,2D compartment,1
+1032,2D compartment,1
+1033,2D compartment,1
+1034,2D compartment,1
+1035,2D compartment,1
+1036,2D compartment,1
+1037,2D compartment,1
+1038,2D compartment,1
+1039,2D compartment,1
+1040,2D compartment,1
+1041,2D compartment,1
+1042,2D compartment,1
+1043,2D compartment,1
+1044,2D compartment,1
+1045,2D compartment,1
+1046,1D lateral connection,0
+1047,2D compartment,1
+1048,2D compartment,1
+1049,2D compartment,1
+1050,2D compartment,1
+1051,2D compartment,1
+1052,2D compartment,1
+1053,2D compartment,1
+1054,modeled as 1D reach,0
+1055,1D lateral connection,0
+1056,1D lateral connection,0
+1057,2D compartment,1
+1058,2D compartment,1
+1059,2D compartment,1
+1060,2D compartment,1
+1061,2D compartment,1
+1062,2D compartment,1
+1063,2D compartment,1
+1064,2D compartment,1
+1065,2D compartment,1
+1066,2D compartment,1
+1067,2D compartment,1
+1068,2D compartment,1
+1069,2D compartment,1
+1070,2D compartment,1
+1071,2D compartment,1
+1072,2D compartment,1
+1073,2D compartment,1
+1074,2D compartment,1
+1075,2D compartment,1
+1076,2D compartment,1
+1077,2D compartment,1
+1078,2D compartment,1
+1079,2D compartment - GoM,0
+1080,2D compartment,1
+1081,2D compartment,1
+1082,2D compartment,1
+1083,2D compartment,1
+1084,2D compartment,1
+1085,2D compartment,1
+1086,2D compartment,1
+1087,2D compartment,1
+1088,2D compartment,1
+1089,2D compartment,1
+1090,2D compartment,1
+1091,2D compartment,1
+1092,2D compartment,1
+1093,2D compartment,1
+1094,2D compartment,1
+1095,2D compartment,1
+1096,2D compartment,1
+1097,2D compartment,1
+1098,2D compartment,1
+1099,2D compartment,1
+1100,2D compartment,1
+1101,2D compartment,1
+1102,2D compartment,1
+1103,2D compartment,1
+1104,2D compartment,1
+1105,2D compartment,1
+1106,2D compartment,1
+1107,2D compartment,1
+1108,2D compartment,1
+1109,2D compartment,1
+1110,2D compartment,1
+1111,2D compartment,1
+1112,2D compartment,1
+1113,2D compartment,1
+1114,2D compartment,1
+1115,2D compartment,1
+1116,2D compartment,1
+1117,2D compartment,1
+1118,2D compartment,1
+1119,2D compartment,1
+1120,2D compartment,1
+1121,2D compartment,1
+1122,2D compartment,1
+1123,2D compartment,1
+1124,2D compartment,1
+1125,2D compartment,1
+1126,2D compartment,1
+1127,2D compartment,1
+1128,2D compartment,1
+1129,2D compartment,1
+1130,2D compartment,1
+1131,2D compartment,1
+1132,2D compartment,1
+1133,2D compartment,1
+1134,2D compartment,1
+1135,2D compartment,1
+1136,modeled as 1D reach,0
+1137,modeled as 1D reach,0
+1138,modeled as 1D reach,0
+1139,modeled as 1D reach,0
+1140,2D compartment,1
+1141,2D compartment,1
+1142,2D compartment,1
+1143,2D compartment,1
+1144,2D compartment,1
+1145,2D compartment,1
+1146,2D compartment,1
+1147,2D compartment,1
+1148,2D compartment,1
+1149,2D compartment,1
+1150,2D compartment,1
+1151,2D compartment,1
+1152,2D compartment,1
+1153,2D compartment,1
+1154,2D compartment,1
+1155,2D compartment,1
+1156,2D compartment,1
+1157,2D compartment,1
+1158,2D compartment,1
+1159,2D compartment,1
+1160,2D compartment,1
+1161,2D compartment,1
+1162,2D compartment,1
+1163,2D compartment,1
+1164,2D compartment,1
+1165,2D compartment,1
+1166,2D compartment,1
+1167,2D compartment,1
+1168,2D compartment,1
+1169,2D compartment,1
+1170,2D compartment,1
+1171,2D compartment,1
+1172,2D compartment,1
+1173,2D compartment,1
+1174,2D compartment,1
+1175,2D compartment,1
+1176,2D compartment,1
+1177,2D compartment,1
+1178,2D compartment,1
+1179,2D compartment,1
+1180,2D compartment,1
+1181,2D compartment,1
+1182,2D compartment,1
+1183,2D compartment,1
+1184,2D compartment,1
+1185,2D compartment,1
+1186,2D compartment,1
+1187,2D compartment,1
+1188,2D compartment,1
+1189,2D compartment,1
+1190,2D compartment,1
+1191,2D compartment,1
+1192,2D compartment,1
+1193,2D compartment,1
+1194,2D compartment - GoM,0
+1195,2D compartment,1
+1196,2D compartment,1
+1197,2D compartment,1
+1198,2D compartment,1
+1199,2D compartment - GoM,0
+1200,2D compartment,1
+1201,2D compartment,1
+1202,2D compartment,1
+1203,2D compartment,1
+1204,2D compartment,1
+1205,2D compartment,1
+1206,2D compartment,1
+1207,2D compartment,1
+1208,2D compartment,1
+1209,2D compartment,1
+1210,2D compartment,1
+1211,2D compartment,1
+1212,2D compartment,1
+1213,2D compartment,1
+1214,2D compartment,1
+1215,2D compartment,1
+1216,2D compartment,1
+1217,2D compartment,1
+1218,2D compartment,1
+1219,2D compartment,1
+1220,2D compartment,1
+1221,2D compartment,1
+1222,2D compartment,1
+1223,2D compartment,1
+1224,2D compartment,1
+1225,2D compartment,1
+1226,2D compartment,1
+1227,2D compartment,1
+1228,2D compartment,1
+1229,2D compartment,1
+1230,2D compartment,1
+1231,2D compartment,1
+1232,2D compartment,1
+1233,2D compartment,1
+1234,2D compartment,1
+1235,2D compartment,1
+1236,2D compartment,1
+1237,2D compartment,1
+1238,2D compartment,1
+1239,2D compartment,1
+1240,2D compartment,1
+1241,2D compartment,1
+1242,2D compartment,1
+1243,2D compartment,1
+1244,2D compartment,1
+1245,2D compartment,1
+1246,2D compartment,1
+1247,2D compartment,1
+1248,2D compartment,1
+1249,2D compartment,1
+1250,2D compartment,1
+1251,2D compartment,1
+1252,2D compartment,1
+1253,2D compartment,1
+1254,2D compartment,1
+1255,2D compartment,1
+1256,2D compartment,1
+1257,2D compartment,1
+1258,2D compartment,1
+1259,2D compartment,1
+1260,2D compartment,1
+1261,1D lateral connection,0
+1262,2D compartment,1
+1263,1D lateral connection,0
+1264,1D lateral connection,0
+1265,2D compartment,1
+1266,2D compartment,1
+1267,2D compartment,1
+1268,1D lateral connection,0
+1269,2D compartment,1
+1270,2D compartment,1
+1271,2D compartment,1
+1272,1D lateral connection,0
+1273,2D compartment,1
+1274,2D compartment,1
+1275,2D compartment - GoM,0
+1276,2D compartment,1
+1277,1D lateral connection,0
+1278,1D lateral connection,0
+1279,2D compartment,1
+1280,2D compartment,1
+1281,modeled as 1D reach,0
+1282,2D compartment,1
+1283,2D compartment,1
+1284,2D compartment,1
+1285,2D compartment,1
+1286,2D compartment,1
+1287,2D compartment,1
+1288,2D compartment,1
+1289,2D compartment,1
+1290,2D compartment,1
+1291,2D compartment,1
+1292,2D compartment,1
+1293,2D compartment,1
+1294,2D compartment,1
+1295,2D compartment,1
+1296,2D compartment,1
+1297,2D compartment,1
+1298,2D compartment,1
+1299,2D compartment,1
+1300,2D compartment - GoM,0
+1301,2D compartment,1
+1302,2D compartment,1
+1303,2D compartment,1
+1304,2D compartment,1
+1305,2D compartment,1
+1306,2D compartment,1
+1307,2D compartment,1
+1308,2D compartment,1
+1309,2D compartment,1
+1310,2D compartment,1
+1311,2D compartment,1
+1312,2D compartment,1
+1313,2D compartment,1
+1314,2D compartment,1
+1315,2D compartment,1
+1316,2D compartment,1
+1317,2D compartment,1
+1318,2D compartment,1
+1319,2D compartment,1
+1320,2D compartment,1
+1321,2D tributary boundary (Qmult > 0),0
+1322,2D compartment,1
+1323,2D compartment,1
+1324,2D compartment,1
+1325,2D compartment,1
+1326,2D tributary boundary (Qmult > 0),0
+1327,2D compartment,1
+1328,2D compartment,1
+1329,2D compartment,1
+1330,2D compartment,1
+1331,2D compartment,1
+1332,2D compartment,1
+1333,2D compartment - GoM,0
+1334,2D compartment - GoM,0
+1335,2D offshore boundary compartment,0
+1336,2D compartment - GoM,0
+1337,2D offshore boundary compartment,0
+1338,2D offshore boundary compartment,0
+1339,2D compartment - GoM,0
+1340,2D compartment - GoM,0
+1341,2D compartment,1
+1342,1D terminal connection,0
+1343,2D compartment - GoM,0
+1344,2D compartment - GoM,0
+1345,2D compartment - GoM,0
+1346,2D compartment - GoM,0
+1347,2D compartment - GoM,0
+1348,2D compartment - GoM,0
+1349,2D compartment - GoM,0
+1350,2D compartment - GoM,0
+1351,2D compartment - GoM,0
+1352,2D compartment - GoM,0
+1353,2D compartment - GoM,0
+1354,2D compartment - GoM,0
+1355,2D compartment - GoM,0
+1356,2D compartment - GoM,0
+1357,2D compartment - GoM,0
+1358,2D compartment - GoM,0
+1359,2D compartment - GoM,0
+1360,2D compartment - GoM,0
+1361,2D compartment - GoM,0
+1362,2D compartment - GoM,0
+1363,2D compartment - GoM,0
+1364,2D compartment - GoM,0
+1365,2D compartment - GoM,0
+1366,2D compartment - GoM,0
+1367,2D compartment - GoM,0
+1368,2D compartment - GoM,0
+1369,2D compartment - GoM,0
+1370,2D compartment - GoM,0
+1371,2D compartment - GoM,0
+1372,2D compartment - GoM,0
+1373,2D compartment - GoM,0
+1374,2D compartment - GoM,0
+1375,2D compartment - GoM,0
+1376,2D compartment - GoM,0
+1377,2D compartment - GoM,0
+1378,2D compartment - GoM,0
+1379,2D compartment - GoM,0
+1380,2D compartment - GoM,0
+1381,2D compartment - GoM,0
+1382,2D compartment,1
+1383,2D compartment,1
+1384,2D compartment,1
+1385,2D compartment,1
+1386,2D compartment,1
+1387,2D compartment,1
+1388,2D compartment,1
+1389,2D compartment,1
+1390,2D compartment,1
+1391,2D compartment,1
+1392,2D compartment,1
+1393,2D compartment,1
+1394,2D compartment,1
+1395,upland areas; non-wetland,0
+1396,upland areas; non-wetland,0
+1397,2D compartment,1
+1398,2D compartment,1
+1399,2D compartment,1
+1400,2D compartment,1
+1401,2D compartment,1
+1402,2D compartment,1
+1403,2D compartment,1
+1404,2D compartment,1
+1405,2D compartment,1
+1406,2D compartment,1
+1407,2D compartment,1
+1408,2D compartment,1
+1409,2D compartment,1
+1410,2D compartment,1
+1411,2D compartment,1
+1412,2D compartment,1
+1413,2D compartment,1
+1414,2D compartment,1
+1415,2D compartment,1
+1416,2D compartment,1
+1417,2D compartment,1
+1418,2D compartment - GoM,0
+1419,2D compartment - GoM,0
+1420,2D compartment - GoM,0
+1421,2D offshore boundary compartment,0
+1422,2D offshore boundary compartment,0
+1423,2D compartment - GoM,0
+1424,2D offshore boundary compartment,0
+1425,2D compartment - GoM,0
+1426,2D compartment - GoM,0
+1427,2D compartment - GoM,0
+1428,2D compartment - GoM,0
+1429,2D compartment - GoM,0
+1430,2D compartment - GoM,0
+1431,2D compartment - GoM,0
+1432,2D compartment - GoM,0
+1433,2D compartment - GoM,0
+1434,2D compartment - GoM,0
+1435,2D compartment - GoM,0
+1436,2D compartment - GoM,0
+1437,2D compartment - GoM,0
+1438,2D compartment - GoM,0
+1439,2D compartment,1
+1440,2D compartment,1
+1441,2D compartment,1
+1442,upland areas; non-wetland,0
+1443,upland areas; non-wetland,0
+1444,upland areas; non-wetland,0
+1445,upland areas; non-wetland,0
+1446,upland areas; non-wetland,0
+1447,upland areas; non-wetland,0
+1448,upland areas; non-wetland,0
+1449,upland areas; non-wetland,0
+1450,upland areas; non-wetland,0
+1451,upland areas; non-wetland,0
+1452,upland areas; non-wetland,0
+1453,upland areas; non-wetland,0
+1454,upland areas; non-wetland,0
+1455,upland areas; non-wetland,0
+1456,upland areas; non-wetland,0
+1457,upland areas; non-wetland,0
+1458,upland areas; non-wetland,0
+1459,upland areas; non-wetland,0
+1460,upland areas; non-wetland,0
+1461,upland areas; non-wetland,0
+1462,upland areas; non-wetland,0
+1463,upland areas; non-wetland,0
+1464,upland areas; non-wetland,0
+1465,upland areas; non-wetland,0
+1466,upland areas; non-wetland,0
+1467,upland areas; non-wetland,0
+1468,upland areas; non-wetland,0
+1469,upland areas; non-wetland,0
+1470,upland areas; non-wetland,0
+1471,upland areas; non-wetland,0
+1472,upland areas; non-wetland,0
+1473,upland areas; non-wetland,0
+1474,upland areas; non-wetland,0
+1475,1D lateral connection,0
+1476,upland areas; non-wetland,0
+1477,upland areas; non-wetland,0
+1478,upland areas; non-wetland,0
+1479,upland areas; non-wetland,0
+1480,upland areas; non-wetland,0
+1481,upland areas; non-wetland,0
+1482,upland areas; non-wetland,0
+1483,upland areas; non-wetland,0
+1484,upland areas; non-wetland,0
+1485,upland areas; non-wetland,0
+1486,upland areas; non-wetland,0
+1487,upland areas; non-wetland,0
+1488,upland areas; non-wetland,0
+1489,upland areas; non-wetland,0
+1490,upland areas; non-wetland,0
+1491,upland areas; non-wetland,0
+1492,upland areas; non-wetland,0
+1493,upland areas; non-wetland,0
+1494,upland areas; non-wetland,0
+1495,upland areas; non-wetland,0
+1496,upland areas; non-wetland,0
+1497,upland areas; non-wetland,0
+1498,upland areas; non-wetland,0
+1499,upland areas; non-wetland,0
+1500,upland areas; non-wetland,0
+1501,upland areas; non-wetland,0
+1502,upland areas; non-wetland,0
+1503,upland areas; non-wetland,0
+1504,upland areas; non-wetland,0
+1505,upland areas; non-wetland,0
+1506,upland areas; non-wetland,0
+1507,upland areas; non-wetland,0
+1508,upland areas; non-wetland,0
+1509,upland areas; non-wetland,0
+1510,upland areas; non-wetland,0
+1511,upland areas; non-wetland,0
+1512,upland areas; non-wetland,0
+1513,upland areas; non-wetland,0
+1514,upland areas; non-wetland,0
+1515,upland areas; non-wetland,0
+1516,upland areas; non-wetland,0
+1517,upland areas; non-wetland,0
+1518,upland areas; non-wetland,0
+1519,upland areas; non-wetland,0
+1520,upland areas; non-wetland,0
+1521,upland areas; non-wetland,0
+1522,upland areas; non-wetland,0
+1523,upland areas; non-wetland,0
+1524,upland areas; non-wetland,0
+1525,upland areas; non-wetland,0
+1526,2D tributary boundary (Qmult > 0),0
+1527,upland areas; non-wetland,0
+1528,upland areas; non-wetland,0
+1529,2D tributary boundary (Qmult > 0),0
+1530,upland areas; non-wetland,0
+1531,upland areas; non-wetland,0
+1532,upland areas; non-wetland,0
+1533,upland areas; non-wetland,0
+1534,upland areas; non-wetland,0
+1535,upland areas; non-wetland,0
+1536,upland areas; non-wetland,0
+1537,upland areas; non-wetland,0
+1538,upland areas; non-wetland,0
+1539,upland areas; non-wetland,0
+1540,upland areas; non-wetland,0
+1541,upland areas; non-wetland,0
+1542,upland areas; non-wetland,0
+1543,upland areas; non-wetland,0
+1544,upland areas; non-wetland,0
+1545,upland areas; non-wetland,0
+1546,upland areas; non-wetland,0
+1547,upland areas; non-wetland,0
+1548,upland areas; non-wetland,0
+1549,upland areas; non-wetland,0
+1550,upland areas; non-wetland,0
+1551,upland areas; non-wetland,0
+1552,upland areas; non-wetland,0
+1553,upland areas; non-wetland,0
+1554,upland areas; non-wetland,0
+1555,upland areas; non-wetland,0
+1556,upland areas; non-wetland,0
+1557,upland areas; non-wetland,0
+1558,upland areas; non-wetland,0
+1559,2D tributary boundary (Qmult > 0),0
+1560,upland areas; non-wetland,0
+1561,upland areas; non-wetland,0
+1562,upland areas; non-wetland,0
+1563,upland areas; non-wetland,0
+1564,upland areas; non-wetland,0
+1565,upland areas; non-wetland,0
+1566,upland areas; non-wetland,0
+1567,upland areas; non-wetland,0
+1568,upland areas; non-wetland,0
+1569,upland areas; non-wetland,0
+1570,upland areas; non-wetland,0
+1571,upland areas; non-wetland,0
+1572,upland areas; non-wetland,0
+1573,upland areas; non-wetland,0
+1574,upland areas; non-wetland,0
+1575,upland areas; non-wetland,0
+1576,upland areas; non-wetland,0
+1577,upland areas; non-wetland,0
+1578,upland areas; non-wetland,0
+1579,upland areas; non-wetland,0
+1580,upland areas; non-wetland,0
+1581,upland areas; non-wetland,0
+1582,upland areas; non-wetland,0
+1583,upland areas; non-wetland,0
+1584,upland areas; non-wetland,0
+1585,upland areas; non-wetland,0
+1586,upland areas; non-wetland,0
+1587,upland areas; non-wetland,0
+1588,upland areas; non-wetland,0
+1589,upland areas; non-wetland,0
+1590,upland areas; non-wetland,0
+1591,upland areas; non-wetland,0
+1592,upland areas; non-wetland,0
+1593,upland areas; non-wetland,0
+1594,upland areas; non-wetland,0
+1595,upland areas; non-wetland,0
+1596,upland areas; non-wetland,0
+1597,upland areas; non-wetland,0
+1598,upland areas; non-wetland,0
+1599,upland areas; non-wetland,0
+1600,upland areas; non-wetland,0
+1601,upland areas; non-wetland,0
+1602,upland areas; non-wetland,0
+1603,2D tributary boundary (Qmult > 0),0
+1604,upland areas; non-wetland,0
+1605,upland areas; non-wetland,0
+1606,upland areas; non-wetland,0
+1607,upland areas; non-wetland,0
+1608,upland areas; non-wetland,0
+1609,upland areas; non-wetland,0
+1610,2D tributary boundary (Qmult > 0),0
+1611,upland areas; non-wetland,0
+1612,upland areas; non-wetland,0
+1613,upland areas; non-wetland,0
+1614,upland areas; non-wetland,0
+1615,upland areas; non-wetland,0
+1616,upland areas; non-wetland,0
+1617,upland areas; non-wetland,0
+1618,upland areas; non-wetland,0
+1619,upland areas; non-wetland,0
+1620,upland areas; non-wetland,0
+1621,upland areas; non-wetland,0
+1622,upland areas; non-wetland,0
+1623,upland areas; non-wetland,0
+1624,upland areas; non-wetland,0
+1625,upland areas; non-wetland,0
+1626,upland areas; non-wetland,0
+1627,upland areas; non-wetland,0
+1628,upland areas; non-wetland,0
+1629,2D tributary boundary (Qmult > 0),0
+1630,upland areas; non-wetland,0
+1631,upland areas; non-wetland,0
+1632,upland areas; non-wetland,0
+1633,upland areas; non-wetland,0
+1634,upland areas; non-wetland,0
+1635,upland areas; non-wetland,0
+1636,upland areas; non-wetland,0
+1637,2D tributary boundary (Qmult > 0),0
+1638,upland areas; non-wetland,0
+1639,upland areas; non-wetland,0
+1640,upland areas; non-wetland,0
+1641,upland areas; non-wetland,0
+1642,upland areas; non-wetland,0
+1643,upland areas; non-wetland,0
+1644,upland areas; non-wetland,0
+1645,upland areas; non-wetland,0
+1646,upland areas; non-wetland,0
+1647,upland areas; non-wetland,0
+1648,upland areas; non-wetland,0
+1649,upland areas; non-wetland,0
+1650,upland areas; non-wetland,0
+1651,upland areas; non-wetland,0
+1652,upland areas; non-wetland,0
+1653,upland areas; non-wetland,0
+1654,upland areas; non-wetland,0
+1655,upland areas; non-wetland,0
+1656,upland areas; non-wetland,0
+1657,upland areas; non-wetland,0

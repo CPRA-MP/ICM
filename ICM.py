@@ -1430,39 +1430,54 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
         ## update Hydro compartment water/upland/marsh area attributes
         print(' Updating land/water ratios and bed/marsh elevation attributes for Hydro compartments - Year %s' % year)
+        
+        # open list of compartments that should not have land attributes updated (e.g. open water Gulf, 1D channels, and upland non-tidal areas)
+        LWupdate = {}
+        staticLW_file = os.path.normpath('%s/comp_LW_update.csv' % ecohydro_dir)
+        with open(staticLW_file,mode='w') as staticLW:
+            nl = 0
+            for line in staticLW:
+                if nl >= 1:
+                    cID =float(line.split(',')[0])
+                    LWup = int(line.split(',')[2])
+                    LWupdate[cID] = LWup
+                nl +=1 
+        
         for nn in range(0,len(EHCellsArray)):
             cellID = EHCellsArray[nn,0]
             cellarea = EHCellsArray[nn,1]
-            # update percent water only if new value was calculated in Morph (e.g. dicitionary has a key of cellID and value that is not -9999), otherwise keep last year value
-            try:
-                if new_pctwater_dict[cellID] != -9999:
-                    EHCellsArray[nn,2] = new_pctwater_dict[cellID]
-                else:
-                    flag_cell_wat =+ 1
-            except:
-                flag_cell_wat += 1
-
-            # update percent upland only if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999), otherwise keep last year value
-            try:
-                if new_pctupland_dict[cellID] != -9999:
-                    EHCellsArray[nn,3] = new_pctupland_dict[cellID]
-                else:
+            # check that Hydro Compartment should have landscape areas updated 
+            if LWupdate[cellID] == 1:
+                # update percent water only if new value was calculated in Morph (e.g. dicitionary has a key of cellID and value that is not -9999), otherwise keep last year value
+                try:
+                    if new_pctwater_dict[cellID] != -9999:
+                        EHCellsArray[nn,2] = new_pctwater_dict[cellID]
+                    else:
+                        flag_cell_wat =+ 1
+                except:
+                    flag_cell_wat += 1
+                
+                # update percent upland only if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999), otherwise keep last year value
+                try:
+                    if new_pctupland_dict[cellID] != -9999:
+                        EHCellsArray[nn,3] = new_pctupland_dict[cellID]
+                    else:
+                        flag_cell_upl += 1
+                except:
                     flag_cell_upl += 1
-            except:
-                flag_cell_upl += 1
-
-
-            # update marsh edge area, in attributes array
-            try:
-                if new_Medge_dict[cellID] != -9999:
-                    EHCellsArray[nn,5] = new_Medge_dict[cellID]
-            except:
-                    flag_edge_ch += 1
-
-            # update percent marsh - use cell array, rather than new dictionaries to account for compartments that weren't updated by Morph
-            orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
-            EHCellsArray[nn,4] = max((1-EHCellsArray[nn,2]-EHCellsArray[nn,3]),0)
-            new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
+                
+                
+                # update marsh edge area, in attributes array
+                try:
+                    if new_Medge_dict[cellID] != -9999:
+                        EHCellsArray[nn,5] = new_Medge_dict[cellID]
+                except:
+                        flag_edge_ch += 1
+                
+                # update percent marsh - use cell array, rather than new dictionaries to account for compartments that weren't updated by Morph
+                orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
+                EHCellsArray[nn,4] = max((1-EHCellsArray[nn,2]-EHCellsArray[nn,3]),0)
+                new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
 
         # update Hydro compartment/link elevation attributes (if turned on as model option)
         if update_hydro_attr == 0:
