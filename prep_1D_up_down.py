@@ -2,10 +2,33 @@ import numpy as np
 import shutil
 import os
 
+s = 'S06'
+g = 'G502'
+infol = '../../FWOA_boundary_conditions'
+
+print( 'Setting up files for %s %s' % (s,g) )
+
+os.chdir( '%s/%s/hydro' % (s,g) )
+
+print( 'copying group-specific tributary file for %s %s' % (s,g) )
+shutil.copyfile('%s/%s_%s_TribQ.csv' % (infol,s,g),'TribQ.csv' % (s,g) )
+# do not need to worry about copying over TribF and TribS since the sediment concentrations do not change since they are multiplied by the TribQ
+
+'%s/%s_Meteorology.csv' % (infol,s),    '%s/%s_MissRToC.csv' % (infol,s),   '%s/%s_PET' % (infol,s),    '%s/%s_Precip_With_Storms.csv' % (infol,s),'%s/%s_BCToC2.dat' % (infol,s),'%s/%s_TideData.csv' % (infol,s)
+infiles = ['Meteorology.csv','MissRToC.csv','PET.csv','Precip.csv','BCToC2.dat','TideData.csv']
+
+print( 'copying scenario-specific environmental forcing files for %s %s' % (s,g) )
+
+for newf in infiles:
+    origf = '%s/%s_%s' % (infol,s,newf)
+    shutil.copyfile( origf, newf )
+
+
+print( 'prepping 1D input files for %s %s' % (s,g) )
 tribQ_file = 'TribQ.csv'
 tribF_file = 'TribF.csv'
 tribS_file = 'TribS.csv'
-temp_file = 'Meteorology.csv'
+temp_file  = 'Meteorology.csv'
 
 # 1D channel reaches
 rch_trib = {}
@@ -22,14 +45,48 @@ rch_lat['WLO']                 = [17,19,23,36,37,42,43,49,50,60,62,67,68,73,75,7
 rch_lat['lower_Mississippi']   = [32,55,74,124,145,148,159,233,258,260,274,297,302,318,320,327,333,334,345,349,362,368,392,413]
 rch_lat['CSC']                 = [187,210,223,239,243,245,248,249,255,256,264,265,270,286,296,298,302,308,310,317,318,319] #322 #230
 
+MRdiversions_upstream_of_BelleChasse_TribQcols = [37,38,39,40,41,42,43,44,45,46,47,48]  
+# TribQ.csv column #37 Bayou LaFourche Diversion
+# TribQ.csv column #38 Union Freshwater Diversion
+# TribQ.csv column #39 West Maurepas Diversion
+# TribQ.csv column #40 East Maurepas Diversion
+# TribQ.csv column #41 Bonnet Carre
+# TribQ.csv column #42 Manchac Landbridge Diversion
+# TribQ.csv column #43 LaBranche Hydrologic Restoration
+# TribQ.csv column #44 Davis Pond
+# TribQ.csv column #45 Ama Sediment Diversion
+# TribQ.csv column #46 Inner Harbor Navigational Canal
+# TribQ.csv column #47 Central Wetlands Diversion
+# TribQ.csv column #48 Caernarvon
+
+MRdiversions_downstream_of_BelleChasse_1Dnodes = {}
+MRdiversions_downstream_of_BelleChasse_1Dnodes[32]  = 50 # lateral flow at node 32 is Mid-Breton             (TribQ.csv column # = 50)
+MRdiversions_downstream_of_BelleChasse_1Dnodes[55]  = 52 # lateral flow at node 55 is Naomi siphon           (TribQ.csv column # = 52)
+MRdiversions_downstream_of_BelleChasse_1Dnodes[74]  = 51 # lateral flow at node 74 is Mid-Barataria          (TribQ.csv column # = 51)
+MRdiversions_downstream_of_BelleChasse_1Dnodes[124] = 53 # lateral flow at node 124 is West Point a la Hache (TribQ.csv column # = 53)
+n_1d_div = len( MRdiversions_downstream_of_BelleChasse_1Dnodes.keys() )
+print(' FWOA has 4 diversions downstream of Belle Chasse that are lateral flow in the 1D model:')
+print('      - Mid-Breton Diversion       is lateral flow at 1D node 32')
+print('      - Naomi Siphon               is lateral flow at 1D node 55')
+print('      - Mid-Barataria Diversion    is lateral flow at 1D node 74')
+print('      - W. Point a la Hache Siphon is lateral flow at 1D node 124')
+
 # 1D lateral links that have timeseries boundaries instead of coupling to 2D model
 # the links below will have boundary condition timeseries - if not listed, the remaining lateral links from above will have a timeseries with values of 0.0
 
 lat_ts_trib = {}
 lat_ts_trib['ATCH'] = {}
 lat_ts_trib['WLO'] = {}
-lat_ts_trib['lower_Mississippi'] = {32:50, 55:52, 74:51, 124:53} # lateral flow at node 32 is Mid-Breton (TribQ # = 50); lateral flow at node 55 is Naomi siphon (TribQ # = 52);lateral flow at node 74 is Mid-Barataria (TribQ # = 51);  node 124 is West Point a la Hache (TribQ # = 53)
+lat_ts_trib['lower_Mississippi'] = MRdiversions_downstream_of_BelleChasse_1Dnodes
 lat_ts_trib['CSC'] = {}
+
+moveon = 'n'
+moveon = input('This run (%s %s) has %02d Mississippi River diversions downstream of Belle Chasse. Is this correct? [y]es or [n]o?' % (s,g,n_1D_div) )
+if moveon == 'n':
+    sys.exit('Double check diversion settings and re-run this script. Exiting now.')
+else:
+    print('OK. Moving forward with setting up 1D channel models with %02d Mississippi River diversions downstream of Belle Chasse.' % n_1D_div )
+
 
 for rch in ['CSC']:#rch_trib.keys():
     print(' Building 1D upstream/downstream input files for reach: %s' % rch)
@@ -67,8 +124,8 @@ for rch in ['CSC']:#rch_trib.keys():
     # read in daily timeseries flows for all diversions upstream of Belle Chasse to build residual flow at Belle Chasse
     # can read as float since date value is not needed
     if rch == 'lower_Mississippi' :
-        us_dv = [37,38,39,40,41,42,43,44,45,46,47,48]  # Bayou LaFourche Diversion;Union Freshwater Diversion;West Maurepas Diversion;East Maurepas Diversion;Bonnet Carre;Manchac Landbridge Diversion;LaBranche Hydrologic Restoration;Davis Pond;Ama Sediment Diversion;Inner Harbor Navigational Canal;Central Wetlands Diversion;Caernarvon
-        us_dv_cols = np.subtract(us_dv,1)
+        us_dv = MRdiversions_upstream_of_BelleChasse_TribQcols
+        us_dv_cols = np.subtract(us_dv,1)                       # convert column number to zero-based-index for np.genfromtxt
         Q_in_us_dv = np.genfromtxt(tribQ_file,usecols=us_dv_cols,delimiter=',',dtype=float,skip_header=1)
     
     
