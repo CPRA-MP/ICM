@@ -1956,11 +1956,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for comp in range(1,ncomp+1):
             wrt_string = comp
             for mon in range(1,13):
-                prvmon_sum = 0
-                if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
-                    for prvmon in range(1,mon-1):
-                        prvmon_sum += float(sed_ow[prvmon][comp])
-                val2write = float(sed_ow[mon][comp]) - prvmon_sum
+                if mon == 1:
+                    val2write = float(sed_ow[mon][comp])
+                else:
+                    val2write = float(sed_ow[mon][comp]) - float(sed_ow[mon-1][comp])            # convert cumulative sediment deposited during year to amount deposited only during the current month
                 wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
@@ -1973,11 +1972,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for comp in range(1,ncomp+1):
             wrt_string = comp
             for mon in range(1,13):
-                prvmon_sum = 0
-                if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
-                    for prvmon in range(1,mon-1):
-                        prvmon_sum += float(sed_mi[prvmon][comp])
-                val2write = float(sed_mi[mon][comp]) - prvmon_sum
+                if mon == 1:
+                    val2write = max(0,float(sed_mi[mon][comp]))                                  # marsh deposition can only be positive - no erosion - force to zero in case of small negative values due to sigfig
+                else:
+                    val2write = max(0,float(sed_mi[mon][comp]) - float(sed_mi[mon-1][comp]))     # convert cumulative sediment deposited during year to amount deposited only during the current month
                 wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
@@ -1990,11 +1988,11 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for comp in range(1,ncomp+1):
             wrt_string = comp
             for mon in range(1,13):
-                prvmon_sum = 0
-                if mon > 1:     # must loop through previous months to convert cumulative sediment deposited during year to amount deposited only during the month
-                    for prvmon in range(1,mon-1):
-                        prvmon_sum += float(sed_me[prvmon][comp])
-                val2write = float(sed_me[mon][comp]) - prvmon_sum
+                if mon == 1:
+                    val2write = max(0,float(sed_me[mon][comp]))                                  # marsh deposition can only be positive - no erosion - force to zero in case of small negative values due to sigfig
+                else:
+                    val2write = max(0,float(sed_me[mon][comp]) - float(sed_me[mon-1][comp]))     # convert cumulative sediment deposited during year to amount deposited only during the current month
+
                 wrt_string = '%s,%s' % (wrt_string,val2write)
             mon_file.write('%s\n'% wrt_string)
 
