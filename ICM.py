@@ -1434,7 +1434,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         # open list of compartments that should not have land attributes updated (e.g. open water Gulf, 1D channels, and upland non-tidal areas)
         LWupdate = {}
         staticLW_file = os.path.normpath('%s/comp_LW_update.csv' % ecohydro_dir)
-        with open(staticLW_file,mode='w') as staticLW:
+        with open(staticLW_file,mode='r') as staticLW:
             nl = 0
             for line in staticLW:
                 if nl >= 1:
