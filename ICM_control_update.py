@@ -35,17 +35,23 @@ with open(old_ctrl, mode='r') as cf:
             var = line.split(',')[0]
             val = line.split(',')[1]
             nl += 1
-            if nl == 25:                                    # sub_n:  update column of shallow subsidence input data to be used for this run
+            if nl == 19:
+                out = wf.write('%s,TempFiles/RuncontrolR_%4d.dat\n' % (var,cyc_s-1) )           # update location of RuncontrolR.dat input to the last year's file that was moved to hydro/TempFiles
+            elif nl == 20:
+                out = wf.write('%s,TempFiles/Cells_%4d.csv\n' % (var,cyc_s-1) )                 # update location of Cells.csv input to the last year's file that was moved to hydro/TempFiles
+            elif nl == 21:
+                out = wf.write('%s,TempFiles/Links_%4d.csv\n' % (var,cyc_s-1) )                 # update location of Links.csv input to the last year's file that was moved to hydro/TempFiles
+            elif nl == 25:                                                                      # sub_n:  update column of shallow subsidence input data to be used for this run
                 out = wf.write('%s,%d\n' % (var,sub_n) )
-            elif nl == 42:                                 # cyc_n:  update simulation cycle number
-                out = wf.write('%s,%d\n' % (var,cyc_n) )
-            elif nl == 43:                                  # cyc_s:  update first year of simulation cycle
-                out = wf.write('%s,%d\n' % (var,cyc_s) )
-            elif nl == 44:                                  # cyc_e:  update end year of simulation cycle 
-                out = wf.write('%s,%d\n' % (var,cyc_e) )
-            elif nl == 65:                                  # fnc_s:  update scenario number for file naming convention tag 
-                out = wf.write('%s,S%02d\n' % (var,fnc_s) )
-            elif nl == 66:                                  # fnc_g:  update model group number for file naming convention tag
+            elif nl == 42:                                                                      # cyc_n:  update simulation cycle number
+                out = wf.write('%s,%d\n' % (var,cyc_n) )                                        
+            elif nl == 43:                                                                      # cyc_s:  update first year of simulation cycle
+                out = wf.write('%s,%d\n' % (var,cyc_s) )                                        
+            elif nl == 44:                                                                      # cyc_e:  update end year of simulation cycle 
+                out = wf.write('%s,%d\n' % (var,cyc_e) )                                        
+            elif nl == 65:                                                                      # fnc_s:  update scenario number for file naming convention tag 
+                out = wf.write('%s,S%02d\n' % (var,fnc_s) )                                     
+            elif nl == 66:                                                                      # fnc_g:  update model group number for file naming convention tag
                 out = wf.write('%s,G%03d\n' % (var,fnc_g) )
             else:
                 out = wf.write(line)
