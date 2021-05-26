@@ -1704,7 +1704,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     print(' See %s for Hydro runtime logs.' % hydro_logfile)
 
     # run compiled Fortran executable - will automatically return to Python window when done running
-    hydrorun = subprocess.call('./hydro_v23.3.0')
+    hydrorun = subprocess.call('./hydro_v23.4.0')
 
     if hydrorun != 0:
         print('******ERROR******')
