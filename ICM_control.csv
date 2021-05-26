@@ -1,12 +1,17 @@
 Description,Input Parameter
 #########################################################################,
-## Folder structure directories for ICM components,
+## Folder structure directories for ICM components - all paths relative to main /Gxxx/ directory,
 Working folder for Hydro model,./hydro
 Working folder for Geomorphology model,./geomorph
 Working folder for Vegetation model,./veg
 Working folder for Barrier Island model,./bidem
 Working folder for Habitat Suitability Indices,./hsi
 Working folder for Fish Biomass model,./ewe
+#########################################################################,
+## Path to compiled executables used by ICM ,
+Path to ICM-Hydro executable (relative to /Gxxx/hydro/ path),./hydro_v23.4.0
+Path to ICM-BIDEM executable (relative to each /Gxxx/bidem/REGION/ path),./bidem_v23.0.0
+Path to ICM-Morph executable (relative to /Gxxx/ path),./morph_v23.1.0
 #########################################################################,
 ## Filenames for various ICM components,
 Input Configuration Filename for Vegetation model,lavegmod_proto.config
