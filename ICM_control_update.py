@@ -35,17 +35,17 @@ with open(old_ctrl, mode='r') as cf:
             var = line.split(',')[0]
             val = line.split(',')[1]
             nl += 1
-            if nl == 1:                                     # sub_n:  update column of shallow subsidence input data to be used for this run
+            if nl == 25:                                    # sub_n:  update column of shallow subsidence input data to be used for this run
                 out = wf.write('%s,%d\n' % (var,sub_n) )
-            elif nl == 37:                                  # cyc_n:  update simulation cycle number
+            elif nl == 42:                                 # cyc_n:  update simulation cycle number
                 out = wf.write('%s,%d\n' % (var,cyc_n) )
-            elif nl == 38:                                  # cyc_s:  update first year of simulation cycle
+            elif nl == 43:                                  # cyc_s:  update first year of simulation cycle
                 out = wf.write('%s,%d\n' % (var,cyc_s) )
-            elif nl == 39:                                  # cyc_e:  update end year of simulation cycle 
+            elif nl == 44:                                  # cyc_e:  update end year of simulation cycle 
                 out = wf.write('%s,%d\n' % (var,cyc_e) )
-            elif nl == 60:                                  # fnc_s:  update scenario number for file naming convention tag 
+            elif nl == 65:                                  # fnc_s:  update scenario number for file naming convention tag 
                 out = wf.write('%s,S%02d\n' % (var,fnc_s) )
-            elif nl == 61:                                  # fnc_g:  update model group number for file naming convention tag
+            elif nl == 66:                                  # fnc_g:  update model group number for file naming convention tag
                 out = wf.write('%s,G%03d\n' % (var,fnc_g) )
             else:
                 out = wf.write(line)
