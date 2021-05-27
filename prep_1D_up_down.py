@@ -81,12 +81,12 @@ lat_ts_trib['WLO'] = {}
 lat_ts_trib['lower_Mississippi'] = MRdiversions_downstream_of_BelleChasse_1Dnodes
 lat_ts_trib['CSC'] = {}
 
-moveon = 'n'
-moveon = input('This run (%s %s) has %02d Mississippi River diversions downstream of Belle Chasse. Is this correct? [y]es or [n]o?' % (s,g,n_1D_div) )
-if moveon == 'n':
-    sys.exit('Double check diversion settings and re-run this script. Exiting now.')
-else:
-    print('OK. Moving forward with setting up 1D channel models with %02d Mississippi River diversions downstream of Belle Chasse.' % n_1D_div )
+#moveon = 'n'
+#moveon = input('This run (%s %s) has %02d Mississippi River diversions downstream of Belle Chasse. Is this correct? [y]es or [n]o?' % (s,g,n_1D_div) )
+#if moveon == 'n':
+#    sys.exit('Double check diversion settings and re-run this script. Exiting now.')
+#else:
+#    print('OK. Moving forward with setting up 1D channel models with %02d Mississippi River diversions downstream of Belle Chasse.' % n_1D_div )
 
 
 for rch in rch_trib.keys():
