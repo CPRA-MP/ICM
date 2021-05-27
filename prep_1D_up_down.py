@@ -1,17 +1,18 @@
 import numpy as np
 import shutil
 import os
+import sys
 
-s = 'S06'
-g = 'G502'
-infol = '../../FWOA_boundary_conditions'
+s = sys.argv[1]      #'S06'
+g = sys.argv[2]      #'G501'
+
+os.chdir('%s/%s/hydro' % (s,g) )
+infol = '../../../FWOA_boundary_conditions' # relative path to FWOA BC from S##/G###/hydro directory
 
 print( 'Setting up files for %s %s' % (s,g) )
 
-os.chdir( '%s/%s/hydro' % (s,g) )
-
 print( 'copying group-specific tributary file for %s %s' % (s,g) )
-shutil.copyfile('%s/%s_%s_TribQ.csv' % (infol,s,g),'TribQ.csv' % (s,g) )
+shutil.copyfile('%s/%s_%s_TribQ.csv' % (infol,s,g),'TribQ.csv' )
 # do not need to worry about copying over TribF and TribS since the sediment concentrations do not change since they are multiplied by the TribQ
 
 #'%s/%s_Meteorology.csv' % (infol,s),    '%s/%s_MissRToC.csv' % (infol,s),   '%s/%s_PET' % (infol,s),    '%s/%s_Precip_With_Storms.csv' % (infol,s),'%s/%s_BCToC2.dat' % (infol,s),'%s/%s_TideData.csv' % (infol,s)
@@ -64,7 +65,7 @@ MRdiversions_downstream_of_BelleChasse_1Dnodes[32]  = 50 # lateral flow at node 
 MRdiversions_downstream_of_BelleChasse_1Dnodes[55]  = 52 # lateral flow at node 55 is Naomi siphon           (TribQ.csv column # = 52)
 MRdiversions_downstream_of_BelleChasse_1Dnodes[74]  = 51 # lateral flow at node 74 is Mid-Barataria          (TribQ.csv column # = 51)
 MRdiversions_downstream_of_BelleChasse_1Dnodes[124] = 53 # lateral flow at node 124 is West Point a la Hache (TribQ.csv column # = 53)
-n_1d_div = len( MRdiversions_downstream_of_BelleChasse_1Dnodes.keys() )
+n_1D_div = len( MRdiversions_downstream_of_BelleChasse_1Dnodes.keys() )
 print(' FWOA has 4 diversions downstream of Belle Chasse that are lateral flow in the 1D model:')
 print('      - Mid-Breton Diversion       is lateral flow at 1D node 32')
 print('      - Naomi Siphon               is lateral flow at 1D node 55')
@@ -88,7 +89,7 @@ else:
     print('OK. Moving forward with setting up 1D channel models with %02d Mississippi River diversions downstream of Belle Chasse.' % n_1D_div )
 
 
-for rch in ['CSC']:#rch_trib.keys():
+for rch in rch_trib.keys():
     print(' Building 1D upstream/downstream input files for reach: %s' % rch)
     
     trib_number = rch_trib[rch]
