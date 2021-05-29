@@ -2181,8 +2181,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         if bimoderun != 0:
             error_msg = '\n BIDEM model run for region %s year %s was unsuccessful.' % (fol,year)
             sys.exit(error_msg)
-
-
+        
+        os.remove('input.txt')
+        os.rename('input.txt.new','input.txt')
+        
         print(' Interpolating BIDEM outputs for %s to ICM-Morph DEM' % fol)
         bidem_out = './results/profile_%04d' % elapsedyear
         fixed_grid_in = bidem_fixed_grids[fol_n]
