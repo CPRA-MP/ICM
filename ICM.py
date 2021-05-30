@@ -1075,6 +1075,17 @@ if os.path.isfile(EH_grid_file) == False:
     except:
         sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_grid_file) 
 
+EH_hs_file = 'hotstart_in.dat'
+
+if os.path.isfile(EH_hs_file) == False:
+    print('\n******File check failed*********\n%s not found - checking for previous year file in hydro\Tempfiles' % EH_hs_file)
+    try:
+        prv_EH_grid_file = 'hotstart_out.dat'
+        shutil.copyfile(prv_EH_grid_file,EH_grid_file)
+        os.remove(prv_EH_grid_file)
+    except:
+        sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_hs_file) 
+
 
 ## Read Ecohydro's initial configuration, compartmentm and link attributes file into an arrayfile into an array of strings
 cellsheader='Compartment,TotalArea,AreaWaterPortion,AreaUplandPortion,AreaMarshPortion,MarshEdgeLength,WSEL_init,bed_elev,bed_depth,bed_bulk_density,percentForETcalc,initial_sand,initial_salinity,RainGage,WindGage,ETGage,CurrentsCoeff_ka,bedFricCoeff_cf,NonSandExp_sedn,NonSandCoeff_sedcalib,SandCoeff_alphased,Marsh_Flow_roughness_Kka,Minimum_Marsh_Flow_Depth_Kkdepth,MarshEdgeErosionRate_myr,initial_stage_marsh,marsh_elev_mean,marsh_elev_stdv,soil_moisture_depth_Esho,depo_on_off,marh_elev_adjust'
