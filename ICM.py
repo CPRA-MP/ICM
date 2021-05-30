@@ -1070,19 +1070,18 @@ if os.path.isfile(EHLinksFile) == False:
 if os.path.isfile(EH_grid_file) == False:
     print('\n******File check failed*********\n%s not found - checking for previous year file in hydro\Tempfiles' % EH_grid_file)
     try:
-        prv_EH_grid_file = os.path.normpath(r"%s/%s_%04d.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],startyear_cycle-1,str.split(EH_grid_file,'.')[1]))
+        prv_EH_grid_file = os.path.normpath(r"%s/%s_end%04d.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],startyear_cycle-1,str.split(EH_grid_file,'.')[1]))
         shutil.copyfile(prv_EH_grid_file,EH_grid_file)
     except:
         sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_grid_file) 
 
 EH_hs_file = 'hotstart_in.dat'
-
 if os.path.isfile(EH_hs_file) == False:
     print('\n******File check failed*********\n%s not found - checking for previous year file in hydro\Tempfiles' % EH_hs_file)
     try:
-        prv_EH_grid_file = 'hotstart_out.dat'
-        shutil.copyfile(prv_EH_grid_file,EH_grid_file)
-        os.remove(prv_EH_grid_file)
+        prv_EH_hs_file = 'hotstart_out.dat'
+        shutil.copyfile(prv_EH_hs_file,EH_hs_file)
+        os.remove(prv_EH_hs_file)
     except:
         sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_hs_file) 
 
