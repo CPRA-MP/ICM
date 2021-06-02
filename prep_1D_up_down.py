@@ -309,7 +309,7 @@ for rch in rch_trib.keys():
             latfolder =  '%s/HYDRO/input/Lateral/%s' % (rch,yr)
             
             if use_latQ == 1:
-                latQval = latQ_in[lat][d] 
+                latQval = -1.0*latQ_in[lat][d]   # lateral flow from a diversion is negative to leave 1D channel at lateral connection
             else:    
                 latQval = 0.0
             
@@ -371,7 +371,7 @@ for rch in rch_trib.keys():
     
         for lat in rch_lat[rch]:
             if lat in lat_ts_trib[rch].keys():
-                q = latQ_in[lat][d] 
+                q = -1.0*latQ_in[lat][d] # lateral flow from a diversion is negative to leave 1D channel at lateral connection
                 sal = 0
                 fine = latFine_in[lat][d]
                 sand = latSand_in[lat][d]
@@ -407,7 +407,7 @@ for rch in rch_trib.keys():
                    for lat in rch_lat[rch]:
                        if lat in lat_ts_trib[rch].keys():
                            # in this loop section, the index d has not been updated since 12/31 so each loop during pad_days will just repeat the value q,fine,sand,tw for the last day of the year
-                           q = latQ_in[lat][d]
+                           q = -1.0*latQ_in[lat][d] # lateral flow from a diversion is negative to leave 1D channel at lateral connection
                            sal = 0
                            fine = latFine_in[lat][d]
                            sand = latSand_in[lat][d]
