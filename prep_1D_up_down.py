@@ -209,16 +209,18 @@ for rch in rch_trib.keys():
         
         dt += 1440
         
-        # on last day of year
+        # on last day of year pad end of file with additional daily values as an extra timestep for iteration functions. then close file.
         if mn == '12':
             if day == '31':
-                # repeat last daily value as an extra timestep for iteration functions
-                upQout.write('%s\t%s\n' % (dt,Qval))
-                downWLout.write('%s\t%s\n' % (dt, default_val))
-                upFineout.write('%s\t%s\n' % (dt, Fval))
-                upSandout.write('%s\t%s\n' % (dt, Sval))
-                Tairout.write('%s\t%s\n' % (dt, Tairval))
-                Twout.write('%s\t%s\n' % (dt, Twval))
+                for pad in pad_days:  # this will pad the bottom of the daily record based on a set  number of days set above
+                    upQout.write('%s\t%s\n' % (dt,Qval))
+                    downWLout.write('%s\t%s\n' % (dt, default_val))
+                    upFineout.write('%s\t%s\n' % (dt, Fval))
+                    upSandout.write('%s\t%s\n' % (dt, Sval))
+                    Tairout.write('%s\t%s\n' % (dt, Tairval))
+                    Twout.write('%s\t%s\n' % (dt, Twval))
+                
+                    dt += 1440
                 
                 # close timeseries files
                 upQout.close()
@@ -326,12 +328,17 @@ for rch in rch_trib.keys():
             
             latQout.write('%s\t%s\n' % (dt, latQval))
         
-            dt += 1440                
+            dt += 1440
+            
+            # on last day of year pad end of file with additional daily values as an extra timestep for iteration functions. then close file.
             if mn == '12':
                 if day == '31':
-                    latQout.write('%s\t%s\n' % (dt, latQval))
-                    latQout.close()
+                    for pad in pad_days:  # this will pad the bottom of the daily record based on a set  number of days set above
+                        latQout.write('%s\t%s\n' % (dt, latQval))
+                        
+                        dt += 1440
                     
+                    latQout.close()
     ##########################################################
     ###   Lateral Sediment, Salinity and Temp Timeseries   ###
     ##########################################################
@@ -395,7 +402,7 @@ for rch in rch_trib.keys():
     
         dt += 1440                           
     
-        # on last day of year.pad end of file with additional daily values as an extra timestep for iteration functions..
+        # on last day of year pad end of file with additional daily values as an extra timestep for iteration functions. then close file.
         if mn == '12':
             if day == '31':
                 for pad in pad_days:  # this will pad the bottom of the daily record based on a set  number of days set above
