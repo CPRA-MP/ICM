@@ -52,7 +52,7 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
             for outfile in outfiles:
                 try:
                     year = int(outfile.split('.')[0][-4:])
-                    if year > cyc_s:
+                    if year >= cyc_s:
                         print('removing %s/%s' % (outdir,outfile) )
                         os.remove('%s/%s' % (outdir,outfile) )
     return()
