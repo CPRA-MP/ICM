@@ -32,12 +32,12 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
             days2keep += 366
         else:
             days2keep += 365
-    outfiles = os.listdir('%s/%s/hydro' % (s,g) )
+    outfiles = os.listdir('hydro' )
     for orig_outfile in outfiles:
         if orig_outfile.endswith('.out'):
-            print(' - cleaning up %s %s %s' % (s,g,orig_outfile) )
-            outfile = '%s/%s/hydro/%s' % (s,g,orig_outfile)
-            bkfile = '%s/%s/hydro/%s.bk' % (s,g,orig_outfile)
+            print(' - cleaning up S%02d G%03d %s' % (s,g,orig_outfile) )
+            outfile = 'hydro/%s' % (orig_outfile)
+            bkfile = 'hydro/%s.bk' % (orig_outfile)
             os.rename(outfile,bkfile)
             with open(bkfile,mode='r') as orig:
                 with open(outfile,mode='w') as new:
@@ -47,7 +47,7 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
             os.remove(bkfile)
     for reg in ['ATCH','WLO','CSC','lower_Mississippi']:
         for mod in ['FINE','HYDRO','SAL','SAND','TMP']:
-            outdir = '%s/%s/hydro/%s/%s/output' % (s,g,reg,mod)
+            outdir = 'hydro/%s/%s/output' % (reg,mod)
             outfiles = os.listdir('%s' % outdir)
             for outfile in outfiles:
                 try:
