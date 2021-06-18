@@ -23,12 +23,38 @@ def write_sbatch(sbatch_file,account,email,tag,tag8,ctrl_str,ICMpy,perfflag=1):
         #out = sbat.write('date > run.end\n')                                   # uncomment if want start datetime to be save to 'run.begin' text file
     return()
 
-def hotstart(cyc_s,cyc0_s=2019):
+def hotstart(s,g,cyc_s,cyc0_s=2019):
     # this function will cleanup model output files in order to hotstart the model.
-    print('Starting to clean up files to hotstart in model %04d...' % cyc_s)
-    
-    print('hotstarting script not imported in yet')
-    
+    print('Starting to clean up files to hotstart model in %04d...' % cyc_s)
+    days2keep = 0
+    for yr in range(cyc0_s,cyc_s):
+        if yr in range(1984,4000,4):
+            days2keep += 366
+        else:
+            days2keep += 365
+    outfiles = os.listdir('%s/%s/hydro' % (s,g) )
+    for orig_outfile in outfiles:
+        if orig_outfile.endswith('.out'):
+            print(' - cleaning up %s %s %s' % (s,g,orig_outfile) )
+            outfile = '%s/%s/hydro/%s' % (s,g,orig_outfile)
+            bkfile = '%s/%s/hydro/%s.bk' % (s,g,orig_outfile)
+            os.rename(outfile,bkfile)
+            with open(bkfile,mode='r') as orig:
+                with open(outfile,mode='w') as new:
+                    for day in range(0,days2keep):
+                        line2write=orig.readline()
+                        w = new.write(line2write)
+            os.remove(bkfile)
+    for reg in ['ATCH','WLO','CSC','lower_Mississippi']:
+        for mod in ['FINE','HYDRO','SAL','SAND','TMP']:
+            outdir = '%s/%s/hydro/%s/%s/output' % (s,g,reg,mod)
+            outfiles = os.listdir('%s' % outdir)
+            for outfile in outfiles:
+                try:
+                    year = int(outfile.split('.')[0][-4:])
+                    if year > cyc_s:
+                        print('removing %s/%s' % (outdir,outfile) )
+                        os.remove('%s/%s' % (outdir,outfile) )
     return()
 
 import subprocess
