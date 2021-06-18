@@ -55,6 +55,8 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
                     if year >= cyc_s:
                         print('removing %s/%s' % (outdir,outfile) )
                         os.remove('%s/%s' % (outdir,outfile) )
+                except:
+                    a=0
     return()
 
 import subprocess
