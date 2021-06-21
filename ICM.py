@@ -1196,9 +1196,15 @@ with open('lavegmod_proto.config.og',mode='r') as lvcr:
                 elif lvm_var.strip() == 'HeightAboveWaterFile':
                     dm = lvcw.write( '%s= %s_H_%s\n' % (lvm_var,file_prefix_cycle,HtAbvWaterFile) )
 
+                elif lvm_var.strip() == 'OutputTemplate':
+                    dm = lvcw.write( '%s= %s_O_<YEAR>_<YEAR>_V_vegty.asc+\n' % (lvm_var,runprefix) )
+                   
                 elif lvm_var.strip() == 'OutputYears':
                     dm = lvcw.write( '%s= %s\n' % (lvm_var,yrstr) )
-                    
+                
+                elif lvm_var.strip() == 'DeadFloatingTemplate':
+                    dm = lvcw.write( '%s= %s_O_<YEAR>_<YEAR>_V_deadf.asc\n' % (lvm_var,runprefix) )                    
+                
                 elif lvm_var.strip() == 'DeadFloatingYears':
                     dm = lvcw.write( '%s= %s\n' % (lvm_var,yrstr) )
                 
