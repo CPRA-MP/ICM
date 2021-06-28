@@ -142,7 +142,7 @@ def compout2dict(input_file,import_column):
 
 
 def dict2asc_flt(mapping_dict,outfile,asc_grid,asc_header,write_mode):
-    # this function maps a dictionary of data into XY space and saves as a raster file of ASCII grid format
+    # this function maps a dictionary of floating point data into XY space and saves as a raster file of ASCII grid format
     # this function does not return anything but it will save 'outfile' to disk
 
     # ASCII grid format description: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
@@ -167,6 +167,38 @@ def dict2asc_flt(mapping_dict,outfile,asc_grid,asc_header,write_mode):
                     rowout = '%0.4f'  % gid_val
                 else:
                     rowout = '%s %0.4f' % (rowout,gid_val)
+                nc += 1
+            outf.write('%s\n' % rowout)
+            msg = '\nsuccessfully saved %s' % (outfile)
+    return msg
+
+
+def dict2asc_int(mapping_dict,outfile,asc_grid,asc_header,write_mode):
+    # this function maps a dictionary of integer data into XY space and saves as a raster file of ASCII grid format
+    # this function does not return anything but it will save 'outfile' to disk
+
+    # ASCII grid format description: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+
+    # 'mapping_dict' is a dictionary with grid cell ID as the key and some value for each key
+    # 'outfile' is the filename (full path) of the output .asc raster text file to be saved
+    # 'asc_grid' is a numpy array that is the grid structure of an ASCII text raster
+    # 'asc_header' is a string that includes the 6 lines of text required by the ASCII grid format
+
+    msg = '\ndid not save %s' % (outfile)
+    with open(outfile, mode=write_mode) as outf:
+        outf.write(asc_header)
+        for row in asc_grid:
+            nc = 0
+            for col in row:
+                gid_map = row[nc]
+                if gid_map > 0:                     # if the ASC grid has a no data cell (-9999) there will be no dictionary key, the else criterion is met and it keeps the no data value (-9999)
+                    gid_val = float(mapping_dict[gid_map] )
+                else:
+                    gid_val = float(gid_map)
+                if nc == 0:
+                    rowout = '%d'  % gid_val
+                else:
+                    rowout = '%s %d' % (rowout,gid_val)
                 nc += 1
             outf.write('%s\n' % rowout)
             msg = '\nsuccessfully saved %s' % (outfile)
@@ -690,6 +722,7 @@ HtAbvWaterFile = inputs[25,1].lstrip().rstrip()
 PerLandFile = inputs[26,1].lstrip().rstrip()
 PerWaterFile = inputs[27,1].lstrip().rstrip()
 AcuteSalFile = inputs[28,1].lstrip().rstrip()
+acute_sal_threshold = 5.5
 
 ## Simulation Settings
 startyear = int(inputs[29,1].lstrip().rstrip())
@@ -2079,7 +2112,18 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     print('   - updating acute salinity stress grid file for ICM-LAVegMod')
     salmx_comp = compout2dict(comp_out_file,7)
     salmx_grid = comp2grid(salmx_comp,grid_comp_dict)
-    print(dict2asc_flt(salmx_grid,acute_sal_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
+    
+    acute_sal_grid = {}
+    for gid in salmx_grid.keys():
+        val = salmx_grid[gid]
+        if val < 0:
+            val2write = -9999
+            elif val < acute_sal_threshold:
+                val2write = 0
+            else:
+                val2write = 1
+        acute_sal_grid[gid] = val2write        
+    print(dict2asc_flt(acute_sal_grid,acute_sal_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
 
 
 
