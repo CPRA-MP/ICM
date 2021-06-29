@@ -2118,10 +2118,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         val = salmx_grid[gid]
         if val < 0:
             val2write = -9999
-            elif val < acute_sal_threshold:
-                val2write = 0
-            else:
-                val2write = 1
+        elif val < acute_sal_threshold:
+            val2write = 0
+        else:
+            val2write = 1
         acute_sal_grid[gid] = val2write        
     print(dict2asc_flt(acute_sal_grid,acute_sal_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
 
