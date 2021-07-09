@@ -1328,6 +1328,17 @@ BITI_Pontchartrain_BWF = float(BITI_Pontchartrain_setup.iloc[1,-1])
 kappa = 6.99e-4
 alpha = 0.86
 
+# BITI Links - initial channel dimensions
+# Create a dictionary where key is link ID, first value is inlet depth, second value is inlet width
+BITI_inlet_dimensions_init = {}
+for n in range(0,len(BITI_Links)):
+    for k in range(0,len(BITI_Links[n])):
+        BITI_Link_ID = BITI_Links[n][k]
+        EHLinks_index = BITI_Link_ID - 1                        ## EHLinks is a numpy 0-based index, not dictionary with lookup
+        orig_depth = EHLinksArray[EHLinks_index,8] + 0.3        ## invert elevation is attribute1 for Type 1 links (column 8 in links array) - add 0.3 meters to convert from invert to link depth (assuming that initial MWL in GoM is +0.3 m)
+        orig_width = EHLinksArray[EHLinks_index,11]             ## channel width is attribute4 for Type 1 links (column 11 in links array)
+        BITI_inlet_dimensions_init[BITI_Link_ID] = (orig_depth,orig_width)  
+
 
 
 #########################################################
@@ -1762,11 +1773,11 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                             print(' Updating composite marsh flow link (link %s) for marsh creation project implemented in previous year.' % mm)
                             darea_us = new_marsh_area[us_comp] - orig_marsh_area[us_comp]
                             darea_ds = new_marsh_area[ds_comp] - orig_marsh_area[ds_comp]
-                            origwidth = EHLinksArray[mm,12]
-                            length = EHLinksArray[mm,11]
+                            origwidth = EHLinksArray[mm,11]
+                            length = EHLinksArray[mm,10]
                             # change in link area is equal to the increase in marsh area between the two compartments
                             newwidth = origwidth*length - (darea_us + darea_ds)/length
-                            EHLinksArray[mm,12] = max(newwidth,30) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
+                            EHLinksArray[mm,11] = max(newwidth,30) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
 
         ## save updated Cell and Link attributes to text files read into Hydro model
         np.savetxt(EHCellsFile,EHCellsArray,fmt='%.12f',header=cellsheader,delimiter=',',comments='')
@@ -2138,17 +2149,33 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     os.chdir(bimode_dir)
 
+    # read in mean water levels for each barrier island model domain
+    EH_MHW = dict((EH_comp_out[n][0],EH_comp_out[n][2]) for n in range(0,len(EH_comp_out)))     # create dictionary where key is compartment ID, values is mean water (column 3 of Ecohydro output)
+    
+    # create liste of ICM compartments that will be used as MHW for each BI group (west-to-east)
+    IslandMHWCompLists = [494,482,316,314,306,303]
+    
+    # read mean water level for each BI region
+    BIMODEmhw = np.zeros(shape=len(IslandMHWCompLists))    # Initialize MHW array to zero - will write over previous year's array
+    for n in range(0,len(IslandMHWCompLists)):
+        comp = IslandMHWCompLists[n]
+        BIMODEmhw[n] = EH_MHW[comp]
+
+    # calculate one average water level for all BI regions to be used for BITI depth calculations
+    BITI_MWL = BIMODEmhw.mean()
+
     # create dictionary where key is compartment ID, value is tidal prism (Column 14 of Ecohydro output)
     EH_prisms = dict((EH_comp_out[n][0],EH_comp_out[n][13]) for n in range(0,len(EH_comp_out)))
-
+    
+    # no longer need NumPy array of compartment output summary data - delete until next year
+    del(EH_comp_out)
+    
+    
     #Barrier Island Tidal Inlet (BITI) tidal prism values
     #Get the tidal prism values for each compartment from the Hydro output
     BITI_Terrebonne_prism = [EH_prisms.get(comp) for comp in BITI_Terrebonne_comp]
     BITI_Barataria_prism = [EH_prisms.get(comp) for comp in BITI_Barataria_comp]
     BITI_Pontchartrain_prism = [EH_prisms.get(comp) for comp in BITI_Pontchartrain_comp]
-
-    # create liste of ICM compartments that will be used as MHW for each BI group (west-to-east)
-    IslandMHWCompLists = [494,482,316,314,306,303]
 
 
     # Calculate the effective tidal prism and cross-sectional area for each link in each basin
@@ -2194,8 +2221,29 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     for n in range(0,len(BITI_Links)):
         for k in range(0,len(BITI_Links[n])):
             BITI_inlet_dimensions[BITI_Links[n][k]] = ([BITI_inlet_depth[n][k],BITI_inlet_width[n][k]])
-
     
+    BITI_inlet_dimensions_init[BITI_Link_ID] = (orig_depth,orig_width)  
+
+    # set upper and lower limits on how much the tidal inlet dimensions can change as a ratio of the initial dimensions
+    # currently, the limits are (arbitrarily) set to limit expansion to twice the original width and/or depth and limit the contraction to 1/4th the original width and/or depth
+    for BITI_Link_ID in BITI_inlet_dimensions.keys():
+
+            orig_depth = BITI_inlet_dimensions_init[BITI_Link_ID][0]
+            BITI_inlet_depth_min = 0.25*orig_depth
+            BITI_inlet_depth_max = 2.0*orig_depth
+            new_depth = min( max( BITI_inlet_dimensions[BITI_Link_ID][0], BITI_inlet_depth_min ), BITI_inlet_depth_max)
+
+            orig_width = BITI_inlet_dimensions_init[BITI_Link_ID][1]  
+            BITI_inlet_width_min = 0.25*orig_width
+            BITI_inlet_width_max = 2.0*orig_width
+            new_width = min( max( BITI_inlet_dimensions[BITI_Link_ID][1], BITI_inlet_width_min ), BITI_inlet_width_max)
+
+
+            EHLinks_index = BITI_Link_ID - 1                                    ## EHLinks is a numpy 0-based index, not dictionary with lookup
+            EHLinksArray[EHLinks_index,8] = BITI_MWL - new_depth                ## invert elevation is attribute1 for Type 1 links (column 8 in links array)
+            EHLinksArray[EHLinks_index,11] = new_width                          ## channel width is attribute4 for Type 1 links (column 11 in links array)
+
+
 
 
     #########################################################
@@ -2206,15 +2254,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     print('  RUNNING BARRIER ISLAND MODEL (ICM-BIDEM) - Year %s' % year)
     print('--------------------------------------------------\n')
     print(' See separate log files generated by each BI region.')
-
-    EH_MHW = dict((EH_comp_out[n][0],EH_comp_out[n][2]) for n in range(0,len(EH_comp_out)))     # create dictionary where key is compartment ID, values is mean water (column 3 of Ecohydro output)
-    del(EH_comp_out)
-
-    BIMODEmhw = np.zeros(shape=len(IslandMHWCompLists))    # Initialize MHW array to zero - will write over previous year's array
-    for n in range(0,len(IslandMHWCompLists)):
-        comp = IslandMHWCompLists[n]
-        BIMODEmhw[n] = EH_MHW[comp]
-
 
     # loop BI runs over the different folders - each with individual executables and I/O
     fol_n = 0
