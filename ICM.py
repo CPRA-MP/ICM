@@ -2123,7 +2123,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         else:
             val2write = 1
         acute_sal_grid[gid] = val2write        
-    print(dict2asc_flt(acute_sal_grid,acute_sal_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
+    print(dict2asc_int(acute_sal_grid,acute_sal_grid_file,asc_grid_ids,asc_head,write_mode=filemode) )
 
 
 
@@ -2195,7 +2195,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for k in range(0,len(BITI_Links[n])):
             BITI_inlet_dimensions[BITI_Links[n][k]] = ([BITI_inlet_depth[n][k],BITI_inlet_width[n][k]])
 
-
+    
 
 
     #########################################################
