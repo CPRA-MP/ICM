@@ -36,14 +36,21 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
     for orig_outfile in outfiles:
         if orig_outfile.endswith('.out'):
             print(' - cleaning up S%02d G%03d %s' % (s,g,orig_outfile) )
+            
             outfile = 'hydro/%s' % (orig_outfile)
             bkfile = 'hydro/%s.bk' % (orig_outfile)
             os.rename(outfile,bkfile)
+            
             with open(bkfile,mode='r') as orig:
                 with open(outfile,mode='w') as new:
-                    for day in range(0,days2keep):
-                        line2write=orig.readline()
-                        w = new.write(line2write)
+                    if orig_outfile == 'STGhr.out':
+                        for hr in range(0,days2keep*24+1):      # STGhr.out is hourly and, unlike the daily .OUT files, has a header row that prints the compartment number at the start of each year
+                            line2write=orig.readline()
+                            w = new.write(line2write)
+                    else:
+                        for day in range(0,days2keep):
+                            line2write=orig.readline()
+                            w = new.write(line2write)
             os.remove(bkfile)
     for reg in ['ATCH','WLO','CSC','lower_Mississippi']:
         for mod in ['FINE','HYDRO','SAL','SAND','TMP']:
