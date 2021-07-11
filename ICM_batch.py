@@ -127,7 +127,7 @@ for cyc_n in sorted(cycles.keys()):
             if hs == 'y':
                 print('\nAlright. Hotstarting in %04d.' % cyc_s)  
                 hstxt = '  Hotstarting the model in %04d.' % cyc_s
-                hotstart(cyc_s,cyc0_s)
+                hotstart(s,g,cyc_s,cyc0_s)
             else:
                 sys.exit('\nUnderstood. Clean up your input settings and start again. Exiting now.\n\n')
                 
