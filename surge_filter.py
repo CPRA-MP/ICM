@@ -1,10 +1,8 @@
 import numpy as np
 
-dates = np.genfromtxt('E:/ICM/S06/G502/hydro/surge.csv',delimiter=',',skip_header=1,usecols=[0],dtype=str)
-s = np.genfromtxt('E:/ICM/S06/G502/hydro/surge.csv',delimiter=',',skip_header=1,usecols=range(1,23))
+dates = np.genfromtxt('D:/ICM/S06/G502/hydro/surge.csv',delimiter=',',skip_header=1,usecols=[0],dtype=str)
+s = np.genfromtxt('D:/ICM/S06/G502/hydro/surge.csv',delimiter=',',skip_header=1,usecols=range(1,23))
 mx = np.max(s[0:140255],axis=0)
-
-
 pks = {}
 for yr in range(2019,2071):
     pks[yr] = {}
@@ -13,9 +11,6 @@ for yr in range(2019,2071):
     for c in range(0,22):
         pks[yr][8].append(0)
         pks[yr][10].append(0)
-
-
-
 
 r = 0
 for d in s:
@@ -31,8 +26,7 @@ for d in s:
         c+=1
     r+=1
 
-
-with open('E:/ICM/S06/surge_filtered_new.csv',mode='w') as so:
+with open('D:/ICM/S06/surge_filtered_new.csv',mode='w') as so:
     r = 0
     for d in s:
         c=0
