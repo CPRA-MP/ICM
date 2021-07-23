@@ -1130,6 +1130,16 @@ EHConfigArray=np.genfromtxt(EHConfigFile,dtype=str,delimiter='!',autostrip=True)
 EHCellsArray = np.genfromtxt(EHCellsFile,dtype=float,delimiter=',',skip_header=1,usecols=cells_ncol)
 EHLinksArray = np.genfromtxt(EHLinksFile,dtype=float,delimiter=',',skip_header=1,usecols=links_ncol)
 
+# read in initial Cell/Link settings for first year of entire run, not just current cycle
+if startyear_cycle == startyear: 
+    EHCellsArrayOrig = EHCellsArray
+    EHLinksArrayOrig = EHLinksArray
+else:
+    EHCellsFileOrig  = os.path.normpath(r"%s/%s_%s.%s" % (EHtemp_path,str.split(EHCellsFile,'.')[0],startyear,str.split(EHCellsFile,'.')[1]))
+    EHLinksFileOrig  = os.path.normpath(r"%s/%s_%s.%s" % (EHtemp_path,str.split(EHLinksFile,'.')[0],startyear,str.split(EHLinksFile,'.')[1]))
+
+    EHCellsArrayOrig = np.genfromtxt(EHCellsFileOrig,dtype=float,delimiter=',',skip_header=1,usecols=cells_ncol)
+    EHLinksArrayOrig = np.genfromtxt(EHLinksFileOrig,dtype=float,delimiter=',',skip_header=1,usecols=links_ncol)
 
 ncomp = len(EHCellsArray)
 
@@ -1335,8 +1345,8 @@ for n in range(0,len(BITI_Links)):
     for k in range(0,len(BITI_Links[n])):
         BITI_Link_ID = BITI_Links[n][k]
         EHLinks_index = int(BITI_Link_ID) - 1                        ## EHLinks is a numpy 0-based index, not dictionary with lookup
-        orig_depth = EHLinksArray[EHLinks_index,8] + 0.3        ## invert elevation is attribute1 for Type 1 links (column 8 in links array) - add 0.3 meters to convert from invert to link depth (assuming that initial MWL in GoM is +0.3 m)
-        orig_width = EHLinksArray[EHLinks_index,11]             ## channel width is attribute4 for Type 1 links (column 11 in links array)
+        orig_depth = EHLinksArrayOrig[EHLinks_index,8] + 0.3        ## invert elevation is attribute1 for Type 1 links (column 8 in links array) - add 0.3 meters to convert from invert to link depth (assuming that initial MWL in GoM is +0.3 m)
+        orig_width = EHLinksArrayOrig[EHLinks_index,11]             ## channel width is attribute4 for Type 1 links (column 11 in links array)
         BITI_inlet_dimensions_init[BITI_Link_ID] = (orig_depth,orig_width)  
 
 
@@ -1547,27 +1557,37 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for nn in range(0,len(EHCellsArray)):
             cellID = EHCellsArray[nn,0]
             cellarea = EHCellsArray[nn,1]
+            orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea   # store original marsh area for link adjustment calculations later
+            
             # check that Hydro Compartment should have landscape areas updated 
             if LWupdate[cellID] == 1:
-                # update percent water only if new value was calculated in Morph (e.g. dicitionary has a key of cellID and value that is not -9999), otherwise keep last year value
+                # update land percentages only if new value for percent water was calculated in Morph (e.g. dicitionary has a key of cellID and value that is not -9999), otherwise keep last year value
                 try:
                     if new_pctwater_dict[cellID] != -9999:
-                        EHCellsArray[nn,2] = new_pctwater_dict[cellID]
+                        orig_water = EHCellsArrayOrig[nn,2]
+                        orig_upland = EHCellsArrayOrig[nn,3]
+                        orig_wetland = EHCellsArrayOrig[nn,4]
+
+                        # set minimum percentage of water allowed in Hydro compartment - if comp started with small water, it won't be allowed to get any smaller
+                        # if it started with more than 10% water, it won't be allowed to get any smaller than 10% water
+                        # this filter is only applied to Cells.csv for stability purposes - the Morph landscape will still be updated
+                        
+                        min_water = min(orig_water,0.1)
+                        
+                        new_water = max(min_water, new_pctwater_dict[cellID])
+                        new_upland = orig_upland                                                    # don't allow any changes to upland percentage
+                        new_marsh = max(0.0, min(1.0, (1.0 - new_water - new_upland) ) )
+                        
+                        EHCellsArray[nn,2] = new_water
+                        EHCellsArray[nn,3] = new_upland
+                        EHCellsArray[nn,4] = new_marsh
                     else:
                         flag_cell_wat =+ 1
                 except:
                     flag_cell_wat += 1
-                
-                # update percent upland only if new value was calculated in Morph (e.g. dictionary has a key of cellID and value that is not -9999), otherwise keep last year value
-                try:
-                    if new_pctupland_dict[cellID] != -9999:
-                        EHCellsArray[nn,3] = new_pctupland_dict[cellID]
-                    else:
-                        flag_cell_upl += 1
-                except:
-                    flag_cell_upl += 1
-                
-                
+            
+                new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea  # store updated marsh area for link adjustment calculations later
+
                 # update marsh edge area, in attributes array
                 try:
                     if new_Medge_dict[cellID] != -9999:
@@ -1575,10 +1595,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 except:
                         flag_edge_ch += 1
                 
-                # update percent marsh - use cell array, rather than new dictionaries to account for compartments that weren't updated by Morph
-                orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
-                EHCellsArray[nn,4] = max((1-EHCellsArray[nn,2]-EHCellsArray[nn,3]),0)
-                new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea
+
 
         # update Hydro compartment/link elevation attributes (if turned on as model option)
         if update_hydro_attr == 0:
