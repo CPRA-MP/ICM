@@ -239,8 +239,8 @@ for c in range(0,ncomps):
         hf.write('   <p style ="font-size:24;font-style:;font-weight:bold" align="center">%s - %s<br>Compartment %04d</p>' % (scn,grp,comp))
         hf.write(' </head>')
         hf.write(' <body>')
-        hf.write(' <p><img src="..\png\STG\ICM-Hydro_comp%04d_STG.png" " align ="top"> <img src="..\png\TRG\ICM-Hydro_comp%04d_TRG.png" align ="top"></p>' % (comp,comp))
-        hf.write(' <p><img src="..\png\SAL\ICM-Hydro_comp%04d_SAL.png" " align ="top"> <img src="..\png\TSS\ICM-Hydro_comp%04d_TSS.png" align ="top"></p>' % (comp,comp))
+        hf.write(' <p><img src="..\png\STG\%s_comp%04d_STG.png" " align ="top"> <img src="..\png\TRG\%s_comp%04d_TRG.png" align ="top"></p>' % (file_pre,comp,file_pre,comp))
+        hf.write(' <p><img src="..\png\SAL\%s_comp%04d_SAL.png" " align ="top"> <img src="..\png\TSS\%s_comp%04d_TSS.png" align ="top"></p>' % (file_pre,comp,file_pre,comp))
         hf.write(' <p style ="font-size:18;font-style:;font-weight:bold" align="left">Next Sequential ICM-Hydro Compartments:</p>')
         
         if comp != 1:
