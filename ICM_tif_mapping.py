@@ -2,6 +2,7 @@ import numpy as np
 import os
 import sys
 import subprocess
+import shutil
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap
@@ -63,7 +64,7 @@ leg_lab_lc = {'darkblue': 'inundation loss','skyblue':'dead flotant','orange':'m
 # color map and legend used for Salinity rasters
 bot = cm.get_cmap('summer',128)
 top = cm.get_cmap('autumn_r',128)
-newcolors = np.vstack( (bot(np.linspace(0, 1, 100)), top(np.linspace(0, 1, 250)) ))
+newcolors = np.vstack( (bot(np.linspace(0, 1, 35)), top(np.linspace(0, 1, 315)) ))
 cmap_sal = ListedColormap(newcolors)
 norm_sal = ''
 leg_lab_sal = ''
@@ -154,5 +155,11 @@ for ftype in ftype_list:
         # save as image
         plt.savefig(png_pth,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
         
+        
+        print('copying TIF and PNG to public folder')
+        tif_pth2 = '/ocean/projects/bcs200002p/ewhite12/public/MP2023_production_runs/ICM/S07/G500/geomorph/output/tif/MP2023_S07_G500_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif' % (elapsedyear,elapsedyear,ftype_out)
+        png_pth2 = '/ocean/projects/bcs200002p/ewhite12/public/MP2023_production_runs/ICM/S07/G500/geomorph/output/png/MP2023_S07_G500_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png' % (elapsedyear,elapsedyear,ftype_out)
+        shutil.copyfile(tif_pth,tif_pth2)
+        shutil.copyfile(png_pth,png_pth2)       
     except:
             print('failed to convert and/or map %s' % ftype)
