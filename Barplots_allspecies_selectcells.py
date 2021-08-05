@@ -184,11 +184,11 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 m=0
                 plt.figure(num=None, figsize=[7.5,4],dpi=300)
                 # build stacked bar plots: NOTMOD -> WATER -> BAREGROUND FLOAT -> NEW BAREGROUND -> OLD BAREGROUND -> OTHER SPECIES
-                NMi = np.where(sp_names =='NOTMOD')[0][0]
-                WATi = np.where(sp_names =='WATER')[0][0]
-                BGFi = np.where(sp_names =='BAREGRND_Flt')[0][0]
-                BGNi = np.where(sp_names =='BAREGRND_NEW')[0][0]
-                BGOi = np.where(sp_names =='BAREGRND_OLD')[0][0]
+                NMi  = sp_names.index('NOTMOD')
+                WATi = sp_names.index('WATER')
+                BGFi = sp_names.index('BAREGRND_Flt')
+                BGNi = sp_names.index('BAREGRND_NEW')
+                BGOi = sp_names.index('BAREGRND_OLD')
 
 
                 if sum(bars[NMi])>0:     # NOTMOD
@@ -466,8 +466,8 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 y_txt = 'Coverage Type'
                 title_txt = 'Coverage:  %s - %s - ICM-LAVegMod CellID: %s' % (S,P,Cl)
                 #print the number of unique coverages at the top of each bar
-                for r in range(minY,maxY):
-                    if r in range(minY,maxY,2):    # stagger vertical offset of label every other year
+                for r in range(0,maxY):
+                    if r in range(0,maxY,2):    # stagger vertical offset of label every other year
                         voffset = 0.95
                     else:
                         voffset = 0.97
