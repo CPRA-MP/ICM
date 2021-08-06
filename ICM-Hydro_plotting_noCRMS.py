@@ -230,7 +230,7 @@ for nt in range(0,len(types)):
     #############################################################################################################
 for c in range(0,ncomps):
     comp = c+1
-    html_fname = 'ICM-Hydro_comp%04d.html' % comp # this must match html writing script lower that maps to connected compartments
+    html_fname = '%s_comp%04d.html' % (file_pre,comp) # this must match html writing script lower that maps to connected compartments
     html_file = r'%s/%s' % (html_dir,html_fname)
 
     with open(html_file,mode='w') as hf:
