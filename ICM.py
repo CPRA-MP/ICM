@@ -1345,7 +1345,7 @@ for n in range(0,len(BITI_Links)):
     for k in range(0,len(BITI_Links[n])):
         BITI_Link_ID = BITI_Links[n][k]
         EHLinks_index = int(BITI_Link_ID) - 1                        ## EHLinks is a numpy 0-based index, not dictionary with lookup
-        orig_depth = EHLinksArrayOrig[EHLinks_index,8] + 0.3        ## invert elevation is attribute1 for Type 1 links (column 8 in links array) - add 0.3 meters to convert from invert to link depth (assuming that initial MWL in GoM is +0.3 m)
+        orig_depth = 0.3 - EHLinksArrayOrig[EHLinks_index,8]        ## invert elevation is attribute1 for Type 1 links (column 8 in links array) - subtract invert from 0.3 meters to convert from invert to link depth (assuming that initial MWL in GoM is +0.3 m)
         orig_width = EHLinksArrayOrig[EHLinks_index,11]             ## channel width is attribute4 for Type 1 links (column 11 in links array)
         BITI_inlet_dimensions_init[BITI_Link_ID] = (orig_depth,orig_width)  
 
@@ -2239,7 +2239,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for k in range(0,len(BITI_Links[n])):
             BITI_inlet_dimensions[BITI_Links[n][k]] = ([BITI_inlet_depth[n][k],BITI_inlet_width[n][k]])
     
-    BITI_inlet_dimensions_init[BITI_Link_ID] = (orig_depth,orig_width)  
 
     # set upper and lower limits on how much the tidal inlet dimensions can change as a ratio of the initial dimensions
     # currently, the limits are (arbitrarily) set to limit expansion to twice the original width and/or depth and limit the contraction to 1/4th the original width and/or depth
@@ -2256,7 +2255,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             new_width = min( max( BITI_inlet_dimensions[BITI_Link_ID][1], BITI_inlet_width_min ), BITI_inlet_width_max)
 
 
-            EHLinks_index = int(BITI_Link_ID) - 1                                    ## EHLinks is a numpy 0-based index, not dictionary with lookup
+            EHLinks_index = int(BITI_Link_ID) - 1                                # EHLinks is a numpy 0-based index, not dictionary with lookup
             EHLinksArray[EHLinks_index,8] = BITI_MWL - new_depth                ## invert elevation is attribute1 for Type 1 links (column 8 in links array)
             EHLinksArray[EHLinks_index,11] = new_width                          ## channel width is attribute4 for Type 1 links (column 11 in links array)
 
