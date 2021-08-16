@@ -2239,19 +2239,31 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for k in range(0,len(BITI_Links[n])):
             BITI_inlet_dimensions[BITI_Links[n][k]] = ([BITI_inlet_depth[n][k],BITI_inlet_width[n][k]])
     
+    # BITI dimensions for inlet links with jetties constraining inlet width
+    # do not allow inlets that are currently jettied to change in width dimension - all areal adjustments for these two links must occur in the depth dimension
+    CamPassLinkID = 529
+    CamPassWidth = 900          # intial Caminada Pass width
+    BarPassLinkID = 532
+    BarPassWidth = 700          # intial Barataria Pass width    
+    
+    BITI_inlet_dimensions[CamPassLinkID][0] = (BITI_inlet_dimensions[CamPassLinkID][0] *  BITI_inlet_dimensions[CamPassLinkID][1])/CamPassWidth
+    BITI_inlet_dimensions[CamPassLinkID][1] = CamPassWidth 
 
-    # set upper and lower limits on how much the tidal inlet dimensions can change as a ratio of the initial dimensions
+    BITI_inlet_dimensions[BarPassLinkID][0] = (BITI_inlet_dimensions[BarPassLinkID][0] *  BITI_inlet_dimensions[BarPassLinkID][1])/BarPassWidth
+    BITI_inlet_dimensions[BarPassLinkID][1] = BarPassWidth 
+
+        # set upper and lower limits on how much the tidal inlet dimensions can change as a ratio of the initial dimensions
     # currently, the limits are (arbitrarily) set to limit expansion to twice the original width and/or depth and limit the contraction to 1/4th the original width and/or depth
     for BITI_Link_ID in BITI_inlet_dimensions.keys():
 
             orig_depth = BITI_inlet_dimensions_init[BITI_Link_ID][0]
             BITI_inlet_depth_min = 0.25*orig_depth
-            BITI_inlet_depth_max = 2.0*orig_depth
+            BITI_inlet_depth_max = 1.5*orig_depth           # based on analysis by BITI team, when basin is completely open water, maximum increase in inlet dimensions was 145% increase from initial dimensions
             new_depth = min( max( BITI_inlet_dimensions[BITI_Link_ID][0], BITI_inlet_depth_min ), BITI_inlet_depth_max)
 
             orig_width = BITI_inlet_dimensions_init[BITI_Link_ID][1]  
             BITI_inlet_width_min = 0.25*orig_width
-            BITI_inlet_width_max = 2.0*orig_width
+            BITI_inlet_width_max = 1.5*orig_width           # based on analysis by BITI team, when basin is completely open water, maximum increase in inlet dimensions was 145% increase from initial dimensions
             new_width = min( max( BITI_inlet_dimensions[BITI_Link_ID][1], BITI_inlet_width_min ), BITI_inlet_width_max)
 
 
@@ -2260,6 +2272,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             EHLinksArray[EHLinks_index,11] = new_width                          ## channel width is attribute4 for Type 1 links (column 11 in links array)
 
 
+           
 
 
     #########################################################
