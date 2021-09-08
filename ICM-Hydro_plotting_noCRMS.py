@@ -11,19 +11,23 @@ import matplotlib.dates as mpd
 #########################################################################
 #          set parameters for this run                                  #
 #########################################################################
-scn = 'S07'
-grp = 'G500 (FWOA)'
+s = int(sys.argv[1])
+g = int(sys.argv[2])
+
+scn = 'S%02d' % s
+grp = 'G%03d' % g
+
 file_pre = 'MP2023_S07_G500_C000_U00_V00_SLA_N_01_52_H_'   # prefix for run from file naming convention
 hydro_file_pre = ''
 start_day = dt.date(2019,1,1)
 spinup_years = 2        # number of spinup years included in run - used to calculate elapsed years for plotting (spinup years will be negative)
 plot_as_dates = False   # use calendar dates if set to true - otherwise x-axis will be set to elapsed years
-ICM_Hydro_dir = r'/ocean/projects/bcs200002p/ewhite12/ICM/S07/G503/hydro'
-plot_dir = r'%s/timeseries' % ICM_Hydro_dir
-html_dir = r'%s/html' % plot_dir
-png_dir = r'%s/png' % plot_dir
-links_file = r'%s/TempFiles/Links_2019.csv' % ICM_Hydro_dir
-comp_LW_update_file = r'%s/comp_LW_update.csv' % ICM_Hydro_dir
+ICM_Hydro_dir = './%s/%s/hydro' % (scn,grp)
+plot_dir = '%s/timeseries' % ICM_Hydro_dir
+html_dir = '%s/html' % plot_dir
+png_dir = '%s/png' % plot_dir
+links_file = '%s/TempFiles/Links_2019.csv' % ICM_Hydro_dir
+comp_LW_update_file = '%s/comp_LW_update.csv' % ICM_Hydro_dir
 
 
 #data type codes to plot
@@ -32,8 +36,8 @@ comp_LW_update_file = r'%s/comp_LW_update.csv' % ICM_Hydro_dir
 #'TRG' = daily mean tidal range
 #'TSS' = daily mean total suspended sediment
 
-types = ['STG','SAL','TRG','TSS']
-y_labels = ['Daily Mean Stage (m, NAVD88)','Daily Mean Salinity (ppt)','Daily Mean Tidal Range (m)','Daily mean TSS (mg/L)']
+types = ['STG','SAL','TRG','TSS','TMP']
+y_labels = ['Daily Mean Stage (m, NAVD88)','Daily Mean Salinity (ppt)','Daily Mean Tidal Range (m)','Daily Mean TSS (mg/L)','Daily Mean Temp (deg C)']
 
 
 ###########################################################################
@@ -95,7 +99,7 @@ with open(comp_LW_update_file,mode='r') as lf:
             else:
                 comp_flags[compID] = 0
         nl += 1  
-
+ncomps=1778
 for nt in range(0,len(types)):
     out_type = types[nt]
     y_txt = y_labels[nt]
@@ -241,14 +245,15 @@ for c in range(0,ncomps):
         hf.write(' <body>')
         hf.write(' <p><img src="..\png\STG\%s_comp%04d_STG.png" " align ="top"> <img src="..\png\TRG\%s_comp%04d_TRG.png" align ="top"></p>' % (file_pre,comp,file_pre,comp))
         hf.write(' <p><img src="..\png\SAL\%s_comp%04d_SAL.png" " align ="top"> <img src="..\png\TSS\%s_comp%04d_TSS.png" align ="top"></p>' % (file_pre,comp,file_pre,comp))
+        hf.write(' <p><img src="..\png\TMP\%s_comp%04d_TMP.png" " align ="top"></p>' % (file_pre,comp))
         hf.write(' <p style ="font-size:18;font-style:;font-weight:bold" align="left">Next Sequential ICM-Hydro Compartments:</p>')
         
         if comp != 1:
-            hf.write('<a href="..\html\ICM-Hydro_comp%04d.html"> Previous: Compartment %04d </a>  <br>' % (comp-1,comp-1)) 
+            hf.write('<a href="..\html\%s_comp%04d.html"> Previous: Compartment %04d </a>  <br>' % (file_pre,comp-1,comp-1)) 
         else:
             hf.write(' <a> Previous: n/a </a>  <br>' )
         if comp != ncomps:
-            hf.write(' <a href="..\html\ICM-Hydro_comp%04d.html"> Next: Compartment %04d </a>  <br>' % (comp+1,comp+1))
+            hf.write(' <a href="..\html\%s_comp%04d.html"> Next: Compartment %04d </a>  <br>' % (file_pre,comp+1,comp+1))
         else:
             hf.write(' <a> Next: n/a </a>  <br>' )
         hf.write(' <p style ="font-size:18;font-style:;font-weight:bold" align="left">Neighboring ICM-Hydro Compartments:</p>')
@@ -260,7 +265,7 @@ for c in range(0,ncomps):
                             link_inactive = ' - Link is deactivated (LinkType<0)'
                         else:
                             link_inactive = ''
-                        hf.write(' <a href="..\html\ICM-Hydro_comp%04d.html"> Compartment %04d via Link %04d %s</a>  <br>' % (cnct_comp,cnct_comp,link,link_inactive))
+                        hf.write(' <a href="..\html\%s_comp%04d.html"> Compartment %04d via Link %04d %s</a>  <br>' % (file_pre,cnct_comp,cnct_comp,link,link_inactive))
         except:
             _ = 'no links for compartment'
         hf.write(' </body>')  

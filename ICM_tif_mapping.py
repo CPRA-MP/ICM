@@ -16,7 +16,7 @@ s = int(sys.argv[1])                 # s = '7'
 g = int(sys.argv[2])                 # g = '503'
 year = int(sys.argv[3])         # year = 2015
 startyear = int(sys.argv[4])    # startyear = 2015
-#ftype = sys.argv[5]
+
 spinup_years = 2
 elapsedyear = year - startyear + 1
 footnote = ''
@@ -24,14 +24,19 @@ footnote = ''
 ######################################
 ##      Setup file types to map     ##
 ######################################
-ftype_list      = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30']
-ftype_labels    = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)']
-ftype_dtypes    = ['int','int','flt','flt']
+ftype_list          = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30','dem30']
+ftype_labels        = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)','Elevation (m NAVD88)']
+ftype_dtypes        = ['int', 'int', 'flt', 'flt', 'flt']
+ftype_build_xyz     = [True, True, True, True, True]
+ftype_build_tif     = [True, True, True, True, True]
+ftype_mapPNG         = [True, True, True, True, False]
+
 
 #############################
 ##      Setup folders      ##
 #############################
 print('\nsetting up folders')
+
 out_fol         = 'S%02d/G%03d/geomorph/output' % (s,g)
 xyz_fol         = '%s/xyz' % out_fol 
 tif_fol         = '%s/tif' % out_fol
@@ -81,85 +86,86 @@ leg_lab_list    = [leg_lab_lt,  leg_lab_lc, leg_lab_sal, leg_lab_sal]   # must b
 for ftype in ftype_list:
     try:
     # select settings to be used for each filetype
-        ntyp = ftype_list.index(ftype)
-        cmap          = cmap_list[ntyp]
-        norm          = norm_list[ntyp]
-        legend_labels = leg_lab_list[ntyp]
-        ftype         = ftype_list[ntyp]
-        ftype_out = ftype[0:-2]
-        dtype = ftype_dtypes[ntyp]
+        ntyp            = ftype_list.index(ftype)
+        ftype           = ftype_list[ntyp]
+        ftype_out       = ftype[0:-2]
+        dtype           = ftype_dtypes[ntyp]
+        bin2xyz         = ftype_build_xyz[ntyp]
+        xyz2tif         = ftype_build_tif[ntyp]
+        mapPNG          = ftype_mapPNG[ntyp]
+        cmap            = cmap_list[ntyp]
+        norm            = norm_list[ntyp]
+        legend_labels   = leg_lab_list[ntyp]        
     except:
         print('\n')
         print('  No settings available for **%s** output type' % ftype)
-        print('  trying to be mapped. Automated mapping available only for:' )
-        for ft in ftype_list:
-            print ('     - %s' % ft)
-        print('\n')   
-
 
     try:
         xyz_bin_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g,elapsedyear,elapsedyear,ftype)
-        xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,s,g,elapsedyear,elapsedyear,ftype)
-        tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif' % (tif_fol,s,g,elapsedyear,elapsedyear,ftype_out)
-        png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png' % (png_fol,s,g,elapsedyear,elapsedyear,ftype_out)
+        xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz'   % (xyz_fol,s,g,elapsedyear,elapsedyear,ftype)
+        tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif'   % (tif_fol,s,g,elapsedyear,elapsedyear,ftype_out)
+        png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png'   % (png_fol,s,g,elapsedyear,elapsedyear,ftype_out)
+
+        
         x_bin_pth       = '%s/raster_x_coord.b' % out_fol
         y_bin_pth       = '%s/raster_y_coord.b' % out_fol
         nras_str        = '170852857'
         noData_str      = '-9999'
 
         png_title = '%s - S%02d - G%03d - Year %02d' % (ftype_labels[ntyp],s,g,elapsedyear-spinup_years)
+
+
+        #############################################################
+        ##      Convert from binary to ASCI     ##
+        #############################################################        
+        if bin2xyz == True:
+            print('\nconverting binary file to ASCI raster')
+            cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, xyz_bin_pth, dtype, nras_str]
+            subprocess.call(cmdstr2)
+        
         
         #############################################################
-        ##      Convert land change raster from binary to ASCI     ##
+        ##      Convert raster from ASCI to TIF        ##
         #############################################################
-        print('\nconverting binary file to ASCI raster')
-        cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, xyz_bin_pth, dtype, nras_str]
-        subprocess.call(cmdstr2)
-        
-        
-        #############################################################
-        ##      Convert land change raster from ASCI to TIF        ##
-        #############################################################
-        print('\nconverting ASCI raster to TIF')
-        cmdstr3 = ['gdal_translate', xyz_asc_pth, tif_pth]
-        subprocess.call(cmdstr3)
+        if xyz2tif == True:
+            print('\nconverting ASCI raster to TIF')
+            cmdstr3 = ['gdal_translate', xyz_asc_pth, tif_pth]
+            subprocess.call(cmdstr3)
         
         
         ############################################
         ##      Map TIF raster to PNG image       ##
         ############################################
-        print('\nmapping TIF to PNG image')
-
-        # open and read TIF raster with rasterio  - then filter for NoData
-        with rio.open(tif_pth) as open_tif:
-            tif = open_tif.read(1)
-        tif_na = np.ma.masked_where(tif < -9990 ,tif,copy=True)
-
-        fig,ax = plt.subplots(figsize=(11,5))
-        if ftype == 'salav30':
-            tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0)
-            plt.colorbar(tif_map)
-        elif ftype == 'salmx30':
-            tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0)
-            plt.colorbar(tif_map)
-        else:
-            tif_map = ax.imshow(tif,cmap=cmap,norm=norm)
-            patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
-            ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='small')
+        if mapPNG == True:    
+            print('\nmapping TIF to PNG image')
+    
+            # open and read TIF raster with rasterio  - then filter for NoData
+            with rio.open(tif_pth) as open_tif:
+                tif = open_tif.read(1)
+            tif_na = np.ma.masked_where(tif < -9990 ,tif,copy=True)
+    
+            fig,ax = plt.subplots(figsize=(11,5))
+            if ftype == 'salav30':
+                tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0)
+                plt.colorbar(tif_map)
+            elif ftype == 'salmx30':
+                tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0)
+                plt.colorbar(tif_map)
+            else:
+                tif_map = ax.imshow(tif,cmap=cmap,norm=norm)
+                patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
+                ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='small')
+            
+            # generic figure edits
+            ax.set_axis_off()
+            ax.set_title(png_title,fontsize='small')
+            plt.figtext(0.99,0.01,footnote,horizontalalignment='right',fontsize='xx-small')
+            
+            # save as image
+            plt.savefig(png_pth,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
+            
         
-        # generic figure edits
-        ax.set_axis_off()
-        ax.set_title(png_title,fontsize='small')
-        plt.figtext(0.99,0.01,footnote,horizontalalignment='right',fontsize='xx-small')
-        
-        # save as image
-        plt.savefig(png_pth,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
-        
-        
-        print('copying TIF and PNG to public folder')
-        tif_pth2 = '/ocean/projects/bcs200002p/ewhite12/public/MP2023_production_runs/ICM/S07/G500/geomorph/output/tif/MP2023_S07_G500_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif' % (elapsedyear,elapsedyear,ftype_out)
-        png_pth2 = '/ocean/projects/bcs200002p/ewhite12/public/MP2023_production_runs/ICM/S07/G500/geomorph/output/png/MP2023_S07_G500_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png' % (elapsedyear,elapsedyear,ftype_out)
-        shutil.copyfile(tif_pth,tif_pth2)
-        shutil.copyfile(png_pth,png_pth2)       
+    
+    
     except:
             print('failed to convert and/or map %s' % ftype)
