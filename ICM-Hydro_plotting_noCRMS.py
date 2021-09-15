@@ -17,7 +17,7 @@ g = int(sys.argv[2])
 scn = 'S%02d' % s
 grp = 'G%03d' % g
 
-file_pre = 'MP2023_S07_G500_C000_U00_V00_SLA_N_01_52_H_'   # prefix for run from file naming convention
+file_pre = 'MP2023_%s_%s_C000_U00_V00_SLA_N_01_52_H_' % (scn,grp)  # prefix for run from file naming convention
 hydro_file_pre = ''
 start_day = dt.date(2019,1,1)
 spinup_years = 2        # number of spinup years included in run - used to calculate elapsed years for plotting (spinup years will be negative)
