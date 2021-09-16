@@ -27,9 +27,9 @@ footnote = ''
 ftype_list          = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30','dem30','inun30']
 ftype_labels        = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)','Elevation (m NAVD88)','Annual mean inundation depth (m)']
 ftype_dtypes        = ['int', 'int', 'flt', 'flt', 'flt','flt']
-ftype_build_xyz     = [True, True, True, True, True,True]
-ftype_build_tif     = [True, True, True, True, True,True]
-ftype_mapPNG         = [True, True, True, True, False,False]
+ftype_build_xyz     = [1,1,1,1,1,1]   #[True, True, True, True, True,True]
+ftype_build_tif     = [1,1,1,1,1,1]   #[True, True, True, True, True,True]
+ftype_mapPNG        = [1,1,1,1,0,0]   #[True, True, True, True, False,False]
 
 
 #############################
