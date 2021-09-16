@@ -24,12 +24,12 @@ footnote = ''
 ######################################
 ##      Setup file types to map     ##
 ######################################
-ftype_list          = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30','dem30']
-ftype_labels        = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)','Elevation (m NAVD88)']
-ftype_dtypes        = ['int', 'int', 'flt', 'flt', 'flt']
-ftype_build_xyz     = [True, True, True, True, True]
-ftype_build_tif     = [True, True, True, True, True]
-ftype_mapPNG         = [True, True, True, True, False]
+ftype_list          = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30','dem30','inun30']
+ftype_labels        = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)','Elevation (m NAVD88)','Annual mean inundation depth (m)']
+ftype_dtypes        = ['int', 'int', 'flt', 'flt', 'flt','flt']
+ftype_build_xyz     = [True, True, True, True, True,True]
+ftype_build_tif     = [True, True, True, True, True,True]
+ftype_mapPNG         = [True, True, True, True, False,False]
 
 
 #############################
