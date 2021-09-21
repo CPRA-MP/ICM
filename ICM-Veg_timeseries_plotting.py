@@ -259,7 +259,7 @@ for S in list(PSEHts[prj].keys()): #scenarios
                         m+=1
                         bot2 = np.array(bot1)+np.array(bars[i]) 
                 if sum(bars[BGFi])>0:
-                    i = BGNi
+                    i = BGFi
                     if m == 0:
                         pbar0 = plt.bar(years,bars[i],width=wid,label=legtxt[i],color=col[i])
                         m+=1
