@@ -1,0 +1,26 @@
+-9999 240 240 240   # no data
+11 214 214 214      # vegetated wetland
+12 69 145 172       # vegetated wetland to water (loss)
+13 214 214 214      # vegetated wetland to bare ground
+14 255 0 255        # vegetated wetland to developed land (not possible in ICMv23)
+15 255 0 255        # vegetated wetland to flotant marsh (not possible in ICMv23)
+21 165 207 1        # water to land (gain)
+22 255 255 255      # water
+23 165 207 1        # water to bare ground (gain)
+24 255 0 255        # water to developed land (not possible in ICMv23)
+25 255 0 255        # water to flotant marsh (not possible in ICMv23)
+31 214 214 214      # bare ground to vegetated wetland
+32 69 145 172       # bare ground to water (loss)
+33 214 214 214      # bare ground
+34 255 0 255        # bare ground to developed land (not possible in ICMv23)
+35 255 0 255        # bare ground to flotant marsh (not possible in ICMv23)
+41 255 0 255        # developed land to vegetated wetland (not possible in ICMv23)
+42 255 0 255        # developed land to water (not possible in ICMv23)
+43 255 0 255        # developed land to flotant marsh (not possible in ICMv23)
+44 214 214 214      # developed land
+45 255 0 255        # developed land to flotant marsh (not possible in ICMv23)
+51 214 214 214      # flotant marsh to vegetated wetland
+52 69 145 172       # flotant marsh to water (loss)
+53 214 214 214      # flotant marsh to bare ground
+54 255 0 255        # flotant marsh to developed land (not possible in ICMv23)
+55 181 245 54       # flotant marsh
