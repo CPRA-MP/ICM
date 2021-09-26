@@ -189,7 +189,7 @@ cycles[8] = [2051,2055]
 #cycles[ 9] = [2056,2060]
 cycles[9] = [2056,2060]
 cycles[10] = [2061,2065]
-cycles[11] = [2067,2070]
+cycles[11] = [2066,2070]
 
 #check = input('\n You are trying to submit %d cycles for S%02d G%03d. Is that right? [y]es or [n]o?\n' % (len(cycles.keys()),s,g) )
 #if check == 'y':
