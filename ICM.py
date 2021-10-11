@@ -624,9 +624,8 @@ mc_links_years = []
 # link ID numbers for 'composite' marsh flow links (type 11) that need to be updated due to marsh creation projects
 mc_links = []
 # Marsh creation projects feature class (optional-enter allcaps NONE if not modeled)
-mc_shps = []
-# Field with marsh project elevation in NAVD88 m (optional-enter allcaps NONE if not modeled)
-mc_shps_fields = []
+mc_xyz = []
+
 
 # Years to implement shoreline protection projects
 sp_years = []
@@ -638,15 +637,15 @@ sp_shps_fields = []
 # Years to implement levee and ridge restoration projects
 levee_years = []
 # Levee projects feature class
-levee_shps = []
+levee_xyz = []
 # Field with levee project crest width
-levee_shps_fields1 = []
+#levee_shps_fields1 = []
 # Field with levee project elevation in NAVD88 m
-levee_shps_fields2 = []
+#levee_shps_fields2 = []
 # Field with levee slope width
-levee_shps_fields3 = []
+#levee_shps_fields3 = []
 # Field with levee slope elevation in NAVD88 m
-levee_shps_fields4 = []
+#levee_shps_fields4 = []
 
 
 # check that project implementation variables are of the correct lengths
