@@ -123,7 +123,7 @@ for S in list(PSEHts[prj].keys()): #scenarios
             try:
                 # here we could add another iterative level that pulls the years in - without this the code here implicitly assumes that the input dataframe is chronologically ordered
                 print(' - plotting %s %s %s' % (S,P,Cl) )
-                png_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_%02d_%02d_V_coverage_timeseries_%s.png' % (outdir,S,P,minY+spinup_years,maxY+spinup_years,Cl)
+                png_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_%02d_%02d_V_vgtyp_%s.png' % (outdir,S,P,minY+spinup_years,maxY+spinup_years,Cl)
     
                 bars = []
                 legtxt = []
