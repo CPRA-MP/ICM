@@ -171,7 +171,7 @@ asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
 asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='int')
 asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
 
-asc_head = '# Year = %04d\n%s' % (year,asc_grid_head)
+
 
 
 
@@ -199,7 +199,11 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ndays = 365
         dom[2] = 28
 
+
+
     # set year-specific file name prefixes
+    #asc_head = '# Year = %04d\n%s' % (year,asc_grid_head)
+    asc_head = asc_grid_head
     file_prefix     = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_oprefix    = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
