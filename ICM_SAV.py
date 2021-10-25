@@ -399,6 +399,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
 
     # set file names for files passed from Hydro into Veg and Morph
+    EHtemp_path = os.path.normpath(r'%s/TempFiles' % ecohydro_dir)
     EH_grid_file = 'grid_data_500m.csv' # this must match file name used in hydro.exe
     EH_grid_filepath = os.path.normpath('%s/%s' % (ecohydro_dir,EH_grid_file)) # location of grid_data_500m.csv when used by hydro.exe
     move_EH_gridfile = os.path.normpath(r"%s/%s_%s.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],year,str.split(EH_grid_file,'.')[1]))
