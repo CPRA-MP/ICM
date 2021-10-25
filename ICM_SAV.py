@@ -5,6 +5,38 @@
 ####                                                                                                 ####
 #########################################################################################################
 
+def dict2asc_flt(mapping_dict,outfile,asc_grid,asc_header,write_mode):
+    # this function maps a dictionary of floating point data into XY space and saves as a raster file of ASCII grid format
+    # this function does not return anything but it will save 'outfile' to disk
+
+    # ASCII grid format description: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+
+    # 'mapping_dict' is a dictionary with grid cell ID as the key and some value for each key
+    # 'outfile' is the filename (full path) of the output .asc raster text file to be saved
+    # 'asc_grid' is a numpy array that is the grid structure of an ASCII text raster
+    # 'asc_header' is a string that includes the 6 lines of text required by the ASCII grid format
+
+    msg = '\ndid not save %s' % (outfile)
+    with open(outfile, mode=write_mode) as outf:
+        outf.write(asc_header)
+        for row in asc_grid:
+            nc = 0
+            for col in row:
+                gid_map = row[nc]
+                if gid_map > 0:                     # if the ASC grid has a no data cell (-9999) there will be no dictionary key, the else criterion is met and it keeps the no data value (-9999)
+                    gid_val = float(mapping_dict[gid_map] )
+                else:
+                    gid_val = float(gid_map)
+                if nc == 0:
+                    rowout = '%0.4f'  % gid_val
+                else:
+                    rowout = '%s %0.4f' % (rowout,gid_val)
+                nc += 1
+            outf.write('%s\n' % rowout)
+            msg = '\nsuccessfully saved %s' % (outfile)
+    return msg
+
+
 import os
 import platform
 import sys
@@ -134,6 +166,12 @@ file_prefix_cycle = r'%s_N_%02d_%02d' % (runprefix,cycle_start_elapsed,cycle_end
 file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
 
 
+# read in asci grid structure
+asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
+asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='int')
+asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
+
+asc_head = '# Year = %04d\n%s' % (year,asc_grid_head)
 
 
 
@@ -192,7 +230,9 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     griddata_file = move_EH_gridfile                                                                                                                #os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year) )
     new_grid_filepath =  os.path.normpath(r"%s/%s_end%s.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],year,str.split(EH_grid_file,'.')[1]))     #os.path.normpath(r'%s/grid_data_500m_end%s.csv' % (EHtemp_path,year) )
     bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
-
+    sav_csv_file = 'geomorph/output/%s_W_SAV.csv' % file_oprefix
+    sav_asc_file = 'geomorph/output/%s_W_SAV.asc' % file_oprefix
+        
 
 
     #########################################################
@@ -304,7 +344,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'hsi/GWTealDepths_cm_%d.csv', grid_depth_file_GwT - file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % year)
         ip_csv.write("'hsi/MotDuckDepths_cm_%d.csv', grid_depth_file_MtD - file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % year)
         ip_csv.write("'hsi/%s_W_pedge.csv', grid_pct_edge_file - file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % file_prefix)
-        ip_csv.write("'geomorph/output/%s_W_SAV.csv', grid_sav_file - file name with relative path to csv output file for SAV presence\n" % file_oprefix)
+        ip_csv.write("'%s', grid_sav_file - file name with relative path to csv output file for SAV presence\n" % sav_csv_file)
         ip_csv.write("'hydro/TempFiles/compelevs_end_%d.csv', comp_elev_file - file name with relative path to elevation summary compartment file used internally by ICM\n" % year)
         ip_csv.write("'hydro/TempFiles/PctWater_%d.csv', comp_wat_file - file name with relative path to percent water summary compartment file used internally by ICM\n" % year)
         ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
@@ -312,11 +352,27 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
         ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
 
+        sav_csv_file = 'geomorph/output/%s_W_SAV.csv' % file_oprefix
+        sav_asc_file = 'geomorph/output/%s_W_SAV.asc' % file_oprefix
+
+
 
     morph_run = subprocess.call(SAV_exe_path)
 
+    
+    print('\nMapping SAV outputs to ASC raster.')
 
+    sav_dict = {}
 
+    with open(sav_csv_file,mode='r') as sav_data:
+        nline = 0
+        for line in sav_data:
+            if nline > 0:
+                gr = int(float(line.split(',')[0]))
+                prsav = line.split(',')[2]          # probability of SAV presence is the third column in the SAV output file saved by MorphSAV
+                sav_dict[gr] = prsav
+            nline += 1
+    print(dict2asc_flt(sav_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
 
 
 print('\n\n\n')
