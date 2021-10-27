@@ -2418,7 +2418,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_file - file name with relative path to DEM XYZ file\n" % file_prefix_prv)
             ip_csv.write("'geomorph/output/%s_W_lndtyp30.xyz', lwf_file - file name with relative path to land/water file that is same resolution and structure as DEM XYZ\n" % file_prefix_prv)
 
-
+           
         ip_csv.write("'geomorph/input/%s_W_meer30.xyz', meer_file - file name with relative path to marsh edge erosion rate file that is same resolution and structure as DEM XYZ\n" % fwoa_init_cond_tag)
         ip_csv.write("'geomorph/input/%s_W_polder30.xyz', pldr_file - file name with relative path to polder file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/%s_W_comp30.xyz', comp_file - file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
@@ -2467,8 +2467,20 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
         ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
-        ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
-
+        ip_csv.write(" %s, file naming convention prefix\n" % file_o_01_end_prefix)
+        ip_csv.write(" %d, n_mc - number of marsh creation elements to be built in current year\n" % n_mc_yr)
+        ip_csv.write("'geomorph/input/%s', project_list_MC_file - file name with relative path to list of marsh creation raster XYZ files\n" % mc_project_list_yr)
+        ip_csv.write(" %d, n_rr - number of ridge or levee projects to  be built in current year\n" % n_rr_yr)
+        ip_csv.write("'geomorph/input/%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
+        ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_bs_yr)
+        ip_csv.write("'geomorph/input/%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % bs_project_list_yr)
+       
+        n_mc_yr
+        n_rr_yr
+        n_bs_yr                 # cumulative number of BS projects implemented so far (this is because BS projects must  be applied every year to continue to dampen MEE rates
+        mc_project_list_yr
+        rr_project_list_yr
+        bs_project_list_yr
 
     morph_run = subprocess.call(morph_exe_path)
 
