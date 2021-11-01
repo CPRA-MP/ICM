@@ -617,14 +617,16 @@ link_years = []
 links_to_change = []
 
 
-# Years to implement marsh creation projects in Morphology model
+# Marsh creation project element IDs that are implemented in this simulations
+mc_elementIDs = []
+# Years to implement each respective marsh creation element IDs listed above
 mc_years = []
-# Years to update 'composite' marsh flow links (type 11) for marsh creation projects - this value should be the year after the project is implemented in the morphology model
-mc_links_years = []
+
 # link ID numbers for 'composite' marsh flow links (type 11) that need to be updated due to marsh creation projects
 mc_links = []
-# Marsh creation projects feature class (optional-enter allcaps NONE if not modeled)
-mc_xyz = []
+# Years to update each respective'composite' marsh flow links (type 11) for marsh creation projects - this value should be the year after the project is implemented in the morphology model
+mc_links_years = []
+
 
 
 # Years to implement shoreline protection projects
@@ -638,6 +640,7 @@ sp_shps_fields = []
 levee_years = []
 # Levee projects feature class
 levee_xyz = []
+
 # Field with levee project crest width
 #levee_shps_fields1 = []
 # Field with levee project elevation in NAVD88 m
@@ -646,6 +649,9 @@ levee_xyz = []
 #levee_shps_fields3 = []
 # Field with levee slope elevation in NAVD88 m
 #levee_shps_fields4 = []
+
+
+
 
 
 # check that project implementation variables are of the correct lengths
@@ -2357,6 +2363,37 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     #########################################################
     os.chdir(par_dir)
 
+    n_mc_yr = 0
+    
+    for mc_yr in mc_years:
+        if year == mc_yr:
+            n_mc_yr += 1
+            eid =  mc_elementIDs[mc_years.index(mc_yr)]
+
+
+        
+
+    if n_mc_yr > 0:
+        for eid in mc_project_list_yr:
+            zfile = '%s/MC_elev_rasters/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir,sterm,sterm,eid)
+            zcmd = ['unzip',zfile]
+            zrun = subprocess.check_output(zcmd).decode()
+            TIFpath = zrun.split('inflating:').[1].strip()
+            TIFfile = tifpath.split('/')[-1]
+            mvcmd = ['mv',TIFpath,'geomorph/input/%s' % TIFfile]
+            mvrun = subprocess.call(mvcmd)
+            
+            
+            
+FWA_prj_input_dir
+mc_project_list_yr
+mc_project_list_VolArea_yr
+n_rr_yr
+rr_project_list_yr
+n_bs_yr
+bs_project_list_yr
+
+
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
 
@@ -2393,7 +2430,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("0.05, bg_lowerZ_m - height that bareground is lowered [m]\n")
         ip_csv.write("0.25, me_lowerDepth_m - depth to which eroded marsh edge is lowered to [m]\n")
         ip_csv.write("1.0, flt_lowerDepth_m - depth to which dead floating marsh is lowered to [m]\n")
-        ip_csv.write("-0.762, mc_depth_threshold - water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n")
+        ip_csv.write("0.762, mc_depth_threshold - water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n")
         ip_csv.write("1.1211425, spsal_params[1] - SAV parameter - spring salinity parameter 1\n")
         ip_csv.write("-0.7870841, spsal_params[2] - SAV parameter - spring salinity parameter 2\n")
         ip_csv.write("1.5059876, spsal_params[3] - SAV parameter - spring salinity parameter 3\n")
@@ -2470,20 +2507,14 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write(" %s, file naming convention prefix\n" % file_o_01_end_prefix)
         ip_csv.write(" %d, n_mc - number of marsh creation elements to be built in current year\n" % n_mc_yr)
         ip_csv.write("'geomorph/input/%s', project_list_MC_file - file name with relative path to list of marsh creation raster XYZ files\n" % mc_project_list_yr)
+        ip_csv.write("'geomorph/input/%s', project_list_MC_VA_file - file name with relative path to file that will report out marsh creation volumes and footprint areas\n" % mc_project_list_VolArea_yr)
         ip_csv.write(" %d, n_rr - number of ridge or levee projects to  be built in current year\n" % n_rr_yr)
         ip_csv.write("'geomorph/input/%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
         ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_bs_yr)
         ip_csv.write("'geomorph/input/%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % bs_project_list_yr)
        
-        n_mc_yr
-        n_rr_yr
-        n_bs_yr                 # cumulative number of BS projects implemented so far (this is because BS projects must  be applied every year to continue to dampen MEE rates
-        mc_project_list_yr
-        rr_project_list_yr
-        bs_project_list_yr
 
     morph_run = subprocess.call(morph_exe_path)
-
 
 
 
