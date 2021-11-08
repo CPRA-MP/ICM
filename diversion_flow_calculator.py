@@ -741,6 +741,44 @@ for d in range(0,ndays):
         SWPR_cfs[d] = Qdiv
         SWPR_cms[d] = Qdiv*(0.3048**3)
         
+Atch_cms
+Morg_cms
+BLaF_cms
+UFWD_cms
+WMPD_cms
+MSRM_cms
+Bonn_cms
+MLBD_cms
+LaBr_cms
+DavP_cms
+AmaD_cms
+IHNC_cms
+CWDI_cms
+Caer_cms
+UBrD_cms
+MBrD_cms
+Naom_cms
+MBaD_cms
+WPLH_cms
+LBaD_cms
+LBrD_cms
+        
+MGPS_cms
+Bohe_cms
+Ostr_cms
+FStP_cms
+Bapt_cms
+GrPa_cms
+WBay_cms
+SCut_cms
+CGap_cms
+SWPS_cms
+SPas_cms
+PLou_cms
+SWPR_cms
+
+
+
 
 ###############################################################################
 
