@@ -81,7 +81,7 @@ print('\nupdating PDD (via Pandas SQL functions) ')
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 for S in scens2update:
     for G in groups2update:
-        print('uploading S%02d G %03d...')
+        print('uploading S%02d G%03d...' % (S,G) )
         for Y in years2update:
             if Y == 1:
                 FWOAY = -2
