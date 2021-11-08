@@ -15,7 +15,7 @@ scens2update = [6,7,8,9]
 groups2update = [500]
 years2update = range(1,53)
 codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
-eco2update = ['EBbi','WBbi','TEbi']#['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE']
+eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
 eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
 eco3skip = ['ATB']
 
@@ -30,6 +30,7 @@ for S in scens2update:
                 d[S][G][Y][C] = {}
                 for E in eco2update:
                     d[S][G][Y][C][E] = 0
+             
 
 # land_veg columns [data format]:
 #       ModelGroup [%03d]
@@ -93,9 +94,9 @@ for S in scens2update:
             elif Y == 2:
                 FWOAY = -1
                 note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year'
-            #elif Y == 0:
-            #    FWOAY = 2018
-            #    note = 'existing conditions; landscape from 2018 USGS data'
+            elif Y == 0:
+                FWOAY = 2018
+                note = 'existing conditions; landscape from 2018 USGS data'
             else:
                 FWOAY = Y-2
             for C in codes2update:
