@@ -16,7 +16,7 @@ groups2update = [500]
 years2update = range(1,53)
 codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
 eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE']
-eco2add =['CHSbi','ETBbi','LBAnebi','LBAsebi','LBAswbi','LBRbi','WTEbi']
+eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
 eco2skip = ['ATB']
 
 d = {}
@@ -34,13 +34,15 @@ for S in scens2update:
 # land_veg columns [data format]:
 #       ModelGroup [%03d]
 #       Scenario [%02d]
-#       Year [%d]
+#       Year_ICM [%d]
 #       VegetationCode [%s - max length of 3]
 #       Ecoregion [%s]
 #       Area_m2 [%d or %f]
-#       Date [%s (MM-DD-YYYY)]
+#       Date [%s (MM-DD-YYYY )]
+#       Year_FWOA [%d]
+#       Note [%s]
 
-datestr = '%02d-%02d-%04d' % (dt.now().month,dt.now().day,dt.now().year)
+datestr = dt.now()
 
 for S in scens2update:
     for G in groups2update:
@@ -50,7 +52,7 @@ for S in scens2update:
             badrows = []
             nrb = 0
             nr = 0
-            for r in lvf:   # 'prj_no', 'S', 'year', 'code', 'ecoregion', 'value'
+            for r in lvf:   # 'prj_no', 'S', 'ICMyear', 'code', 'ecoregion', 'value'
                 nr += 1
                 try:
                     g = int(r.split(',')[0].strip()[1:4])
@@ -59,8 +61,8 @@ for S in scens2update:
                     c = r.split(',')[3].strip()
                     e = r.split(',')[4].strip()
                     v = float(r.split(',')[5].strip())
-                    if e in eco2add:
-                        er = e[0:-2]
+                    if e in eco2bi.keys():
+                        er = eco2bi[e]
                     else:
                         er = e
                     if er in eco2update:
@@ -81,11 +83,19 @@ for S in scens2update:
     for G in groups2update:
         print('uploading S%02d G %03d...')
         for Y in years2update:
+            if Y == 1:
+                FWOAY = -2
+                note = 'landscape at end of first ICM Spinup Year'
+            elif Y == 2:
+                FWOAY = -1
+                note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year'
+            else:
+                FWOAY = Y-2
             for C in codes2update:
                 for E in eco2update:
                     val2write = d[S][G][Y][C][E]
                     try:
-                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr},index=[0])
+                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
                         df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
                     except:
                         print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))
