@@ -11,13 +11,13 @@ port = '5432'
 user = 'ewhite12'
 password = input('\npassword for SQL connection?')#'###'
 
-scens2update = [6,8,9]
+scens2update = [6,7,8,9]
 groups2update = [500]
 years2update = range(1,53)
 codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
-eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE']
+eco2update = ['EBbi','WBbi','TEbi']#['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE']
 eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
-eco2skip = ['ATB']
+eco3skip = ['ATB']
 
 d = {}
 for S in scens2update:
@@ -46,7 +46,10 @@ datestr = dt.now()
 
 for S in scens2update:
     for G in groups2update:
-        lvfile = './S%02d/G%03d/geomorph/output/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_land_veg.csv' % (S,G,S,G)
+        if G == 0:
+            lvfile =  'MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_00_00_land_veg.csv' % (S,G)
+        else:
+            lvfile = './S%02d/G%03d/geomorph/output/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_land_veg.csv' % (S,G,S,G)
         print('\nreading output data from: %s' % lvfile)
         with open(lvfile,mode='r') as lvf:
             badrows = []
@@ -82,6 +85,7 @@ engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{
 for S in scens2update:
     for G in groups2update:
         print('uploading S%02d G%03d...' % (S,G) )
+        note = ''
         for Y in years2update:
             if Y == 1:
                 FWOAY = -2
@@ -89,6 +93,9 @@ for S in scens2update:
             elif Y == 2:
                 FWOAY = -1
                 note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year'
+            #elif Y == 0:
+            #    FWOAY = 2018
+            #    note = 'existing conditions; landscape from 2018 USGS data'
             else:
                 FWOAY = Y-2
             for C in codes2update:
@@ -116,8 +123,6 @@ for S in scens2update:
 #cur.close()
 #conn.close()
 
- 
+
 # Running query using PANDAS dataframes & PSYCOPG2
 # output=pd.read_sql_query(sqlstr,conn)
-
-
