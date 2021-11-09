@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jan 28 11:46:45 2021
-
 @author: madelinel
 """
 
@@ -287,7 +286,7 @@ for d in range(0,ndays):
         DavP_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
         
-        print(DavP_cfs)
+        #print(DavP_cfs)
         
         ###############################################
         ###   LaBranche Hydrologic Restoration    ###
@@ -741,41 +740,41 @@ for d in range(0,ndays):
         SWPR_cfs[d] = Qdiv
         SWPR_cms[d] = Qdiv*(0.3048**3)
         
-Atch_cms
-Morg_cms
-BLaF_cms
-UFWD_cms
-WMPD_cms
-MSRM_cms
-Bonn_cms
-MLBD_cms
-LaBr_cms
-DavP_cms
-AmaD_cms
-IHNC_cms
-CWDI_cms
-Caer_cms
-UBrD_cms
-MBrD_cms
-Naom_cms
-MBaD_cms
-WPLH_cms
-LBaD_cms
-LBrD_cms
-        
-MGPS_cms
-Bohe_cms
-Ostr_cms
-FStP_cms
-Bapt_cms
-GrPa_cms
-WBay_cms
-SCut_cms
-CGap_cms
-SWPS_cms
-SPas_cms
-PLou_cms
-SWPR_cms
+# Atch_cms
+# Morg_cms
+# BLaF_cms
+# UFWD_cms
+# WMPD_cms
+# MSRM_cms
+# Bonn_cms
+# MLBD_cms
+# LaBr_cms
+# DavP_cms
+# AmaD_cms
+# IHNC_cms
+# CWDI_cms
+# Caer_cms
+# UBrD_cms
+# MBrD_cms
+# Naom_cms
+# MBaD_cms
+# WPLH_cms
+# LBaD_cms
+# LBrD_cms
+#         
+# MGPS_cms
+# Bohe_cms
+# Ostr_cms
+# FStP_cms
+# Bapt_cms
+# GrPa_cms
+# WBay_cms
+# SCut_cms
+# CGap_cms
+# SWPS_cms
+# SPas_cms
+# SWPR_cms
+# PLou_cms
 
 
 
@@ -857,7 +856,8 @@ ax.text(0.4, 0.36, 'Constant diversion flow of 1,500 cfs',
         transform=ax.transAxes)
 
 plt.savefig('Bayou Lafourche Diversion Rating Curve')    
-    
+plt.close()
+
 ##### Union Freshwater Diversion #####
 
 n = 0
@@ -894,6 +894,7 @@ ax.text(0.7, 0.2, 'No flow below 200,000 or above 600,000\nFlow of 25,000 betwee
         transform=ax.transAxes)
 
 plt.savefig('Union Freshwater Diversion Rating Curve')          
+plt.close()
         
 ##### West Maurepas Diversion #####
 
@@ -929,6 +930,7 @@ plt.savefig('Union Freshwater Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('West Maurepas Diversion Rating Curve')      
+#plt.close()
         
 ##### Mississippi River Reintroduction into Maurepas Swamp #####
 # cannot do the month operations with the example hydrograph of tarbert landing 
@@ -967,6 +969,7 @@ ax.text(0.7, 0.6, 'Minimum operation in April and July-December\nJanuary-March a
         transform=ax.transAxes)
 
 plt.savefig('MS River Reintroduction in Maurepas Swamp Rating Curve')      
+plt.close()
             
 ##### Bonnet Carre Spillway #####
 
@@ -1002,6 +1005,7 @@ ax.text(0.35, 0.77, 'River flow in excess of 1,250,000 cfs is diverted',
         transform=ax.transAxes)
 
 plt.savefig('Bonnet Carre Spillway Rating Curve')      
+plt.close()
         
 ##### Manchac Landbridge Diversion #####
 
@@ -1037,6 +1041,7 @@ plt.savefig('Bonnet Carre Spillway Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Manchac Landbridge Rating Curve')   
+#plt.close()
 
 ##### Davis Pond Freshwater Diversion #####
 
@@ -1069,7 +1074,8 @@ ax.text(0.7, 0.55, 'Diversion flow of rating curve\n1269.1454*ln(Qresidual)-9932
         transform=ax.transAxes)
 
 plt.savefig('Davis Pond Freshwater Diversion Rating Curve') 
-        
+plt.close()
+       
 ##### LaBranche Hydrologic Restoration #####
 
 n = 0
@@ -1104,6 +1110,7 @@ ax.text(0.7, 0.6, 'Constant diversion flow of 750 cfs',
         transform=ax.transAxes)
 
 plt.savefig('LaBranche Hydrologic Restoration Rating Curve')  
+plt.close()
             
 ##### Ama Sediment Diversion #####
 
@@ -1139,6 +1146,7 @@ ax.text(0.65, 0.1, 'Diversion flow of rating curve 0.0625*Qresidual-12500\nat ri
         transform=ax.transAxes)
 
 plt.savefig('Ama Sediment Diversion Rating Curve')     
+plt.close()
             
 ##### Inner Harbor Navigational Canal #####
 
@@ -1174,6 +1182,7 @@ ax.text(0.6, 0.1, 'Diversion flow of rating curve 0.011297797*Qresidual',
         transform=ax.transAxes)
 
 plt.savefig('Inner Harbor Navigational Canal Rating Curve')  
+plt.close()
             
 ##### Central Wetlands Diversion #####
 
@@ -1209,6 +1218,7 @@ ax.text(0.7, 0.6, 'Constant diversion flow of 5,000 cfs',
         transform=ax.transAxes)
 
 plt.savefig('Central Wetlands Diversion Rating Curve')   
+plt.close()
             
 ##### Caernarvon Freshwater Diversion #####
 
@@ -1241,7 +1251,8 @@ ax.text(0.55, 0.1, 'Diversion flow of rating curve 701.9143*ln(Qresidual)-5299.9
         transform=ax.transAxes)
 
 plt.savefig('Caernarvon Freshwater Diversion Rating Curve')    
-            
+plt.close()
+
 ##### Upper Breton Diversion #####
 
     # 250,000 cfs #
@@ -1278,6 +1289,7 @@ ax.text(0.65, 0.1, 'Diversion flow with rating curve\n0.3125*Qresidual-62500 at 
         transform=ax.transAxes)
 
 plt.savefig('Upper Breton Diversion Rating Curve')   
+plt.close()
         
     # 75,000 cfs #
         
@@ -1313,6 +1325,7 @@ plt.savefig('Upper Breton Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Upper Breton Diversion Rating Curve')     
+#plt.close()
             
 ##### Mid Breton Sediment Diversion #####
 
@@ -1345,6 +1358,7 @@ ax.text(0.65, 0.15, 'Diversion flow of rating curve\n0.06667*Qresidual-8333 with
         transform=ax.transAxes)
 
 plt.savefig('Mid Breton Sediment Diversion Rating Curve')      
+plt.close()
             
 ##### Naomi Siphon Diversion #####
 
@@ -1377,6 +1391,7 @@ ax.text(0.7, 0.1, 'Diversion flow of rating curve\n281.044708*ln(Qresidual)-2500
         transform=ax.transAxes)
 
 plt.savefig('Naomi Siphon Diversion Rating Curve')   
+plt.close()
 
 ###   Mid-Barataria Sediment Diversion    ###
             
@@ -1414,6 +1429,7 @@ plt.savefig('Naomi Siphon Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')    
+#plt.close()
         
     ###### 250k @ 1.0 m ######
     
@@ -1449,6 +1465,7 @@ plt.savefig('Naomi Siphon Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')    
+#plt.close()
         
    ###### 35k - 75k @ 1.0 m ######
    
@@ -1484,6 +1501,7 @@ plt.savefig('Naomi Siphon Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')  
+#plt.close()
         
    ###### 75k @ 1.25 m , 5k min ######
    
@@ -1516,6 +1534,7 @@ ax.text(0.65, 0.1, 'Diversion flow of rating curve\n0.06667*residual - 8333 with
         transform=ax.transAxes)
 
 plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')  
+plt.close()
         
 ##### West Pointe a la Hache #####
 
@@ -1548,6 +1567,7 @@ ax.text(0.7, 0.1, 'Diversion flow of rating curve\n456.35377*ln(Qresidual)-4049.
         transform=ax.transAxes)
 
 plt.savefig('West Pointe a la Hache Rating Curve') 
+plt.close()
             
 ##### Lower Barataria Diversion #####
 
@@ -1583,6 +1603,7 @@ ax.text(0.65, 0.1, 'Diversion flow at rating curve of\n0.0625*residual-12500 at 
         transform=ax.transAxes)
 
 plt.savefig('Lower Barataria Diversion Rating Curve')  
+plt.close()
             
 ##### Lower Breton Diversion #####
 
@@ -1618,6 +1639,7 @@ ax.text(0.63, 0.1, 'Diversion flow of rating curve\n0.0625*residual-12500 at riv
         transform=ax.transAxes)
 
 plt.savefig('Lower Breton Diversion Rating Curve')   
+plt.close()
         
 ##### Mardi Gras Pass #####
 
@@ -1650,6 +1672,7 @@ ax.text(0.7, 0.4, 'Qdiv = 0.0153x+276.2369',
         transform=ax.transAxes)
 
 plt.savefig('Mardi Gras Pass Rating Curve')    
+plt.close()
             
 ##### Bohemia Spillway #####
 
@@ -1685,6 +1708,7 @@ ax.text(0.4, 0.8, 'Diversion flow of rating curve\n1.4/100*Qresidual at river fl
         transform=ax.transAxes)
 
 plt.savefig('Bohemia Spillway Rating Curve')  
+plt.close()
             
 ##### Ostrica Lock #####
 
@@ -1720,6 +1744,7 @@ ax.text(0.4, 0.8, 'Diversion flow of rating curve 5.2/100*Qresidual\nat river fl
         transform=ax.transAxes)
 
 plt.savefig('Ostrica Lock Rating Curve')  
+plt.close()
 
 ##### Fort St. Philip #####
 
@@ -1752,6 +1777,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.1011x-25159',
         transform=ax.transAxes)
 
 plt.savefig('Fort St Philip Rating Curve')    
+plt.close()
 
 ##### Baptiste Collette #####
 
@@ -1784,6 +1810,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.1031x-5631',
         transform=ax.transAxes)
 
 plt.savefig('Baptiste Collette Rating Curve')  
+plt.close()
 
 ##### Grand Pass #####
 
@@ -1816,6 +1843,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.0915x+4288',
         transform=ax.transAxes)
 
 plt.savefig('Grand Pass Rating Curve')  
+plt.close()
 
 ##### West Bay #####
 
@@ -1848,6 +1876,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.0653x-2075',
         transform=ax.transAxes)
 
 plt.savefig('West Bay Rating Curve') 
+plt.close()
 
 ##### Small Cuts #####
 
@@ -1880,6 +1909,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.0025x+10196',
         transform=ax.transAxes)
 
 plt.savefig('Small Cuts Rating Curve')   
+plt.close()
 
 ##### Cubit's Gap #####
 
@@ -1912,6 +1942,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.1319x-19939',
         transform=ax.transAxes)
 
 plt.savefig("Cubit's Gap Rating Curve")    
+plt.close()
 
 ##### Southwest Pass Ratings Curve #####
 
@@ -1944,6 +1975,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.4189x-64787',
         transform=ax.transAxes)
 
 plt.savefig('Southwest Pass Rating Curve')   
+plt.close()
  
 ##### South Pass #####
 
@@ -1976,7 +2008,8 @@ ax.text(0.7, 0.475, 'Qdiv = 0.0858x+2332',
         transform=ax.transAxes)
 
 plt.savefig('South Pass Rating Curve')    
- 
+plt.close()
+
 ##### Pass a Loutre #####
 
 n = 0
@@ -2008,6 +2041,7 @@ ax.text(0.7, 0.435, 'Qdiv = 0.0543x+15700',
         transform=ax.transAxes)
 
 plt.savefig('Pass a Loutre Rating Curve')  
+plt.close()
     
 ##### Southwest Pass Residual #####
 
@@ -2039,17 +2073,5 @@ ax.grid(True, which='both')
 #        backgroundcolor = 'white',
 #        transform=ax.transAxes)
 
-plt.savefig('Southwest Pass Residual')  
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+plt.savefig('Southwest Pass Residual')
+plt.close()
