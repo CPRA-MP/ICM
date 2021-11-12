@@ -27,10 +27,23 @@ Created on Thu Jan 28 11:46:45 2021
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-daily_input_file = pd.read_csv (r'MP2023_diversion_calculator_diversions.csv')
+
+TribQ_in_file  = 'S07_G501_TribQ.csv'
+TribQ_out_file = 'S07_G600_TribQ.csv'
+
+nTribs = 67
+trib_cols   = range(0,35)       # first 35 columns of TribQ.csv are tributary flows; diversions start in column 36
+date_col    = [67]              # column 68 of TribQ.csv is the date
+MissRiv_col = 10                # column 11 of TribQ.csv is the Miss. River @ Tarbert Landing data
+
+TribQ_in    = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=trib_cols)
+dates_all   = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=date_col)
+
+
+dates_all = [float(d) for d in dates_all]
 
 # read in Mississippi River @ Tarbert Landing (input data is in cms)
-MissTarb_cms = daily_input_file['Mississippi River @ Baton Rouge']
+MissTarb_cms = [float(q) for q in TribQ_in[:,[MissRiv_col]] ]
 MissTarb_cfs = MissTarb_cms/0.3048**3
 
 # read in date timeseries
@@ -113,8 +126,10 @@ SWPR_cms = np.zeros(ndays)
 for d in range(0,ndays):
         
         date = dates_all[d]
-#        year = date[0:4]                                                   # this will work if date is formatted as YYYYMMDD, or YYYY-MM-DD, etc.
-        month, yr = int(date.split('/')[0]), int(date.split('/')[2])        # this will work if date is formatted as MM/DD/YYYY
+        year = date[0:4]                                                   # this will work if date is formatted as YYYYMMDD, or YYYY-MM-DD, etc.
+        month = date[4:6]                                                  # this will work if date is formatted as YYYYMMDD
+
+#        month, yr = int(date.split('/')[0]), int(date.split('/')[2])        # this will work if date is formatted as MM/DD/YYYY
 #        year = date.split('-')[2]                                          # this will work if date is formatted as MM-DD-YYYY
         
         Qresidual = MissTarb_cfs[d]
@@ -739,45 +754,93 @@ for d in range(0,ndays):
             
         SWPR_cfs[d] = Qdiv
         SWPR_cms[d] = Qdiv*(0.3048**3)
+
+with open(TribQ_out_file,mode='w') as TribQ_out:
+    line = '1'
+    for n in range(2,nTribs+1):
+        line = '%s,%s' % (line,n)
+    
+    TribQ_out.write('%s\n' % line)
+    
+    for d in range(0,ndays):
+        line = '%s' % TribQ_in[trib_cols[d][0])
+        for t in range(1,max(trib_cols)):
+            line = '%s,%s' % (line,TribQ_in[trib_cols[d][t])
+
+        line = '%s,%s' % (line,Morg_cms[d])            # Morganza Spillway
+        line = '%s,%s' % (line,BLaF_cms[d])            # Bayou LaFourche Diversion
+        line = '%s,%s' % (line,UFWD_cms[d])            # Union Freshwater Diversion
+        line = '%s,%s' % (line,WMPD_cms[d])            # West Maurepas Diversion
+        line = '%s,%s' % (line,MSRM_cms[d])            # Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
+        line = '%s,%s' % (line,Bonn_cms[d])            # Bonnet Carre
+        line = '%s,%s' % (line,MLBD_cms[d])            # Manchac Landbridge Diversion
+        line = '%s,%s' % (line,LaBr_cms[d])            # LaBranche Hydrologic Restoration
+        line = '%s,%s' % (line,DavP_cms[d])            # Davis Pond
+        line = '%s,%s' % (line,AmaD_cms[d])            # Ama Sediment Diversion
+        line = '%s,%s' % (line,IHNC_cms[d])            # Inner Harbor Navigational Canal
+        line = '%s,%s' % (line,CWDI_cms[d])            # Central Wetlands Diversion
+        line = '%s,%s' % (line,Caer_cms[d])            # Caernarvon
+        line = '%s,%s' % (line,UBrD_cms[d])            # Upper Breton Diversion
+        line = '%s,%s' % (line,MBrD_cms[d])            # Mid-Breton Sound Diversion
+        line = '%s,%s' % (line,MBaD_cms[d])            # Mid-Barataria Diversion
+        line = '%s,%s' % (line,Naom_cms[d])            # Naomi
+        line = '%s,%s' % (line,WPLH_cms[d])            # West Point a la Hache
+        line = '%s,%s' % (line,LBaD_cms[d])            # Lower Barataria iversion
+        line = '%s,%s' % (line,LBrD_cms[d])            # Lower Breton Diversion
+        line = '%s,%s' % (line,MGPS_cms[d])            # Mardi Gras Pass
+        line = '%s,%s' % (line,Bohe_cms[d])            # Bohemia
+        line = '%s,%s' % (line,Ostr_cms[d])            # Ostrica
+        line = '%s,%s' % (line,FStP_cms[d])            # Ft St Phillip
+        line = '%s,%s' % (line,Bapt_cms[d])            # Baptiste Collette
+        line = '%s,%s' % (line,GrPa_cms[d])            # Grand Pass
+        line = '%s,%s' % (line,WBay_cms[d])            # West Bay Diversion
+        line = '%s,%s' % (line,SCut_cms[d])            # SmallCuts
+        line = '%s,%s' % (line,CGap_cms[d])            # Cubits Gap
+        line = '%s,%s' % (line,PLou_cms[d])            # Pass A Loutre
+        line = '%s,%s' % (line,SPas_cms[d])            # South Pass
+        line = '%s,%s' % (line,SWPS_cms[d])            # 
+        line = '%s,%s' % (line,SWPR_cms[d])            # South West Pass
+
+        line = '%s,! %s\n' % (line, dates_all[d])
         
-# Atch_cms
-# Morg_cms
-# BLaF_cms
-# UFWD_cms
-# WMPD_cms
-# MSRM_cms
-# Bonn_cms
-# MLBD_cms
-# LaBr_cms
-# DavP_cms
-# AmaD_cms
-# IHNC_cms
-# CWDI_cms
-# Caer_cms
-# UBrD_cms
-# MBrD_cms
-# Naom_cms
-# MBaD_cms
-# WPLH_cms
-# LBaD_cms
-# LBrD_cms
-#         
-# MGPS_cms
-# Bohe_cms
-# Ostr_cms
-# FStP_cms
-# Bapt_cms
-# GrPa_cms
-# WBay_cms
-# SCut_cms
-# CGap_cms
-# SWPS_cms
-# SPas_cms
-# SWPR_cms
-# PLou_cms
+        TribQ_out.write(line)
 
-
-
+        
+# Neches River at Beaumont TX
+# Sabine River at Ruliff TX
+# Vinton Canal
+# Calcasieu River near Kinder LA
+# Bayou Lacassine near Lake Arthur LA
+# Mermentau River at Mermentau LA
+# Vermilion River at Surrey St at Lafayette LA
+# Charenton Drainage Canal at Baldwin LA
+# GIWW at Franklin
+# Atch_cms #Atchafalaya River
+# Mississippi River Upstream (Tarbert Landing)
+# GIWW at Larose
+# Bayou Lafourche at Thibodeaux LA
+# Amite River near Denham Springs LA
+# Natalbany River at Baptist LA
+# Tickfaw River at Holden LA
+# Tangipahoa River at Robert LA
+# Tchefuncte River near Folsom LA
+# Bogue Chitto near Bush LA
+# Pearl River near Bogalusa LA
+# Wolf River near Landon MS
+# Biloxi River at Wortham MS
+# Pascagoula River at Merrill MS
+# Tensaw River near Mount Vernon AL
+# Mobile River at River Mile 31 at Bucks AL
+# Mobile1
+# Mobile 2
+# Jourdan
+# Violet Runoff
+# NE Lake Pontchartrain ungaged drainage (Bayou Bonfouca)
+# SE Lake Pontchartrain ungaged drainage (Orleans Parish)
+# S Lake Pontchartrain ungaged drainage (Jefferson Parish)
+# SW Lake Pontchartrain ungaged drainage
+# S Lake Maurepas ungaged drainage
+# NE Lake Pontchartrain ungaged drainage (Bayou LaCombe)      
 
 ###############################################################################
 
