@@ -613,7 +613,7 @@ for d in range(0,ndays):
         # river mile 37
         # Diversion flow of rating curve 0.0625*residual-12500 at river flows above 200,000 cfs
             
-        impl_yr = implementation['LBrD'
+        impl_yr = implementation['LBrD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
