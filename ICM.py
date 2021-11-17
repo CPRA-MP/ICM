@@ -616,6 +616,8 @@ link_years = []
 # Link numbers to be activated or deactivated in Hydro model
 links_to_change = []
 
+# full path to directory with FWA project GIS data files
+FWA_prj_input_dir = '/ocean/projects/bc200002p/ewhite12/MP2023/ICM/FWA_project_data'
 
 # Marsh creation project element IDs that are implemented in this simulations
 mc_elementIDs = []
@@ -626,7 +628,6 @@ mc_years = []
 mc_links = []
 # Years to update each respective'composite' marsh flow links (type 11) for marsh creation projects - this value should be the year after the project is implemented in the morphology model
 mc_links_years = []
-
 
 
 # Years to implement shoreline protection projects
@@ -1381,6 +1382,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     # set year-specific file name prefixes
     file_prefix     = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_iprefix    = r'%s_I_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_oprefix    = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
 
@@ -2364,36 +2366,51 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     os.chdir(par_dir)
 
     n_mc_yr = 0
+    mc_eid_yr = []
+    mc_project_list_yr = ''
+    mc_project_list_VolArea_yr = ''
     
     for mc_yr in mc_years:
         if year == mc_yr:
             n_mc_yr += 1
-            eid =  mc_elementIDs[mc_years.index(mc_yr)]
+            mc_eid_yr.append( mc_elementIDs[mc_years.index(mc_yr)] )
 
 
-        
 
     if n_mc_yr > 0:
-        for eid in mc_project_list_yr:
-            zfile = '%s/MC_elev_rasters/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir,sterm,sterm,eid)
-            zcmd = ['unzip',zfile]
-            zrun = subprocess.check_output(zcmd).decode()
-            TIFpath = zrun.split('inflating:').[1].strip()
-            TIFfile = tifpath.split('/')[-1]
-            mvcmd = ['mv',TIFpath,'geomorph/input/%s' % TIFfile]
-            mvrun = subprocess.call(mvcmd)
+        
+        mc_project_list_yr = 'geomorph/input/%s_MCelements.csv' % file_iprefix
+        mc_project_list_VolArea_yr = 'geomorph/output/%s_MC_VolArea.csv' % file_oprefix
+        
+        with open (mc_project_list_yr,mode='w') as mcpl:
+            mcpl.write('ElementID,xyz_file\n')
             
+            for eid in mc_eid_yr:
+                zfile = '%s/MC_elev_rasters/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir,sterm,sterm,eid)
+                zcmd = ['unzip','-j',zfile]
+                zrun = subprocess.check_output(zcmd).decode()
+                
+                TIFpath = zrun.split('inflating:').[1].strip()
+                TIFfile = tifpath.split('/')[-1]
+                
+                XYZpath = 'geomorph/input/%s_00_00_MC_%d.xyz' % (runprefix,eid)
             
-            
-            
-            
-FWA_prj_input_dir
-mc_project_list_yr
-mc_project_list_VolArea_yr
-n_rr_yr
-rr_project_list_yr
-n_bs_yr
-bs_project_list_yr
+                gtcmd = ['gdal_translate',TIFpath,XYZpath]
+                gtrun = subprocess.call(gtcmd)
+                
+                rmcmd = ['rm', TIFpath]
+                rmcmd = subprocess.call(rmcmd)
+                
+                mcpl.write('%d,%s' % (eid,XYZpath) )
+
+
+    n_rr_yr = 0
+    rr_eid_yr = []
+    rr_project_list_yr = ''
+    
+    n_bs_yr = 0
+    bs_eid_yr = []
+    bs_project_list_yr = ''
 
 
     # read in Wetland Morph input file and update variables for year of simulation
