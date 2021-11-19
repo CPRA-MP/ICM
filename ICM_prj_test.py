@@ -90,14 +90,14 @@ mc_links = []
 mc_links_years = []
 
 # Shoreline protection project IDs that are implemented in this simulation
-sp_projectIDs = []
+sp_projectIDs = [3060000]
 # Years to implement each respective shoreline protection project listed above
-sp_years = []
+sp_years = [2068]
 
 # Levee and ridge project IDs that are implemented in this simulation
-rr_projectIDs = []
+rr_projectIDs = [108,110]
 # Years to implement each respective levee and ridge restoration project listed above
-rr_years = []
+rr_years = [2068,2068]
 
 
 
