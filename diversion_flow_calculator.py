@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jan 28 11:46:45 2021
-
 @author: madelinel
 """
 
@@ -28,14 +27,56 @@ Created on Thu Jan 28 11:46:45 2021
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-daily_input_file = pd.read_csv (r'MP2023_diversion_calculator_diversions.csv')
+
+TribQ_in_file  = 'S07_G501_TribQ.csv'
+TribQ_out_file = 'S07_G600_TribQ.csv'
+
+
+# Set implementation year (elapsed) for each diversion
+#          0 = implemented at the start of the model run (ICM year 0)
+#          9 = diversion is implemented in year 9 of ICM run - which is year 7 of FWOA (FWOA year = ICM year + 2 spinup yeard)
+#       9999 = diversion is not implemented at all 
+
+implementation = {}
+implementation['BLaF'] = 0
+implementation['UFWD'] = 9999
+implementation['WMPD'] = 9999
+implementation['MSRM'] = 0
+implementation['Bonn'] = 0
+implementation['MLBD'] = 9999   # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
+implementation['LaBr'] = 9999
+implementation['DavP'] = 0
+implementation['AmaD'] = 9999
+implementation['IHNC'] = 0
+implementation['CWDI'] = 9999
+implementation['Caer'] = 0
+implementation['UBrD'] = 9999
+implementation['MBrD'] = 0
+implementation['Naom'] = 0
+implementation['MBaD'] = 0
+implementation['WPLH'] = 0
+implementation['LBaD'] = 9999
+implementation['LBrD'] = 9999
+
+
+
+
+nTribs = 67
+trib_cols   = range(0,35)       # first 35 columns of TribQ.csv are tributary flows; diversions start in column 36
+date_col    = [67]              # column 68 of TribQ.csv is the date
+MissRiv_col = 10                # column 11 of TribQ.csv is the Miss. River @ Tarbert Landing data
+
+TribQ_in    = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=trib_cols)
+dates_all   = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=date_col)
+
+
+dates_all = [d.split()[1] for d in dates_all]
 
 # read in Mississippi River @ Tarbert Landing (input data is in cms)
-MissTarb_cms = daily_input_file['Mississippi River @ Baton Rouge']
-MissTarb_cfs = MissTarb_cms/0.3048**3
+MissTarb_cms = [ float(q) for q in TribQ_in[:,[MissRiv_col]] ]
+MissTarb_cfs = [ q/(0.3048**3.0) for q in MissTarb_cms ]
 
 # read in date timeseries
-dates_all = daily_input_file['Date']
 ndays = len(dates_all)
 yr0 = 2019
  
@@ -114,8 +155,10 @@ SWPR_cms = np.zeros(ndays)
 for d in range(0,ndays):
         
         date = dates_all[d]
-#        year = date[0:4]                                                   # this will work if date is formatted as YYYYMMDD, or YYYY-MM-DD, etc.
-        month, yr = int(date.split('/')[0]), int(date.split('/')[2])        # this will work if date is formatted as MM/DD/YYYY
+        yr = int(date[0:4])                                                   # this will work if date is formatted as YYYYMMDD, or YYYY-MM-DD, etc.
+        month = int(date[4:6])                                                  # this will work if date is formatted as YYYYMMDD
+
+#        month, yr = int(date.split('/')[0]), int(date.split('/')[2])        # this will work if date is formatted as MM/DD/YYYY
 #        year = date.split('-')[2]                                          # this will work if date is formatted as MM-DD-YYYY
         
         Qresidual = MissTarb_cfs[d]
@@ -148,8 +191,8 @@ for d in range(0,ndays):
         # river mile 176
         # current condition is 500 cfs but an additional 1000 cfs pump is in the permitting stage as of 4/27/2021
         # Constant diversion flow of 1,500 cfs
-            
-        impl_yr = 1
+
+        impl_yr = implementation['BLaF']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -169,7 +212,7 @@ for d in range(0,ndays):
         # river mile 169
         # No diversion flow below 200,000 or above 600,000, Diversion flow of 25,000 between 400,000 and 600,000, Else, diversion flow = 0.125x-2500
         
-        impl_yr = 1
+        impl_yr = implementation['UFWD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -191,19 +234,19 @@ for d in range(0,ndays):
         # river mile 162
         # Diversion flow of 3,000 cfs
             
-#        impl_yr = 1
-        
-#        if yr < yr0 + impl_yr:
-#            Qdiv = 0
-#        else:
-#            if Qresidual >= 3000:
-#                Qdiv = 3000
-#            else:
-#                Qdiv = Qresidual
-            
-#        WMPD_cfs[d] = Qdiv
-#        WMPD_cms[d] = Qdiv*(0.3048**3)
-#        Qresidual -= Qdiv
+        impl_yr = implementation['WMPD']
+       
+        if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:
+            if Qresidual >= 3000:
+                Qdiv = 3000
+            else:
+                Qdiv = Qresidual
+           
+        WMPD_cfs[d] = Qdiv
+        WMPD_cms[d] = Qdiv*(0.3048**3)
+        Qresidual -= Qdiv
             
         
         #################################################################
@@ -213,7 +256,7 @@ for d in range(0,ndays):
         # Minimum operation in April and July-December
         # January-March and May-June operation follows the rating curve 2466.1*ln(Qresidual)-21462 with a maximum of 2,000 cfs
             
-        impl_yr = 0
+        impl_yr = implementation['MSRM']
         
         if yr < yr0 + impl_yr:
             Qdiv == 0
@@ -236,7 +279,7 @@ for d in range(0,ndays):
         # river mile 128
         # River flow in excess of 1,250,000 cfs is diverted
              
-        impl_yr = 0
+        impl_yr = implementation['Bonn']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -257,18 +300,18 @@ for d in range(0,ndays):
         # from Bonnet Carre, which is at river mile 128
         # Diversion flow of 5,000 cfs at Bonnet Carre flow above 5,000 cfs
             
-#        impl_yr = 50
-        
-#        if yr < yr0 + impl_yr:
-#            Qdiv = 0
-#        else:
-#            if Bonn_cfs[d] >= 5000:
-#                Qdiv = 5000
-#            else:
-#                Qdiv = Bonn_cfs[d]
-                
-#        MLBD_cfs[d] = Qdiv
-#        MLBD_cms[d] = Qdiv*(0.3048**3)
+        impl_yr = implementation['MLBD']
+       
+        if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:
+            if Bonn_cfs[d] >= 5000:
+                Qdiv = 5000
+            else:
+                Qdiv = Bonn_cfs[d]
+               
+        MLBD_cfs[d] = Qdiv
+        MLBD_cms[d] = Qdiv*(0.3048**3)
 
         ############################################
         ###   Davis Pond Freshwater Diversion    ###
@@ -276,7 +319,7 @@ for d in range(0,ndays):
         # river mile 118
         # Diversion flow of rating curve 1269.1454*ln(Qresidual)-9932.94805 with a maximum of 10,594 cfs
               
-        impl_yr = 0
+        impl_yr = implementation['DavP']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -287,7 +330,7 @@ for d in range(0,ndays):
         DavP_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
         
-        print(DavP_cfs)
+        #print(DavP_cfs)
         
         ###############################################
         ###   LaBranche Hydrologic Restoration    ###
@@ -295,7 +338,7 @@ for d in range(0,ndays):
         # river mile 116
         # Diversion flow of 750 cfs at river flows above 750 cfs
             
-        impl_yr = 1
+        impl_yr = implementation['LaBr']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -316,7 +359,7 @@ for d in range(0,ndays):
         # river mile 115
         # Diversion flow of rating curve 0.0625*Qresidual-12500 at river flows above 200,000 cfs
             
-        impl_yr = 1
+        impl_yr = implementation['AmaD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -336,7 +379,7 @@ for d in range(0,ndays):
         # river mile 93
         # Diversion flow of rating curve 0.011297797*Qresidual
             
-        impl_yr = 0
+        impl_yr = implementation['IHNC']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -356,7 +399,7 @@ for d in range(0,ndays):
         # river mile 86
         # Diversion flow of rating curve 5,000 cfs at river flows above 5,000 cfs
             
-        impl_yr = 1
+        impl_yr = implementation['CWDI']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -376,7 +419,7 @@ for d in range(0,ndays):
         # river mile 82
         # Diversion flow of rating curve 701.9143*ln(Qresidual)-5299.908567 with a maximum of 8828.66655 cfs
             
-        impl_yr = 0
+        impl_yr = implementation['Caer']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -396,7 +439,7 @@ for d in range(0,ndays):
 
         # 250,000 cfs #
             
-        impl_yr = 1
+        impl_yr = implementation['UBrD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -432,7 +475,7 @@ for d in range(0,ndays):
         # river mile 69
         # Diversion flow of rating curve 0.06667*Qresidual-8333 with a minimum of 5,000 cfs
             
-        impl_yr = 0 
+        impl_yr = implementation['MBrD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -449,7 +492,7 @@ for d in range(0,ndays):
         # river mile 64
         # Diversion flow of rating curve 281.044708*ln(Qresidual)-2500.93169 with a maximum of 2118.87997 cfs
 
-        impl_yr = 0
+        impl_yr = implementation['Naom']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -470,10 +513,12 @@ for d in range(0,ndays):
             # 35k - 75k @ 1.0 m : Diversion flow of rating curve 0.04375*residual - 8750 at river flows above 200,000
             # 75k @ 1.25 m , 5k min : Diversion flow of rating curve 0.06667*residual - 8333 with a minimum of 5,000 cfs
             
-   ###### 75k @ 1.0 m ######
+
         
-#       impl_yr = 0
-        
+        impl_yr = implementation['MBaD']
+
+    ###### 75k @ 1.0 m ######
+
 #       if yr <yr0 + impl_yr:
 #          Qdiv = 0
 #       else:
@@ -487,8 +532,6 @@ for d in range(0,ndays):
 #       Qresidual -= Qdiv
         
     ###### 250k @ 1.0 m ######
-        
-#       impl_yr = 0
         
 #       if yr <yr0 + impl_yr:
 #           Qdiv = 0
@@ -504,8 +547,6 @@ for d in range(0,ndays):
         
    ###### 35k - 75k @ 1.0 m ######
         
-#       impl_yr = 0
-        
 #       if yr <yr0 + impl_yr:
 #           Qdiv = 0
 #       else:
@@ -519,8 +560,6 @@ for d in range(0,ndays):
 #       Qresidual -= Qdiv
         
    ###### 75k @ 1.25 m , 5k min ######
-        
-        impl_yr = 0
         
         if yr <yr0 + impl_yr:
             Qdiv = 0
@@ -537,7 +576,7 @@ for d in range(0,ndays):
         # river mile 49
         # Diversion flow of rating curve 456.35377*ln(Qresidual)-4049.4586 with a maximum of 2118.87997 cfs
             
-        impl_yr = 0
+        impl_yr = implementation['WPLH']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -554,7 +593,7 @@ for d in range(0,ndays):
         # river mile 40
         # Diversion flow at rating curve of 0.0625*residual-12500 at river flows above 200,000 cfs
             
-        impl_yr = 1
+        impl_yr = implementation['LBaD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -574,7 +613,7 @@ for d in range(0,ndays):
         # river mile 37
         # Diversion flow of rating curve 0.0625*residual-12500 at river flows above 200,000 cfs
             
-        impl_yr = 1
+        impl_yr = implementation['LBrD']
         
         if yr < yr0 + impl_yr:
             Qdiv = 0
@@ -740,7 +779,93 @@ for d in range(0,ndays):
             
         SWPR_cfs[d] = Qdiv
         SWPR_cms[d] = Qdiv*(0.3048**3)
+
+with open(TribQ_out_file,mode='w') as TribQ_out:
+    line = '1'
+    for n in range(2,nTribs+1):
+        line = '%s,%s' % (line,n)
+    
+    TribQ_out.write('%s\n' % line)
+    
+    for d in range(0,ndays):
+        line = '%s' % TribQ_in[d][0]
+        for t in range(1,max(trib_cols)+1):
+            line = '%s,%s' % (line,TribQ_in[d][t])
+
+        line = '%s,%s' % (line,Morg_cms[d])            # Morganza Spillway
+        line = '%s,%s' % (line,BLaF_cms[d])            # Bayou LaFourche Diversion
+        line = '%s,%s' % (line,UFWD_cms[d])            # Union Freshwater Diversion
+        line = '%s,%s' % (line,WMPD_cms[d])            # West Maurepas Diversion
+        line = '%s,%s' % (line,MSRM_cms[d])            # Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
+        line = '%s,%s' % (line,Bonn_cms[d])            # Bonnet Carre
+        line = '%s,%s' % (line,MLBD_cms[d])            # Manchac Landbridge Diversion
+        line = '%s,%s' % (line,LaBr_cms[d])            # LaBranche Hydrologic Restoration
+        line = '%s,%s' % (line,DavP_cms[d])            # Davis Pond
+        line = '%s,%s' % (line,AmaD_cms[d])            # Ama Sediment Diversion
+        line = '%s,%s' % (line,IHNC_cms[d])            # Inner Harbor Navigational Canal
+        line = '%s,%s' % (line,CWDI_cms[d])            # Central Wetlands Diversion
+        line = '%s,%s' % (line,Caer_cms[d])            # Caernarvon
+        line = '%s,%s' % (line,UBrD_cms[d])            # Upper Breton Diversion
+        line = '%s,%s' % (line,MBrD_cms[d])            # Mid-Breton Sound Diversion
+        line = '%s,%s' % (line,MBaD_cms[d])            # Mid-Barataria Diversion
+        line = '%s,%s' % (line,Naom_cms[d])            # Naomi
+        line = '%s,%s' % (line,WPLH_cms[d])            # West Point a la Hache
+        line = '%s,%s' % (line,LBaD_cms[d])            # Lower Barataria iversion
+        line = '%s,%s' % (line,LBrD_cms[d])            # Lower Breton Diversion
+        line = '%s,%s' % (line,MGPS_cms[d])            # Mardi Gras Pass
+        line = '%s,%s' % (line,Bohe_cms[d])            # Bohemia
+        line = '%s,%s' % (line,Ostr_cms[d])            # Ostrica
+        line = '%s,%s' % (line,FStP_cms[d])            # Ft St Phillip
+        line = '%s,%s' % (line,Bapt_cms[d])            # Baptiste Collette
+        line = '%s,%s' % (line,GrPa_cms[d])            # Grand Pass
+        line = '%s,%s' % (line,WBay_cms[d])            # West Bay Diversion
+        line = '%s,%s' % (line,SCut_cms[d])            # SmallCuts
+        line = '%s,%s' % (line,CGap_cms[d])            # Cubits Gap
+        line = '%s,%s' % (line,PLou_cms[d])            # Pass A Loutre
+        line = '%s,%s' % (line,SPas_cms[d])            # South Pass
+        line = '%s,%s' % (line,SWPS_cms[d])            # 
+        line = '%s,%s' % (line,SWPR_cms[d])            # South West Pass
+
+        line = '%s,! %s\n' % (line, dates_all[d])
         
+        TribQ_out.write(line)
+
+        
+# Neches River at Beaumont TX
+# Sabine River at Ruliff TX
+# Vinton Canal
+# Calcasieu River near Kinder LA
+# Bayou Lacassine near Lake Arthur LA
+# Mermentau River at Mermentau LA
+# Vermilion River at Surrey St at Lafayette LA
+# Charenton Drainage Canal at Baldwin LA
+# GIWW at Franklin
+# Atch_cms #Atchafalaya River
+# Mississippi River Upstream (Tarbert Landing)
+# GIWW at Larose
+# Bayou Lafourche at Thibodeaux LA
+# Amite River near Denham Springs LA
+# Natalbany River at Baptist LA
+# Tickfaw River at Holden LA
+# Tangipahoa River at Robert LA
+# Tchefuncte River near Folsom LA
+# Bogue Chitto near Bush LA
+# Pearl River near Bogalusa LA
+# Wolf River near Landon MS
+# Biloxi River at Wortham MS
+# Pascagoula River at Merrill MS
+# Tensaw River near Mount Vernon AL
+# Mobile River at River Mile 31 at Bucks AL
+# Mobile1
+# Mobile 2
+# Jourdan
+# Violet Runoff
+# NE Lake Pontchartrain ungaged drainage (Bayou Bonfouca)
+# SE Lake Pontchartrain ungaged drainage (Orleans Parish)
+# S Lake Pontchartrain ungaged drainage (Jefferson Parish)
+# SW Lake Pontchartrain ungaged drainage
+# S Lake Maurepas ungaged drainage
+# NE Lake Pontchartrain ungaged drainage (Bayou LaCombe)      
 
 ###############################################################################
 
@@ -819,7 +944,8 @@ ax.text(0.4, 0.36, 'Constant diversion flow of 1,500 cfs',
         transform=ax.transAxes)
 
 plt.savefig('Bayou Lafourche Diversion Rating Curve')    
-    
+plt.close()
+
 ##### Union Freshwater Diversion #####
 
 n = 0
@@ -856,6 +982,7 @@ ax.text(0.7, 0.2, 'No flow below 200,000 or above 600,000\nFlow of 25,000 betwee
         transform=ax.transAxes)
 
 plt.savefig('Union Freshwater Diversion Rating Curve')          
+plt.close()
         
 ##### West Maurepas Diversion #####
 
@@ -891,6 +1018,7 @@ plt.savefig('Union Freshwater Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('West Maurepas Diversion Rating Curve')      
+#plt.close()
         
 ##### Mississippi River Reintroduction into Maurepas Swamp #####
 # cannot do the month operations with the example hydrograph of tarbert landing 
@@ -929,6 +1057,7 @@ ax.text(0.7, 0.6, 'Minimum operation in April and July-December\nJanuary-March a
         transform=ax.transAxes)
 
 plt.savefig('MS River Reintroduction in Maurepas Swamp Rating Curve')      
+plt.close()
             
 ##### Bonnet Carre Spillway #####
 
@@ -964,6 +1093,7 @@ ax.text(0.35, 0.77, 'River flow in excess of 1,250,000 cfs is diverted',
         transform=ax.transAxes)
 
 plt.savefig('Bonnet Carre Spillway Rating Curve')      
+plt.close()
         
 ##### Manchac Landbridge Diversion #####
 
@@ -999,6 +1129,7 @@ plt.savefig('Bonnet Carre Spillway Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Manchac Landbridge Rating Curve')   
+#plt.close()
 
 ##### Davis Pond Freshwater Diversion #####
 
@@ -1031,7 +1162,8 @@ ax.text(0.7, 0.55, 'Diversion flow of rating curve\n1269.1454*ln(Qresidual)-9932
         transform=ax.transAxes)
 
 plt.savefig('Davis Pond Freshwater Diversion Rating Curve') 
-        
+plt.close()
+       
 ##### LaBranche Hydrologic Restoration #####
 
 n = 0
@@ -1066,6 +1198,7 @@ ax.text(0.7, 0.6, 'Constant diversion flow of 750 cfs',
         transform=ax.transAxes)
 
 plt.savefig('LaBranche Hydrologic Restoration Rating Curve')  
+plt.close()
             
 ##### Ama Sediment Diversion #####
 
@@ -1101,6 +1234,7 @@ ax.text(0.65, 0.1, 'Diversion flow of rating curve 0.0625*Qresidual-12500\nat ri
         transform=ax.transAxes)
 
 plt.savefig('Ama Sediment Diversion Rating Curve')     
+plt.close()
             
 ##### Inner Harbor Navigational Canal #####
 
@@ -1136,6 +1270,7 @@ ax.text(0.6, 0.1, 'Diversion flow of rating curve 0.011297797*Qresidual',
         transform=ax.transAxes)
 
 plt.savefig('Inner Harbor Navigational Canal Rating Curve')  
+plt.close()
             
 ##### Central Wetlands Diversion #####
 
@@ -1171,6 +1306,7 @@ ax.text(0.7, 0.6, 'Constant diversion flow of 5,000 cfs',
         transform=ax.transAxes)
 
 plt.savefig('Central Wetlands Diversion Rating Curve')   
+plt.close()
             
 ##### Caernarvon Freshwater Diversion #####
 
@@ -1203,7 +1339,8 @@ ax.text(0.55, 0.1, 'Diversion flow of rating curve 701.9143*ln(Qresidual)-5299.9
         transform=ax.transAxes)
 
 plt.savefig('Caernarvon Freshwater Diversion Rating Curve')    
-            
+plt.close()
+
 ##### Upper Breton Diversion #####
 
     # 250,000 cfs #
@@ -1240,6 +1377,7 @@ ax.text(0.65, 0.1, 'Diversion flow with rating curve\n0.3125*Qresidual-62500 at 
         transform=ax.transAxes)
 
 plt.savefig('Upper Breton Diversion Rating Curve')   
+plt.close()
         
     # 75,000 cfs #
         
@@ -1275,6 +1413,7 @@ plt.savefig('Upper Breton Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Upper Breton Diversion Rating Curve')     
+#plt.close()
             
 ##### Mid Breton Sediment Diversion #####
 
@@ -1307,6 +1446,7 @@ ax.text(0.65, 0.15, 'Diversion flow of rating curve\n0.06667*Qresidual-8333 with
         transform=ax.transAxes)
 
 plt.savefig('Mid Breton Sediment Diversion Rating Curve')      
+plt.close()
             
 ##### Naomi Siphon Diversion #####
 
@@ -1339,6 +1479,7 @@ ax.text(0.7, 0.1, 'Diversion flow of rating curve\n281.044708*ln(Qresidual)-2500
         transform=ax.transAxes)
 
 plt.savefig('Naomi Siphon Diversion Rating Curve')   
+plt.close()
 
 ###   Mid-Barataria Sediment Diversion    ###
             
@@ -1376,6 +1517,7 @@ plt.savefig('Naomi Siphon Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')    
+#plt.close()
         
     ###### 250k @ 1.0 m ######
     
@@ -1411,6 +1553,7 @@ plt.savefig('Naomi Siphon Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')    
+#plt.close()
         
    ###### 35k - 75k @ 1.0 m ######
    
@@ -1446,6 +1589,7 @@ plt.savefig('Naomi Siphon Diversion Rating Curve')
 #        transform=ax.transAxes)
 
 #plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')  
+#plt.close()
         
    ###### 75k @ 1.25 m , 5k min ######
    
@@ -1478,6 +1622,7 @@ ax.text(0.65, 0.1, 'Diversion flow of rating curve\n0.06667*residual - 8333 with
         transform=ax.transAxes)
 
 plt.savefig('Mid-Barataria Sediment Diversion Rating Curve')  
+plt.close()
         
 ##### West Pointe a la Hache #####
 
@@ -1510,6 +1655,7 @@ ax.text(0.7, 0.1, 'Diversion flow of rating curve\n456.35377*ln(Qresidual)-4049.
         transform=ax.transAxes)
 
 plt.savefig('West Pointe a la Hache Rating Curve') 
+plt.close()
             
 ##### Lower Barataria Diversion #####
 
@@ -1545,6 +1691,7 @@ ax.text(0.65, 0.1, 'Diversion flow at rating curve of\n0.0625*residual-12500 at 
         transform=ax.transAxes)
 
 plt.savefig('Lower Barataria Diversion Rating Curve')  
+plt.close()
             
 ##### Lower Breton Diversion #####
 
@@ -1580,6 +1727,7 @@ ax.text(0.63, 0.1, 'Diversion flow of rating curve\n0.0625*residual-12500 at riv
         transform=ax.transAxes)
 
 plt.savefig('Lower Breton Diversion Rating Curve')   
+plt.close()
         
 ##### Mardi Gras Pass #####
 
@@ -1612,6 +1760,7 @@ ax.text(0.7, 0.4, 'Qdiv = 0.0153x+276.2369',
         transform=ax.transAxes)
 
 plt.savefig('Mardi Gras Pass Rating Curve')    
+plt.close()
             
 ##### Bohemia Spillway #####
 
@@ -1647,6 +1796,7 @@ ax.text(0.4, 0.8, 'Diversion flow of rating curve\n1.4/100*Qresidual at river fl
         transform=ax.transAxes)
 
 plt.savefig('Bohemia Spillway Rating Curve')  
+plt.close()
             
 ##### Ostrica Lock #####
 
@@ -1682,6 +1832,7 @@ ax.text(0.4, 0.8, 'Diversion flow of rating curve 5.2/100*Qresidual\nat river fl
         transform=ax.transAxes)
 
 plt.savefig('Ostrica Lock Rating Curve')  
+plt.close()
 
 ##### Fort St. Philip #####
 
@@ -1714,6 +1865,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.1011x-25159',
         transform=ax.transAxes)
 
 plt.savefig('Fort St Philip Rating Curve')    
+plt.close()
 
 ##### Baptiste Collette #####
 
@@ -1746,6 +1898,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.1031x-5631',
         transform=ax.transAxes)
 
 plt.savefig('Baptiste Collette Rating Curve')  
+plt.close()
 
 ##### Grand Pass #####
 
@@ -1778,6 +1931,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.0915x+4288',
         transform=ax.transAxes)
 
 plt.savefig('Grand Pass Rating Curve')  
+plt.close()
 
 ##### West Bay #####
 
@@ -1810,6 +1964,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.0653x-2075',
         transform=ax.transAxes)
 
 plt.savefig('West Bay Rating Curve') 
+plt.close()
 
 ##### Small Cuts #####
 
@@ -1842,6 +1997,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.0025x+10196',
         transform=ax.transAxes)
 
 plt.savefig('Small Cuts Rating Curve')   
+plt.close()
 
 ##### Cubit's Gap #####
 
@@ -1874,6 +2030,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.1319x-19939',
         transform=ax.transAxes)
 
 plt.savefig("Cubit's Gap Rating Curve")    
+plt.close()
 
 ##### Southwest Pass Ratings Curve #####
 
@@ -1906,6 +2063,7 @@ ax.text(0.7, 0.45, 'Qdiv = 0.4189x-64787',
         transform=ax.transAxes)
 
 plt.savefig('Southwest Pass Rating Curve')   
+plt.close()
  
 ##### South Pass #####
 
@@ -1938,7 +2096,8 @@ ax.text(0.7, 0.475, 'Qdiv = 0.0858x+2332',
         transform=ax.transAxes)
 
 plt.savefig('South Pass Rating Curve')    
- 
+plt.close()
+
 ##### Pass a Loutre #####
 
 n = 0
@@ -1970,6 +2129,7 @@ ax.text(0.7, 0.435, 'Qdiv = 0.0543x+15700',
         transform=ax.transAxes)
 
 plt.savefig('Pass a Loutre Rating Curve')  
+plt.close()
     
 ##### Southwest Pass Residual #####
 
@@ -2001,17 +2161,5 @@ ax.grid(True, which='both')
 #        backgroundcolor = 'white',
 #        transform=ax.transAxes)
 
-plt.savefig('Southwest Pass Residual')  
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+plt.savefig('Southwest Pass Residual')
+plt.close()
