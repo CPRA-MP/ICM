@@ -75,41 +75,29 @@ link_years = []
 links_to_change = []
 
 # full path to directory with FWA project GIS data files
-FWA_prj_input_dir = '/ocean/projects/bc200002p/ewhite12/MP2023/ICM/FWA_project_data'
+FWA_prj_input_dir_MC = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/MC_elev_rasters'
+FWA_prj_input_dir_RR = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/Ridge_Levee_elev_rasters'
+FWA_prj_input_dir_BS = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/BS_SP_edge_erosion_multiplier_rasters'
 
-# Marsh creation project element IDs that are implemented in this simulations
-mc_elementIDs = []
+# Marsh creation project element IDs that are implemented in this simulation
+mc_elementIDs = [1230001,900103]
 # Years to implement each respective marsh creation element IDs listed above
-mc_years = []
+mc_years = [2068,2068]
 
 # link ID numbers for 'composite' marsh flow links (type 11) that need to be updated due to marsh creation projects
 mc_links = []
 # Years to update each respective'composite' marsh flow links (type 11) for marsh creation projects - this value should be the year after the project is implemented in the morphology model
 mc_links_years = []
 
-
-# Years to implement shoreline protection projects
+# Shoreline protection project IDs that are implemented in this simulation
+sp_projectIDs = []
+# Years to implement each respective shoreline protection project listed above
 sp_years = []
-# Shoreline protection projects feature class
-sp_shps = []
-# Field with shoreline protecion project erosion reduction multiplier
-sp_shps_fields = []
 
-# Years to implement levee and ridge restoration projects
-levee_years = []
-# Levee projects feature class
-levee_xyz = []
-
-# Field with levee project crest width
-#levee_shps_fields1 = []
-# Field with levee project elevation in NAVD88 m
-#levee_shps_fields2 = []
-# Field with levee slope width
-#levee_shps_fields3 = []
-# Field with levee slope elevation in NAVD88 m
-#levee_shps_fields4 = []
-
-
+# Levee and ridge project IDs that are implemented in this simulation
+rr_projectIDs = []
+# Years to implement each respective levee and ridge restoration project listed above
+rr_years = []
 
 
 
@@ -122,13 +110,13 @@ if len(link_years) != len(links_to_change):
 if len(mc_links_years) != len(mc_links):
     InputErrorFlag = 1
     InputErrorMsg = '%sNumber of links to update for marsh creation projects and implementation years are not equal in length!\n' % InputErrorMsg
-if len(mc_years) != len(mc_shps) != len(mc_shps_fields):
+if len(mc_years) != len(mc_elementIDs):
     InputErrorFlag = 1
     InputErrorMsg = '%sMarsh Creation Project Implementation variables are not of equal length!\n' % InputErrorMsg
-if len(sp_years) != len(sp_shps) != len(sp_shps_fields):
+if len(sp_years) != len(sp_projectIDs)
     InputErrorFlag = 1
     InputErrorMsg = '%sShoreline Protection Project Implementation variables are not of equal length!\n' % InputErrorMsg
-if len(levee_years) != len(levee_shps) != len(levee_shps_fields1) != len(levee_shps_fields2) != len(levee_shps_fields3) != len(levee_shps_fields4):
+if len(rr_years) != len(rr_projectIDs)
     InputErrorFlag = 1
     InputErrorMsg = '%sLevee & Ridge Project Implementation variables are not of equal length!\n' % InputErrorMsg
 
@@ -140,7 +128,7 @@ if InputErrorFlag == 1:
 
 par_dir = os.getcwd()
 
-inputs = np.genfromtxt('ICM_SAV_control.csv',dtype=str,comments='#',delimiter=',')
+inputs = np.genfromtxt('ICM_prj_control.csv',dtype=str,comments='#',delimiter=',')
 
 # Parent directory locations for various ICM components
 # These directories must exist in the model folder
@@ -158,7 +146,7 @@ ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
 
 hydro_exe_path = inputs[7,1].lstrip().rstrip() # path to hydro executable - ** path is relative to the S##/G###/hydro        ** - use './' if running copy of executable that is saved in /hydro directory 
 bidem_exe_path = inputs[8,1].lstrip().rstrip() # path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** - use './' if running copy of executable that is saved in /bidem/REGION directory
-SAV_exe_path = inputs[9,1].lstrip().rstrip() # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
+morph_exe_path = inputs[9,1].lstrip().rstrip() # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
 
 # Configuration files used by various ICM components
 VegConfigFile = inputs[10,1].lstrip().rstrip()
@@ -321,25 +309,30 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         
 
 
-       #########################################################
-    ##                   RUN MORPH MODEL                   ##
+    #########################################################
+    ##         SETUP MORPH MODEL FOR CURRENT YEAR          ##
     #########################################################
     os.chdir(par_dir)
-
+    
+    #########################################################################
+    ##    IMPLEMENT MARSH CREATION PROJECTS BY ELEMENT FOR CURRENT YEAR    ##
+    #########################################################################
+    
+    # count number of marsh creation project elements to be built during current year
     n_mc_yr = 0
     mc_eid_yr = []
-    mc_project_list_yr = ''
-    mc_project_list_VolArea_yr = ''
+    mc_project_list_yr = 'na'
+    mc_project_list_VolArea_yr = 'na'
     
+    mcyi = 0
     for mc_yr in mc_years:
         if year == mc_yr:
             n_mc_yr += 1
-            mc_eid_yr.append( mc_elementIDs[mc_years.index(mc_yr)] )
+            mc_eid_yr.append( mc_elementIDs[mcyi] )
+        mcyi += 1
 
-
-
+    # unzip each TIF file and convert to XYZ format for each element of marsh creation projects implemented during current year
     if n_mc_yr > 0:
-        
         mc_project_list_yr = 'geomorph/input/%s_MCelements.csv' % file_iprefix
         mc_project_list_VolArea_yr = 'geomorph/output/%s_MC_VolArea.csv' % file_oprefix
         
@@ -347,33 +340,131 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             mcpl.write('ElementID,xyz_file\n')
             
             for eid in mc_eid_yr:
-                zfile = '%s/MC_elev_rasters/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir,sterm,sterm,eid)
+                zfile = '%s/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir_MC,sterm,sterm,eid)
+                print ('unzipping %s' % zfile)
                 zcmd = ['unzip','-j',zfile]
                 zrun = subprocess.check_output(zcmd).decode()
                 
-                TIFpath = zrun.split('inflating:').[1].strip()
-                TIFfile = tifpath.split('/')[-1]
+                TIFpath = zrun.split('inflating:')[1].strip()
+                TIFfile = TIFpath.split('/')[-1]
                 
-                XYZpath = 'geomorph/input/%s_00_00_MC_%d.xyz' % (runprefix,eid)
+                XYZfile = '%s_00_00_MC_%d.xyz' % (runprefix,eid)
+                XYZpath = 'geomorph/input/%s' % XYZfile
+
+                gtcmd = ['gdal_translate',TIFpath,XYZpath]
+                gtrun = subprocess.call(gtcmd)
+                
+                rmcmd = ['rm', TIFpath]
+                rmcmd = subprocess.call(rmcmd)
+               
+                # add element ID and location of XYZ project file to text file passed into Morph
+                mcpl.write('%d,%s\n' % (eid,XYZfile) )
+
+    
+    ###########################################################
+    ##    IMPLEMENT RIDGE/LEVEE PROJECTS FOR CURRENT YEAR    ##
+    ###########################################################    
+    
+    # count number of ridge/levee projects to be built during current year  
+    n_rr_yr = 0
+    rr_eid_yr = []
+    rr_project_list_yr = 'na'
+  
+    rryi = 0
+    for rr_yr in rr_years:
+        if year == rr_yr:
+            n_rr_yr += 1
+            rr_eid_yr.append( rr_projectIDs[mcyi] )
+        rryi += 1
+
+    # unzip each TIF file and convert to XYZ format for ridge/levee projects implemented during current year
+    if n_rr_yr > 0:
+        rr_project_list_yr = 'geomorph/input/%s_ridge_levee_projects.csv' % file_iprefix
+        
+        with open (rr_project_list_yr,mode='w') as rrpl:
+            rrpl.write('ProjectID,xyz_file\n')
             
+            for eid in mc_eid_yr:
+                zfile = '%s/RR_PL_PW_ProjectElevation_%s.zip' % (FWA_prj_input_dir_RR,eid)
+                print ('unzipping %s' % zfile)
+                zcmd = ['unzip','-j',zfile]
+                zrun = subprocess.check_output(zcmd).decode()
+                
+                TIFpath = zrun.split('inflating:')[1].strip()
+                TIFfile = TIFpath.split('/')[-1]
+                
+                XYZfile = '%s_00_00_RRPL_%d.xyz' % (runprefix,eid)
+                XYZpath = 'geomorph/input/%s' % XYZfile
+
                 gtcmd = ['gdal_translate',TIFpath,XYZpath]
                 gtrun = subprocess.call(gtcmd)
                 
                 rmcmd = ['rm', TIFpath]
                 rmcmd = subprocess.call(rmcmd)
                 
-                mcpl.write('%d,%s' % (eid,XYZpath) )
-
-
-    n_rr_yr = 0
-    rr_eid_yr = []
-    rr_project_list_yr = ''
+                # add project ID and location of XYZ project file to text file passed into Morph
+                rrpl.write('%d,%s\n' % (eid,XYZfile) )
     
-    n_bs_yr = 0
-    bs_eid_yr = []
-    bs_project_list_yr = ''
+    ###################################################################################
+    ##    IMPLEMENT SHORELINE PROTECTION PROJECTS FOR CURRENT AND PREVIOUS YEARS     ##
+    ################################################################################### 
+    
+    # count number of shoreline protection projects built during, or prior to, current year
+    n_sp_cumul = 0
+    sp_eid_cumul = []
+    sp_project_list_cumul = 'geomorph/input/%s_shoreline_protection_projects.csv' % file_iprefix
+    
+    spci = 0
+    for sp_yr in sp_years:
+        if year >= sp_yr:
+            n_sp_cumul += 1
+            sp_eid_cumul.append( sp_projectIDs[spci] )
+        spci += 1
+    
+    # add project ID and location of XYZ project files to text file passed into Morph for all shoreline protection projects for current and previous years
+    with open (sp_project_list_cumul,mode='w') as sppl:
+        sppl.write('ProjectID,xyz_file\n')
+        if n_sp_cumul > 0:
+            for eid in sp_eid_cumul:
+                XYZfile = '%s_00_00_MEEmult_%d.xyz' % (runprefix,eid)
+                sppl.write('%d,%s\n' % (eid,XYZfile) )
+        else:
+            sppl.write('No updates to default marsh edge erosion rates\n')
+
+   
+    # count number of shoreline protection projects built during current year only
+    n_sp_yr = 0
+    spyi = 0
+    sp_eid_yr = []
+    for sp_yr in sp_years:
+        if year == sp_yr:
+            n_sp_yr += 1
+            sp_eid_yr.append( sp_projectIDs[spyi] )
+        spyi += 1
+
+    for eid in sp_eid_yr:
+        zfile = '%s/BS_SP_MEEmultiplier_%s.zip' % (FWA_prj_input_dir_BS,eid)
+        print ('unzipping %s' % zfile)
+        zcmd = ['unzip','-j',zfile]
+        zrun = subprocess.check_output(zcmd).decode()
+        
+        TIFpath = zrun.split('inflating:')[1].strip()
+        TIFfile = TIFpath.split('/')[-1]
+        
+        XYZfile = '%s_00_00_MEEmult_%d.xyz' % (runprefix,eid)
+        XYZpath = 'geomorph/input/%s' % XYZfile
+        
+        gtcmd = ['gdal_translate',TIFpath,XYZpath]
+        gtrun = subprocess.call(gtcmd)
+        
+        rmcmd = ['rm', TIFpath]
+        rmcmd = subprocess.call(rmcmd)
 
 
+    #########################################################
+    ##          RUN MORPH MODEL FOR CURRENT YEAR           ##
+    #########################################################
+    
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
 
@@ -486,12 +577,12 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
         ip_csv.write(" %s, file naming convention prefix\n" % file_o_01_end_prefix)
         ip_csv.write(" %d, n_mc - number of marsh creation elements to be built in current year\n" % n_mc_yr)
-        ip_csv.write("'geomorph/input/%s', project_list_MC_file - file name with relative path to list of marsh creation raster XYZ files\n" % mc_project_list_yr)
-        ip_csv.write("'geomorph/input/%s', project_list_MC_VA_file - file name with relative path to file that will report out marsh creation volumes and footprint areas\n" % mc_project_list_VolArea_yr)
+        ip_csv.write("'%s', project_list_MC_file - file name with relative path to list of marsh creation raster XYZ files\n" % mc_project_list_yr)
+        ip_csv.write("'%s', project_list_MC_VA_file - file name with relative path to file that will report out marsh creation volumes and footprint areas\n" % mc_project_list_VolArea_yr)
         ip_csv.write(" %d, n_rr - number of ridge or levee projects to  be built in current year\n" % n_rr_yr)
-        ip_csv.write("'geomorph/input/%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
-        ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_bs_yr)
-        ip_csv.write("'geomorph/input/%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % bs_project_list_yr)
+        ip_csv.write("'%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
+        ip_csv.write(" %d, n_bs - number of shoreline protection/bank stabilization projects built in current year OR PREVIOUS years\n" % n_sp_cumul)
+        ip_csv.write("'%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % sp_project_list_cumul)
        
 
     morph_run = subprocess.call(morph_exe_path)
