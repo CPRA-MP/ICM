@@ -621,7 +621,6 @@ FWA_prj_input_dir_MC = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_proje
 FWA_prj_input_dir_RR = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/Ridge_Levee_elev_rasters'
 FWA_prj_input_dir_BS = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/BS_SP_edge_erosion_multiplier_rasters'
 
-
 # Marsh creation project element IDs that are implemented in this simulation
 mc_elementIDs = []
 # Years (calendar year) to implement each respective marsh creation element IDs listed above
@@ -2621,8 +2620,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'%s', project_list_MC_VA_file - file name with relative path to file that will report out marsh creation volumes and footprint areas\n" % mc_project_list_VolArea_yr)
         ip_csv.write(" %d, n_rr - number of ridge or levee projects to  be built in current year\n" % n_rr_yr)
         ip_csv.write("'%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
-        ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_bs_yr)
-        ip_csv.write("'g%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % bs_project_list_yr)
+        ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_sp_cumul)
+        ip_csv.write("'g%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % sp_project_list_cumul)
        
 
     morph_run = subprocess.call(morph_exe_path)
