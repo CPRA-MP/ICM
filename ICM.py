@@ -656,10 +656,10 @@ if len(mc_links_years) != len(mc_links):
 if len(mc_years) != len(mc_elementIDs):
     InputErrorFlag = 1
     InputErrorMsg = '%sMarsh Creation Project Implementation variables are not of equal length!\n' % InputErrorMsg
-if len(sp_years) != len(sp_projectIDs)
+if len(sp_years) != len(sp_projectIDs):
     InputErrorFlag = 1
     InputErrorMsg = '%sShoreline Protection Project Implementation variables are not of equal length!\n' % InputErrorMsg
-if len(rr_years) != len(rr_projectIDs)
+if len(rr_years) != len(rr_projectIDs):
     InputErrorFlag = 1
     InputErrorMsg = '%sLevee & Ridge Project Implementation variables are not of equal length!\n' % InputErrorMsg
 
