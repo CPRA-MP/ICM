@@ -656,7 +656,7 @@ if len(mc_links_years) != len(mc_links):
 if len(mc_years) != len(mc_elementIDs):
     InputErrorFlag = 1
     InputErrorMsg = '%sMarsh Creation Project Implementation variables are not of equal length!\n' % InputErrorMsg
-if len(sp_years) != len(sp_projectIDs):
+if len(sp_years) != len(sp_projectIDs):d
     InputErrorFlag = 1
     InputErrorMsg = '%sShoreline Protection Project Implementation variables are not of equal length!\n' % InputErrorMsg
 if len(rr_years) != len(rr_projectIDs):
@@ -2414,7 +2414,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     for rr_yr in rr_years:
         if year == rr_yr:
             n_rr_yr += 1
-            rr_eid_yr.append( rr_projectIDs[mcyi] )
+            rr_eid_yr.append( rr_projectIDs[rryi] )
         rryi += 1
 
     # unzip each TIF file and convert to XYZ format for ridge/levee projects implemented during current year
@@ -2424,7 +2424,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         with open (rr_project_list_yr,mode='w') as rrpl:
             rrpl.write('ProjectID,xyz_file\n')
             
-            for eid in mc_eid_yr:
+            for eid in rr_eid_yr:
                 zfile = '%s/RR_PL_PW_ProjectElevation_%s.zip' % (FWA_prj_input_dir_RR,eid)
                 print ('unzipping %s' % zfile)
                 zcmd = ['unzip','-j',zfile]
