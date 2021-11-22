@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+import os
 import psycopg2
 import io
 import pandas as pd
@@ -9,21 +10,84 @@ host = 'vm007.bridges2.psc.edu'
 db_name = 'mp23_pdd'
 port = '5432'
 user = 'ewhite12'
-password = input('\npassword for SQL connection?')#'###'
+password = input('\npassword for SQL connection?')
 
-scens2update = [6,7,8,9]    # [0]
-groups2update = [500]       # [0]
-years2update = range(1,53)  # [2018]
+pdd_bk_dir = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/PDD_bk'
+
+logfile = '%s/_logfile.csv' % pdd_bk_dir
+
+if os.path.isfile(logfile) == False:
+    with open(logfile,mode='w') as lf:
+        lf.write('datetime,user,action\n')
+
+backup = True
+overwrite = False
+
+connection_info = {'host': host,'dbname':db_name,'user':user,'password':password}
+connection_string = ' '.join([f"{key}='{value}'" for key, value in connection_info.items()])
+
+if backup == True:
+# Running query using PANDAS dataframes & PSYCOPG2
+    print('Backing up PDD icm.land_veg to %s' % pdd_bk_dir)
+    datestr = dt.now()
+    conn = psycopg2.connect(connection_string)
+    sqlstr = "select * from icm.land_veg;"
+    output=pd.read_sql_query(sqlstr,conn)
+    
+    bkfile = '%s/mp23_pdd_icm.land_veg_%04d.%02d.%02d.%02d.%02d.%02d.csv' % ( pdd_bk_dir,dt.now().year,dt.now().month,dt.now().day,dt.now().hour,dt.now().minute,dt.now().second )
+    output.to_csv(bkfile)
+    actionnote = 'downloaded backup copy of icm.land_veg to file: %s' % bkfile
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+
+if overwrite == True:
+#Running delete SQL queries using PSYCOPG2 instead of PANDAS
+    print('Deleting icm.land_veg from mp23_pdd')
+    datestr = dt.now()
+    conn = psycopg2.connect(connection_string)
+    cur = conn.cursor()
+#    sqlstr = "delete from icm.land_veg;"  # deletes all rows in table
+#    actionnote = 'deleted all rows in SQL server copy of icm.land_veg'
+    sv = 7
+    sqlstr = 'delete from icm.land_veg where land_veg."Scenario"=%d;' % sv
+    actionnote = 'deleted all S07 data in SQL server copy of icm.land_veg'
+    cur.execute(sqlstr)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+
+
+scens2update = []
+groups2update = []
+years2update = []
+
+#scens2update = [0]
+#groups2update = [0]
+#years2update = [2018]
+
+#scens2update = [7]#[6,8,9]
+#groups2update =[500]
+#years2update = range(1,48)#53)
+
+
+
+
 codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
 eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
 eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
 eco3skip = ['ATB']
+
+actionnote = 'uploaded ICM output for: '
 
 d = {}
 for S in scens2update:
     d[S] = {}
     for G in groups2update:
         d[S][G] = {}
+        actionnote = '%s S%02dG%03d' % (actionnote,S,G)
         for Y in years2update:
             d[S][G][Y] = {}
             for C in codes2update:
@@ -59,6 +123,7 @@ for S in scens2update:
             for r in lvf:   # 'prj_no', 'S', 'ICMyear', 'code', 'ecoregion', 'value'
                 nr += 1
                 try:
+                    #print (r)
                     g = int(r.split(',')[0].strip()[1:4])
                     s = int(r.split(',')[1].strip()[1:3])
                     y = int(r.split(',')[2].strip())
@@ -99,6 +164,7 @@ for S in scens2update:
                 note = 'existing conditions; landscape from 2018 USGS data'
             else:
                 FWOAY = Y-2
+                note = 'landscape at end of ICM year'
             for C in codes2update:
                 for E in eco2update:
                     val2write = d[S][G][Y][C][E]
@@ -108,6 +174,9 @@ for S in scens2update:
                     except:
                         print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))
 
+
+with open(logfile,mode='a') as lf:
+    lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
 
 
