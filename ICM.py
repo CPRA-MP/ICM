@@ -625,6 +625,11 @@ FWA_prj_input_dir_BS = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_proje
 mc_elementIDs = []
 # Years (calendar year) to implement each respective marsh creation element IDs listed above
 mc_years = []
+# Marsh creation project element IDs that have deep water areas filled in (leave array empty if all use default shallow water fill threshold)
+mc_eid_with_deep_fill = []
+mc_depth_threshold_def = 0.762
+mc_depth_threshold_deep = 9999.999
+
 
 # link ID numbers for 'composite' marsh flow links (type 11) that need to be updated due to marsh creation projects
 mc_links = []
@@ -2379,6 +2384,12 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             mcpl.write('ElementID,xyz_file\n')
             
             for eid in mc_eid_yr:
+                
+                if eid in mc_eid_with_deep_fill:
+                    fill_depth =  mc_depth_threshold_deep
+                else:
+                    fill_depth =  mc_depth_threshold_def
+                
                 zfile = '%s/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir_MC,sterm,sterm,eid)
                 print ('unzipping %s' % zfile)
                 zcmd = ['unzip','-j',zfile]
@@ -2397,7 +2408,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 rmcmd = subprocess.call(rmcmd)
                
                 # add element ID and location of XYZ project file to text file passed into Morph
-                mcpl.write('%d,%s\n' % (eid,XYZfile) )
+                mcpl.write('%d,%s\n' % (eid,XYZfile,fill_depth) )
 
     
     ###########################################################
@@ -2540,7 +2551,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("0.05, bg_lowerZ_m - height that bareground is lowered [m]\n")
         ip_csv.write("0.25, me_lowerDepth_m - depth to which eroded marsh edge is lowered to [m]\n")
         ip_csv.write("1.0, flt_lowerDepth_m - depth to which dead floating marsh is lowered to [m]\n")
-        ip_csv.write("0.762, mc_depth_threshold - water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n")
+        ip_csv.write("%0.3f, mc_depth_threshold - default water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n" % mc_depth_threshold_def)
         ip_csv.write("1.1211425, spsal_params[1] - SAV parameter - spring salinity parameter 1\n")
         ip_csv.write("-0.7870841, spsal_params[2] - SAV parameter - spring salinity parameter 2\n")
         ip_csv.write("1.5059876, spsal_params[3] - SAV parameter - spring salinity parameter 3\n")
