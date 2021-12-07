@@ -41,7 +41,7 @@ Start year of full simulation (e.g. year 0 of spin-up),2019
 Final year of full simulation (equals start year for a 1 year run),2070
 Current cycle (full model run can be split into cycles for HPC batch runs),0
 First year of current cycle (e.g. hotstart year) (set to Start Year if only one cycle),2019
-Last year of current cycle (set to Final Year if only one cycle,2020
+Last year of current cycle (set to Final Year if only one cycle,2070
 First year of data in Hydro input files,2019
 Vegetation types modeled,43
 Update elevation attributes of hydro links and compartments (1 if yes - 0 if no),0
@@ -62,8 +62,8 @@ Y coordinate(UTM meters) of lower left corner of Fisheries input ASCII file,0
 #########################################################################,
 ## Filenaming settings,
 Filename prefix to use for all files,MP2023
-Scenario term for filename(S22),S06
-Group term for filename (G333),G501
+Scenario term for filename(S22),S07
+Group term for filename (G333),G500
 CLARA term for filename(C22),C000
 Uncertainty term for filename(U22),U00
 Variance term for filename(V22),V00
