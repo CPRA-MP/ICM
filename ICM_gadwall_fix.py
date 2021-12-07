@@ -355,11 +355,15 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
         ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
-
-        sav_csv_file = 'geomorph/output/%s_W_SAV.csv' % file_oprefix
-        sav_asc_file = 'geomorph/output/%s_W_SAV.asc' % file_oprefix
-    
-    
+        ip_csv.write(" %d, n_mc - number of marsh creation elements to be built in current year\n" % n_mc_yr)
+        ip_csv.write("'%s', project_list_MC_file - file name with relative path to list of marsh creation raster XYZ files\n" % mc_project_list_yr)
+        ip_csv.write("'%s', project_list_MC_VA_file - file name with relative path to file that will report out marsh creation volumes and footprint areas\n" % mc_project_list_VolArea_yr)
+        ip_csv.write(" %d, n_rr - number of ridge or levee projects to  be built in current year\n" % n_rr_yr)
+        ip_csv.write("'%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
+        ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_sp_cumul)
+        ip_csv.write("'g%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % sp_project_list_cumul)
+       
+       
     file1 ='hsi/GadwallDepths_cm_%d.csv' % year
     file2 = 'hsi/%s_W_pedge.csv' % file_prefix
     if os.path.isfile(file2) == False:
@@ -370,20 +374,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     
     print('\nMapping SAV outputs to ASC raster.')
-
-    sav_dict = {}
-
-    with open(sav_csv_file,mode='r') as sav_data:
-        nline = 0
-        for line in sav_data:
-            if nline > 0:
-                gr = int(float(line.split(',')[0]))
-                prsav = line.split(',')[2]          # probability of SAV presence is the third column in the SAV output file saved by MorphSAV
-                sav_dict[gr] = prsav
-            nline += 1
-    print(dict2asc_flt(sav_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
-
-
 print('\n\n\n')
 print('-----------------------------------------' )
 print(' ICM SAV Model run complete!')
