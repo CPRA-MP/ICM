@@ -362,7 +362,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     
     file1 ='hsi/GadwallDepths_cm_%d.csv' % year
     file2 = 'hsi/%s_W_pedge.csv' % file_prefix
-    os.rename(file1,file2) 
+    if os.path.isfile(file2) == False:
+        os.rename(file1,file2) 
     
 
     morph_run = subprocess.call(gadwall_fix_exe_path)
