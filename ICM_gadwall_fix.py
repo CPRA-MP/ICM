@@ -273,10 +273,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     #asc_head = '# Year = %04d\n%s' % (year,asc_grid_head)
     asc_head = asc_grid_head
     file_prefix     = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_iprefix    = r'%s_I_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_oprefix    = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
-
-
+    
     # set file names for files passed from Hydro into Veg and Morph
     EHtemp_path = os.path.normpath(r'%s/TempFiles' % ecohydro_dir)
     EH_grid_file = 'grid_data_500m.csv' # this must match file name used in hydro.exe
