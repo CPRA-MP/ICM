@@ -599,10 +599,9 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     morph_run = subprocess.call(gadwall_fix_exe_path)
 
     
-    print('\nMapping SAV outputs to ASC raster.')
 print('\n\n\n')
 print('-----------------------------------------' )
-print(' ICM SAV Model run complete!')
+print(' ICM run complete - done fixing Gadwall files - can run HSIs now!')
 print('-----------------------------------------\n')
 
 
