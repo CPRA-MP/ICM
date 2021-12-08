@@ -42,6 +42,7 @@ implementation['BLaF'] = 0
 implementation['UFWD'] = 9999
 implementation['WMPD'] = 9999
 implementation['MSRM'] = 0
+implementation['EdDI'] = 0
 implementation['Bonn'] = 0
 implementation['MLBD'] = 9999   # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
 implementation['LaBr'] = 9999
@@ -93,6 +94,8 @@ WMPD_cfs = np.zeros(ndays)      # West Maurepas Diversion
 WMPD_cms = np.zeros(ndays)
 MSRM_cfs = np.zeros(ndays)      # Mississippi River Reintroduction in Maurepas Swamp
 MSRM_cms = np.zeros(ndays)
+EdDI_cfs = np.zeros(ndays)      # Edgard Diversion
+EdDI_cms = np.zeros(ndays)
 Bonn_cfs = np.zeros(ndays)      # Bonnet Carre
 Bonn_cms = np.zeros(ndays)
 MLBD_cfs = np.zeros(ndays)      # Manchac Landbridge Diversion
@@ -272,7 +275,30 @@ for d in range(0,ndays):
         MSRM_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
         
+        #############################
+        ###   Edgard Diversion    ###
+        #############################
+        # river mile 137
+        # off below 200,000; rating curve of 0.0625x-12500 between 200,000 and 600,000; constant flow of 25,000 cfs at 600,000; off between 600,000 and 1,250,000; constant flow of 35,000 cfs above 1,250,000
+        
+        impl_yr = implementation['EdDI']
+        
+        if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:
+            if Qresidual = 600000
+                Qdiv = 25000
+            elif Qresidual < 200000 or Qresidual > 600000 and Qresidual < 1250000:
+                Qdiv = 0
+            elif Qresidual >= 1250000
+                Qdiv = 35000
+            else:
+                Qdiv = 0.0625*Qresidual - 12500
             
+        EdDI_cfs[d] = Qdiv  
+        EdDI_cms[d] = Qdiv*(0.3048**3)
+        Qresidual -= Qdiv        
+        
         ##################################
         ###   Bonnet Carre Spillway    ###
         ##################################
@@ -797,6 +823,7 @@ with open(TribQ_out_file,mode='w') as TribQ_out:
         line = '%s,%s' % (line,UFWD_cms[d])            # Union Freshwater Diversion
         line = '%s,%s' % (line,WMPD_cms[d])            # West Maurepas Diversion
         line = '%s,%s' % (line,MSRM_cms[d])            # Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
+        line = '%s,%s' % (line,EdDI_cms[d])            # Edgard Diversion
         line = '%s,%s' % (line,Bonn_cms[d])            # Bonnet Carre
         line = '%s,%s' % (line,MLBD_cms[d])            # Manchac Landbridge Diversion
         line = '%s,%s' % (line,LaBr_cms[d])            # LaBranche Hydrologic Restoration
@@ -883,6 +910,7 @@ BLaF_RC = np.zeros(z)
 UFWD_RC = np.zeros(z)
 WMPD_RC = np.zeros(z)
 MSRM_RC = np.zeros(z)
+EdDI_RC = np.zeros(z)
 Bonn_RC = np.zeros(z)
 MLBD_RC = np.zeros(z)
 LaBr_RC = np.zeros(z)
@@ -1058,7 +1086,49 @@ ax.text(0.7, 0.6, 'Minimum operation in April and July-December\nJanuary-March a
 
 plt.savefig('MS River Reintroduction in Maurepas Swamp Rating Curve')      
 plt.close()
-            
+
+##### Edgard Diversion #####
+
+n = 0
+for q in range(z):
+
+    if yr < yr0 + impl_yr:
+        Qdiv = 0
+    else:
+        if Qresidual = 600000
+            Qdiv = 25000
+        elif Qresidual < 200000 or Qresidual > 600000 and Qresidual < 1250000:
+            Qdiv = 0
+        elif Qresidual >= 1250000
+            Qdiv = 35000
+        else:
+            Qdiv = 0.0625*Qresidual - 12500
+    
+    EdDI_RC[q] = Qdiv
+
+fig, ax = plt.subplots()
+ax.plot(exTarb,EdDI_RC)
+ax.set(title = 'Edgard Diversion Rating Curve',
+       xlabel = 'Mississippi River Flow at Baton Rouge (cfs)',
+       ylabel = 'Flow Diverted (cfs)')
+plt.rc('xtick', labelsize=8)
+plt.rc('ytick', labelsize=8)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.ticklabel_format(style='plain')
+ax.xaxis.set_major_locator(plt.MultipleLocator(200000))
+plt.gca().xaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
+#plt.setp(ax.get_xticklabels(), rotation = 25)
+ax.grid(True, which='both')
+ax.text(0.35, 0.77, 'Off below river flow of 200,000 cfs and between 600,000 and 1,250,000 cfs\nFlow of 25,000 cfs at river flow of 600,000 cfs\nFlow of 35,000 cfs above river flow of 1,250,000 cfs\nElse, flow = 0.125x-2500',
+        fontsize = 'smaller',
+        horizontalalignment = 'center',
+        backgroundcolor = 'white',
+        transform=ax.transAxes)
+
+plt.savefig('Edgard Diversion Rating Curve')      
+plt.close()
+
 ##### Bonnet Carre Spillway #####
 
 n = 0
