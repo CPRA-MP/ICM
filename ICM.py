@@ -2525,7 +2525,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("-9999, dem_NoDataVal - value representing nodata in input rasters and XYZ files\n")
         ip_csv.write("171284090, ndem - number of DEM pixels - will be an array dimension for all DEM-level data\n")
         ip_csv.write("2904131, ndem_bi - number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
-        ip_csv.write("1778, ncomp - number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n")
+        ip_csv.write("%d, ncomp - number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n" % ncomp)
         ip_csv.write("173898, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n")
         ip_csv.write("32, neco - number of ecoregions\n")
         ip_csv.write("5, nlt - number of landtype classifications\n")
