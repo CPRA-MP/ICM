@@ -56,6 +56,7 @@ implementation['MBrD'] = 0
 implementation['Naom'] = 0
 implementation['MBaD'] = 0
 implementation['WPLH'] = 0
+implementation['LPlq'] = 0
 implementation['LBaD'] = 9999
 implementation['LBrD'] = 9999
 
@@ -122,6 +123,8 @@ MBaD_cfs = np.zeros(ndays)      # Mid-Barataria Diversion
 MBaD_cms = np.zeros(ndays) 
 WPLH_cfs = np.zeros(ndays)      # West Point a la Hache
 WPLH_cms = np.zeros(ndays) 
+#LPlq_cfs = np.zeros(ndays)      # Lower Plaquemines River Sediment Plan (Not used, adding this diversion to WPLH timeseries)
+#LPlq_cms = np.zeros(ndays) 
 LBaD_cfs = np.zeros(ndays)      # Lower Barataria Diversion
 LBaD_cms = np.zeros(ndays) 
 LBrD_cfs = np.zeros(ndays)      # Lower Breton Diversion
@@ -612,7 +615,41 @@ for d in range(0,ndays):
         WPLH_cfs[d] = Qdiv 
         WPLH_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
+        
+        
+        ################################################
+        ###   Lower Plaquemines River Sediment Plan  ###
+        ################################################
+        # river mile 49 
+		# Seven pumps/siphons located throughout the Mississippi River corridor
+        # (assume all pumps/siphons are extracted at one location in the river located at West Point a la Hache)
+        #
+		# Each siphon is operated with the same rating curve ( Qresidual/225 - 1333.3 ):
+        #     No flow diverted when river < 300,000 cfs
+        #     Maximum flow diverted of 2,000 cfs when river > 750,000 cfs
+        #     Linear relationship when river between 300,000 and 750,000 cfs
+        # 
+        # Since all 7 pump/siphons are being extracted from the Mississippi River flow timeseries at one location (assumed to be at WPLH)
+        # this run will also assume that WPLH is operated with this same new operational curve
+        # therefore, must add calculated WPLH back into Qresidual before being added and this diversion timeseries overwrites the WPLH timeseries in TribQ.csv
+        
+        impl_yr = implementation['LPlq']
+        
+        if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:
+            # add WPLH calculated flow back into residual flow since this diversion will replace that WPLH timeseries
+			if yr >= yr0 + implementation['WPLH'] :
+            	Qresidual += WPLH_cfs[d]  
             
+			# diversion flowrate is 8x for (1) WPLH and (7) pumps as part of LPlq
+			Qdiv = 8.0*min(max(0, Qresidual/225.0 - 1333.333 ), 2000.0)
+        
+        WPLH_cfs[d] = Qdiv
+        WPLH_cms[d] = Qdiv*(0.3048**3)
+        Qresidual  -= Qdiv    
+        
+        
         ######################################
         ###   Lower Barataria Diversion    ###
         ######################################
@@ -633,6 +670,7 @@ for d in range(0,ndays):
         LBaD_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
             
+			
         ###################################
         ###   Lower Breton Diversion    ###
         ###################################
