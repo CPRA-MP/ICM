@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 28 11:46:45 2021
-@author: madelinel
-"""
+#"""
+#Created on Thu Jan 28 11:46:45 2021
+#@author: madelinel & ewhite12
+#"""
 
 # This script is designed to build daily flow timeseries of flow diversions off of the Mississippi River, including the distributary network in the Birdsfoot Delta.
 # input/output flowrates are saved in cubic meters per second (cms), but all operational rules are defined in cubic feet per second (cfs)
@@ -38,35 +38,43 @@ TribQ_out_file = 'S07_G600_TribQ.csv'
 #       9999 = diversion is not implemented at all 
 
 implementation = {}
-implementation['BLaF'] = 0
-implementation['UFWD'] = 9999
-implementation['WMPD'] = 9999
-implementation['MSRM'] = 0
-implementation['EdDI'] = 0
-implementation['Bonn'] = 0
-implementation['MLBD'] = 9999   # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
-implementation['LaBr'] = 9999
-implementation['DavP'] = 0
-implementation['AmaD'] = 9999
-implementation['IHNC'] = 0
-implementation['CWDI'] = 9999
-implementation['Caer'] = 0
-implementation['UBrD'] = 9999
-implementation['MBrD'] = 0
-implementation['Naom'] = 0
-implementation['MBaD'] = 0
-implementation['WPLH'] = 0
-implementation['LPlq'] = 0
-implementation['LBaD'] = 9999
-implementation['LBrD'] = 9999
+implementation['IAFT'] = 9999		# Increase Atchafalaya Flows to Terrebonne
+implementation['AtRD'] = 9999		# Atchafalaya River Diversion
+implementation['BLaF'] = 0		# Bayou Lafourche Diversion
+implementation['UBaH'] = 9999		# Upper Barataria Hydrologic Restoration
+implementation['UFWD'] = 9999		# Union Freshwater Diversion
+implementation['WMPD'] = 9999		# West Maurepas Diversion
+implementation['MSRM'] = 0		# Mississippi River Reintroduction in Maurepas Swamp
+implementation['EdDI'] = 9999		# Edgard Diversion
+implementation['Bonn'] = 0		# Bonnet Carre
+implementation['MLBD'] = 9999   	# Manchac Landbridge Diversion # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
+implementation['LaBr'] = 9999		# LaBranche Hydrological Restoration (not the same as LaBranche Diversion)
+implementation['DavP'] = 0		# Davis Pond
+implementation['AmaD'] = 9999		# Ama Sediment Diversion
+implementation['IHNC'] = 0		# Inner Harbor Navigational Canal
+implementation['CWDI'] = 9999		# Central Wetlands Diversion
+implementation['Caer'] = 0		# Caernarvon
+implementation['UBrD'] = 9999		# Upper Breton Diversion
+implementation['MBrD'] = 0		# Mid-Breton Sound Diversion
+implementation['Naom'] = 0		# Naomi
+implementation['MBaD'] = 0		# Mid-Barataria Diversion
+implementation['WPLH'] = 0		# West Pointe a la Hache
+implementation['LPlq'] = 0		# Lower Plaquemines River Sediment Plan
+implementation['LBaD'] = 9999		# Lower Barataria Diversion
+implementation['LBrD'] = 9999		# Lower Breton Diversion
 
 
 
+nTributaries = 35				# number of riverine input timeseries included in TribQ, TribF, TribS, and QMult
+nMissRiv_Diversions = 21			# number of Mississippi River diversion timeseries included in TribQ, TribF, TribS, and QMult
+nBFD_Passes = 12				# number of distributary passes timeseries in the BFD included in TribQ, TribF, TribS, and QMult
+nAtchRiv_Diversions = 2				# number of Atchafalaya River diversion timeseries included in TribQ, TribF, TribS, and QMult
 
-nTribs = 67
-trib_cols   = range(0,35)       # first 35 columns of TribQ.csv are tributary flows; diversions start in column 36
-date_col    = [67]              # column 68 of TribQ.csv is the date
-MissRiv_col = 10                # column 11 of TribQ.csv is the Miss. River @ Tarbert Landing data
+nTribs = nTributaries + nMissRiv_Diversions + nBFD_Passes + nAtchRiv_Diversions	# total number of timeseries read in as tributary boundary conditions in TribQ
+
+trib_cols   = range(0,nTributaries)      	# first 35 columns of TribQ.csv are tributary flows; diversions start in column 36
+date_col    = [nTribs]          		# last column of TribQ.csv is the date
+MissRiv_col = 10                		# column 11 of TribQ.csv is the Miss. River @ Tarbert Landing data
 
 TribQ_in    = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=trib_cols)
 dates_all   = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=date_col)
@@ -87,8 +95,14 @@ Atch_cfs = np.zeros(ndays)      # Atchafalaya River
 Atch_cms = np.zeros(ndays)      
 Morg_cfs = np.zeros(ndays)      # Morganza Floodway
 Morg_cms = np.zeros(ndays)
+IAFT_cfs = np.zeros(ndays)	# Increase Atchafalaya Flows to Terrebonne
+IAFT_cms = np.zeros(ndays)
+AtRD_cfs = np.zeros(ndays)	# Atchafalaya River Diversion
+AtRD_cms = np.zeros(ndays)
 BLaF_cfs = np.zeros(ndays)      # Bayou Lafourche Diversion
 BLaF_cms = np.zeros(ndays)
+#UBaH_cfs = np.zeros(ndays)      # Upper Barataria Hydrologic Restoration (not used - added as additional flow to BLaF timeseries)
+#UBaH_cms = np.zeros(ndays)
 UFWD_cfs = np.zeros(ndays)      # Union Freshwater Diversion
 UFWD_cms = np.zeros(ndays)
 WMPD_cfs = np.zeros(ndays)      # West Maurepas Diversion
@@ -123,7 +137,7 @@ MBaD_cfs = np.zeros(ndays)      # Mid-Barataria Diversion
 MBaD_cms = np.zeros(ndays) 
 WPLH_cfs = np.zeros(ndays)      # West Point a la Hache
 WPLH_cms = np.zeros(ndays) 
-#LPlq_cfs = np.zeros(ndays)      # Lower Plaquemines River Sediment Plan (Not used, adding this diversion to WPLH timeseries)
+#LPlq_cfs = np.zeros(ndays)      # Lower Plaquemines River Sediment Plan (not used - added as additional flow to WPLH timeseries)
 #LPlq_cms = np.zeros(ndays) 
 LBaD_cfs = np.zeros(ndays)      # Lower Barataria Diversion
 LBaD_cms = np.zeros(ndays) 
@@ -168,8 +182,7 @@ for d in range(0,ndays):
 #        year = date.split('-')[2]                                          # this will work if date is formatted as MM-DD-YYYY
         
         Qresidual = MissTarb_cfs[d]
-
-                
+	                
         ##############################
         ###   Atchafalaya River    ###
         ##############################
@@ -181,7 +194,9 @@ for d in range(0,ndays):
         Atch_cfs[d] = Qdiv
         Atch_cms[d] = Qdiv*(0.3048**3)
         
-        ##############################
+	Qresidual_Atch = Atch_cfs[d]
+        
+	##############################
         ###   Morganza Floodway    ###
         ##############################
         # river mile 280
@@ -190,7 +205,49 @@ for d in range(0,ndays):
         Qdiv = 0
         Morg_cfs[d] = Qdiv
         Morg_cms[d] = Qdiv*(0.3048**3)
-        
+	
+	###################################################
+        ###   Increase Atchafalaya Flows to Terrebonne  ###
+        ###################################################
+	# location at GIWW
+	# still need to determine rating curve to use (currently set to 0)
+	# rating curve needs to be a function of Atchafalaya River @ Simmesport since it is calculated here from the flows directly downstream of Old River Control Structure
+
+	impl_yr = implementation['IAFT']
+        if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:   
+            if Qresidual_Atch >= 0:
+                Qdiv = 0
+            else:
+  		Qdiv = 0
+                
+        IAFT_cfs[d] = Qdiv
+        IAFT_cms[d] = Qdiv*(0.3048**3)
+        Qresidual_Atch -= Qdiv
+	
+	
+	########################################
+        ###   Atchafalaya River Diversion    ###
+        ########################################
+	# location south of GIWW 
+	# still need to determine rating curve to use (currently set to 0)
+	# rating curve needs to be a function of Atchafalaya River @ Simmesport since it is calculated here from the flows directly downstream of Old River Control Structure
+	
+	impl_yr = implementation['AtRD']
+        if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:   
+            if Qresidual_Atch >= 0:
+                Qdiv = 0
+            else:
+  		Qdiv = 0
+                
+        AtRD_cfs[d] = Qdiv
+        AtRD_cms[d] = Qdiv*(0.3048**3)
+        Qresidual_Atch -= Qdiv
+
+	
         ######################################
         ###   Bayou Lafourche Diversion    ###
         ######################################
@@ -210,9 +267,32 @@ for d in range(0,ndays):
                 
         BLaF_cfs[d] = Qdiv
         BLaF_cms[d] = Qdiv*(0.3048**3)
-        Qresidual -= Qdiv  
-                   
-        #######################################
+        Qresidual -= Qdiv
+	
+	
+	###################################################
+        ###   Upper Barataria Hydrologic Restoration    ###
+        ###################################################
+        # river mile 176 
+	# additional flow pumped into Bayou Lafourche
+	# pump 750 cfs into Bayou Lafourche to be routed down BLaF and eventually eastward into Upper Barataria
+	# add this diversion flow to the pre-existing Bayou Lafourche flow calculated above
+        impl_yr = implementation['UBaH']
+	
+	if yr < yr0 + impl_yr:
+            Qdiv = 0
+        else:   
+            if Qresidual >= 750:
+                Qdiv = 750
+            else:
+                Qdiv = Qresidual
+                
+        BLaF_cfs[d] += Qdiv
+        BLaF_cms[d] += Qdiv*(0.3048**3)
+        Qresidual -= Qdiv
+        
+	
+	#######################################
         ###   Union Freshwater Diversion    ###
         #######################################
         # river mile 169
@@ -233,7 +313,8 @@ for d in range(0,ndays):
         UFWD_cfs[d] = Qdiv  
         UFWD_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-               
+         
+		
         ####################################
         ###   West Maurepas Diversion    ###
         ####################################
@@ -277,7 +358,8 @@ for d in range(0,ndays):
         MSRM_cfs[d] = Qdiv  
         MSRM_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-        
+       
+
         #############################
         ###   Edgard Diversion    ###
         #############################
@@ -302,6 +384,7 @@ for d in range(0,ndays):
         EdDI_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv        
         
+	
         ##################################
         ###   Bonnet Carre Spillway    ###
         ##################################
@@ -322,6 +405,7 @@ for d in range(0,ndays):
         Bonn_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
         
+	
         #########################################
         ###   Manchac Landbridge Diversion    ###
         #########################################
@@ -342,6 +426,7 @@ for d in range(0,ndays):
         MLBD_cfs[d] = Qdiv
         MLBD_cms[d] = Qdiv*(0.3048**3)
 
+	
         ############################################
         ###   Davis Pond Freshwater Diversion    ###
         ############################################
@@ -361,6 +446,7 @@ for d in range(0,ndays):
         
         #print(DavP_cfs)
         
+	
         ###############################################
         ###   LaBranche Hydrologic Restoration    ###
         ###############################################
@@ -401,7 +487,8 @@ for d in range(0,ndays):
         AmaD_cfs[d] = Qdiv  
         AmaD_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-            
+        
+	
         ############################################
         ###   Inner Harbor Navigational Canal    ###
         ############################################
@@ -421,7 +508,8 @@ for d in range(0,ndays):
         IHNC_cfs[d] = Qdiv  
         IHNC_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-            
+         
+		
         #######################################
         ###   Central Wetlands Diversion    ###
         #######################################
@@ -441,7 +529,8 @@ for d in range(0,ndays):
         CWDI_cfs[d] = Qdiv  
         CWDI_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-            
+        
+	
         ############################################
         ###   Caernarvon Freshwater Diversion    ###
         ############################################
@@ -458,7 +547,8 @@ for d in range(0,ndays):
         Caer_cfs[d] = Qdiv  
         Caer_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-            
+       
+
         ###################################
         ###   Upper Breton Diversion    ###
         ###################################
@@ -497,7 +587,8 @@ for d in range(0,ndays):
 #       UBrD_cfs[d] = Qdiv  
 #       UBrD_cms[d] = Qdiv*(0.3048**3)
 #       Qresidual -= Qdiv
-            
+       
+	
         ##########################################
         ###   Mid Breton Sediment Diversion    ###
         ##########################################
@@ -514,7 +605,8 @@ for d in range(0,ndays):
         MBrD_cfs[d] = Qdiv
         MBrD_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-            
+        
+	
         ###################################
         ###   Naomi Siphon Diversion    ###
         ###################################
@@ -532,7 +624,8 @@ for d in range(0,ndays):
         Naom_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
 
-        #############################################
+	
+	#############################################
         ###   Mid-Barataria Sediment Diversion    ###
         #############################################
         # river mile 61
@@ -599,6 +692,7 @@ for d in range(0,ndays):
         MBaD_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
         
+	
         ###################################
         ###   West Pointe a la Hache    ###
         ###################################
@@ -690,7 +784,12 @@ for d in range(0,ndays):
         LBrD_cfs[d] = Qdiv  
         LBrD_cms[d] = Qdiv*(0.3048**3)
         Qresidual -= Qdiv
-        
+
+##############################################################################
+###### 		Calculate distributary flow at each BFD pass		######
+###### 		Qresidual is no longer updated downstream of here	######
+######		All passes will use the same input residual flow	######
+######		rating curves come from Mead Allison rating curves	######
 ##############################################################################
         
         ############################
@@ -799,18 +898,6 @@ for d in range(0,ndays):
         CGap_cfs[d] = Qdiv  
         CGap_cms[d] = Qdiv*(0.3048**3)
 
-        #########################################
-        ###   Southwest Pass Ratings Curve    ###
-        #########################################
-        # river mile 0
-        # this is the ratings curve for SW pass, there is also a SW Pass Residual calculation below
-        # Diversion flow of rating curve 0.4189*Qresidual-64787
-            
-        Qdiv = 0.4189*Qresidual-64787
-            
-        SWPS_cfs[d] = Qdiv 
-        SWPS_cms[d] = Qdiv*(0.3048**3)
- 
         #######################
         ###   South Pass    ###
         #######################
@@ -832,7 +919,19 @@ for d in range(0,ndays):
             
         PLou_cfs[d] = Qdiv  
         PLou_cms[d] = Qdiv*(0.3048**3)
-    
+ 
+	#########################################
+        ###   Southwest Pass Ratings Curve    ###
+        #########################################
+        # river mile 0
+        # this is the ratings curve for SW pass, there is also a SW Pass Residual calculation below
+        # Diversion flow of rating curve 0.4189*Qresidual-64787
+            
+        Qdiv = 0.4189*Qresidual-64787
+            
+        SWPS_cfs[d] = Qdiv 
+        SWPS_cms[d] = Qdiv*(0.3048**3)
+     
         ####################################
         ###   Southwest Pass Residual    ###
         ####################################
@@ -849,88 +948,88 @@ with open(TribQ_out_file,mode='w') as TribQ_out:
     for n in range(2,nTribs+1):
         line = '%s,%s' % (line,n)
     
-    TribQ_out.write('%s\n' % line)
-    
-    for d in range(0,ndays):
+    TribQ_out.write('%s\n' % line)			
+	for d in range(0,ndays):
         line = '%s' % TribQ_in[d][0]
-        for t in range(1,max(trib_cols)+1):
-            line = '%s,%s' % (line,TribQ_in[d][t])
-
-        line = '%s,%s' % (line,Morg_cms[d])            # Morganza Spillway
-        line = '%s,%s' % (line,BLaF_cms[d])            # Bayou LaFourche Diversion
-        line = '%s,%s' % (line,UFWD_cms[d])            # Union Freshwater Diversion
-        line = '%s,%s' % (line,WMPD_cms[d])            # West Maurepas Diversion
-        line = '%s,%s' % (line,MSRM_cms[d])            # Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
-        line = '%s,%s' % (line,EdDI_cms[d])            # Edgard Diversion
-        line = '%s,%s' % (line,Bonn_cms[d])            # Bonnet Carre
-        line = '%s,%s' % (line,MLBD_cms[d])            # Manchac Landbridge Diversion
-        line = '%s,%s' % (line,LaBr_cms[d])            # LaBranche Hydrologic Restoration
-        line = '%s,%s' % (line,DavP_cms[d])            # Davis Pond
-        line = '%s,%s' % (line,AmaD_cms[d])            # Ama Sediment Diversion
-        line = '%s,%s' % (line,IHNC_cms[d])            # Inner Harbor Navigational Canal
-        line = '%s,%s' % (line,CWDI_cms[d])            # Central Wetlands Diversion
-        line = '%s,%s' % (line,Caer_cms[d])            # Caernarvon
-        line = '%s,%s' % (line,UBrD_cms[d])            # Upper Breton Diversion
-        line = '%s,%s' % (line,MBrD_cms[d])            # Mid-Breton Sound Diversion
-        line = '%s,%s' % (line,MBaD_cms[d])            # Mid-Barataria Diversion
-        line = '%s,%s' % (line,Naom_cms[d])            # Naomi
-        line = '%s,%s' % (line,WPLH_cms[d])            # West Point a la Hache
-        line = '%s,%s' % (line,LBaD_cms[d])            # Lower Barataria iversion
-        line = '%s,%s' % (line,LBrD_cms[d])            # Lower Breton Diversion
-        line = '%s,%s' % (line,MGPS_cms[d])            # Mardi Gras Pass
-        line = '%s,%s' % (line,Bohe_cms[d])            # Bohemia
-        line = '%s,%s' % (line,Ostr_cms[d])            # Ostrica
-        line = '%s,%s' % (line,FStP_cms[d])            # Ft St Phillip
-        line = '%s,%s' % (line,Bapt_cms[d])            # Baptiste Collette
-        line = '%s,%s' % (line,GrPa_cms[d])            # Grand Pass
-        line = '%s,%s' % (line,WBay_cms[d])            # West Bay Diversion
-        line = '%s,%s' % (line,SCut_cms[d])            # SmallCuts
-        line = '%s,%s' % (line,CGap_cms[d])            # Cubits Gap
-        line = '%s,%s' % (line,PLou_cms[d])            # Pass A Loutre
-        line = '%s,%s' % (line,SPas_cms[d])            # South Pass
-        line = '%s,%s' % (line,SWPS_cms[d])            # 
-        line = '%s,%s' % (line,SWPR_cms[d])            # South West Pass
-
-        line = '%s,! %s\n' % (line, dates_all[d])
+		# write tributary flow read in from original TribQ.csv
+        for t in range(1,nTributaries+1):
+            line = '%s,%s' % (line,TribQ_in[d][t])		# Tributary Name
+														# Neches River at Beaumont TX
+														# Sabine River at Ruliff TX
+														# Vinton Canal
+														# Calcasieu River near Kinder LA
+														# Bayou Lacassine near Lake Arthur LA
+														# Mermentau River at Mermentau LA
+														# Vermilion River at Surrey St at Lafayette LA
+														# Charenton Drainage Canal at Baldwin LA
+														# GIWW at Franklin
+														# Atch_cms #Atchafalaya River
+														# Mississippi River Upstream (Tarbert Landing)
+														# GIWW at Larose
+														# Bayou Lafourche at Thibodeaux LA
+														# Amite River near Denham Springs LA
+														# Natalbany River at Baptist LA
+														# Tickfaw River at Holden LA
+														# Tangipahoa River at Robert LA
+														# Tchefuncte River near Folsom LA
+														# Bogue Chitto near Bush LA
+														# Pearl River near Bogalusa LA
+														# Wolf River near Landon MS
+														# Biloxi River at Wortham MS
+														# Pascagoula River at Merrill MS
+														# Tensaw River near Mount Vernon AL
+														# Mobile River at River Mile 31 at Bucks AL
+														# Mobile1
+														# Mobile 2
+														# Jourdan
+														# Violet Runoff
+														# NE Lake Pontchartrain ungaged drainage (Bayou Bonfouca)
+														# SE Lake Pontchartrain ungaged drainage (Orleans Parish)
+														# S Lake Pontchartrain ungaged drainage (Jefferson Parish)
+														# SW Lake Pontchartrain ungaged drainage
+														# S Lake Maurepas ungaged drainage
+														# NE Lake Pontchartrain ungaged drainage (Bayou LaCombe)      
+        # write calculated diversion/pass flow calculated above
+		line = '%s,%s' % (line,Morg_cms[d])            	# Morganza Spillway
+        line = '%s,%s' % (line,BLaF_cms[d])            	# Bayou LaFourche Diversion (including additional flow for Upper Barataria Hydrologic Restoration)
+        line = '%s,%s' % (line,UFWD_cms[d])            	# Union Freshwater Diversion
+        line = '%s,%s' % (line,WMPD_cms[d])            	# West Maurepas Diversion
+        line = '%s,%s' % (line,MSRM_cms[d])            	# Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
+        line = '%s,%s' % (line,EdDI_cms[d])            	# Edgard Diversion
+        line = '%s,%s' % (line,Bonn_cms[d])            	# Bonnet Carre
+        line = '%s,%s' % (line,MLBD_cms[d])            	# Manchac Landbridge Diversion
+        line = '%s,%s' % (line,LaBr_cms[d])            	# LaBranche Hydrologic Restoration
+        line = '%s,%s' % (line,DavP_cms[d])            	# Davis Pond
+        line = '%s,%s' % (line,AmaD_cms[d])            	# Ama Sediment Diversion
+        line = '%s,%s' % (line,IHNC_cms[d])            	# Inner Harbor Navigational Canal
+        line = '%s,%s' % (line,CWDI_cms[d])            	# Central Wetlands Diversion
+        line = '%s,%s' % (line,Caer_cms[d])            	# Caernarvon
+        line = '%s,%s' % (line,UBrD_cms[d])            	# Upper Breton Diversion
+        line = '%s,%s' % (line,MBrD_cms[d])            	# Mid-Breton Sound Diversion
+        line = '%s,%s' % (line,MBaD_cms[d])            	# Mid-Barataria Diversion
+        line = '%s,%s' % (line,Naom_cms[d])            	# Naomi
+        line = '%s,%s' % (line,WPLH_cms[d])            	# West Point a la Hache (including additional flow for Lower Plaquemines River Sediment Plan)
+        line = '%s,%s' % (line,LBaD_cms[d])            	# Lower Barataria iversion
+        line = '%s,%s' % (line,LBrD_cms[d])            	# Lower Breton Diversion
+        line = '%s,%s' % (line,MGPS_cms[d])            	# Mardi Gras Pass
+        line = '%s,%s' % (line,Bohe_cms[d])            	# Bohemia
+        line = '%s,%s' % (line,Ostr_cms[d])            	# Ostrica
+        line = '%s,%s' % (line,FStP_cms[d])            	# Ft St Phillip
+        line = '%s,%s' % (line,Bapt_cms[d])            	# Baptiste Collette
+        line = '%s,%s' % (line,GrPa_cms[d])             # Grand Pass
+        line = '%s,%s' % (line,WBay_cms[d])            	# West Bay Diversion
+        line = '%s,%s' % (line,SCut_cms[d])            	# SmallCuts
+        line = '%s,%s' % (line,CGap_cms[d])            	# Cubits Gap
+        line = '%s,%s' % (line,PLou_cms[d])            	# Pass A Loutre
+        line = '%s,%s' % (line,SPas_cms[d])            	# South Pass
+        #line = '%s,%s' % (line,SWPS_cms[d])            # South West Pass calculated from curve (not used in model)
+        line = '%s,%s' % (line,SWPR_cms[d])            	# South West Pass calculated from residual flow to close mass balance on Miss Riv flow in/out
+		line = '%s,%s' % (line,IAFT_cms[d])            	# Increase Atchafalaya Flows to Terrebonne
+		line = '%s,%s' % (line,AtRD_cms[d])      	# Atchafalaya River Diversion
+        line = '%s,! %s' % (line, dates_all[d])	# Date
         
-        TribQ_out.write(line)
+        TribQ_out.write('%s\n' % line)
 
-        
-# Neches River at Beaumont TX
-# Sabine River at Ruliff TX
-# Vinton Canal
-# Calcasieu River near Kinder LA
-# Bayou Lacassine near Lake Arthur LA
-# Mermentau River at Mermentau LA
-# Vermilion River at Surrey St at Lafayette LA
-# Charenton Drainage Canal at Baldwin LA
-# GIWW at Franklin
-# Atch_cms #Atchafalaya River
-# Mississippi River Upstream (Tarbert Landing)
-# GIWW at Larose
-# Bayou Lafourche at Thibodeaux LA
-# Amite River near Denham Springs LA
-# Natalbany River at Baptist LA
-# Tickfaw River at Holden LA
-# Tangipahoa River at Robert LA
-# Tchefuncte River near Folsom LA
-# Bogue Chitto near Bush LA
-# Pearl River near Bogalusa LA
-# Wolf River near Landon MS
-# Biloxi River at Wortham MS
-# Pascagoula River at Merrill MS
-# Tensaw River near Mount Vernon AL
-# Mobile River at River Mile 31 at Bucks AL
-# Mobile1
-# Mobile 2
-# Jourdan
-# Violet Runoff
-# NE Lake Pontchartrain ungaged drainage (Bayou Bonfouca)
-# SE Lake Pontchartrain ungaged drainage (Orleans Parish)
-# S Lake Pontchartrain ungaged drainage (Jefferson Parish)
-# SW Lake Pontchartrain ungaged drainage
-# S Lake Maurepas ungaged drainage
-# NE Lake Pontchartrain ungaged drainage (Bayou LaCombe)      
 
 ###############################################################################
 
