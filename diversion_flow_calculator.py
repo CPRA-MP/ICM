@@ -371,11 +371,11 @@ for d in range(0,ndays):
         if yr < yr0 + impl_yr:
             Qdiv = 0
         else:
-            if Qresidual = 600000
+            if Qresidual = 600000:
                 Qdiv = 25000
             elif Qresidual < 200000 or Qresidual > 600000 and Qresidual < 1250000:
                 Qdiv = 0
-            elif Qresidual >= 1250000
+            elif Qresidual >= 1250000:
                 Qdiv = 35000
             else:
                 Qdiv = 0.0625*Qresidual - 12500
