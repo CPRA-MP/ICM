@@ -2408,7 +2408,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 rmcmd = subprocess.call(rmcmd)
                
                 # add element ID and location of XYZ project file to text file passed into Morph
-                mcpl.write('%d,%s\n' % (eid,XYZfile,fill_depth) )
+                mcpl.write('%d,%s,%f\n' % (eid,XYZfile,fill_depth) )
 
     
     ###########################################################
@@ -2551,7 +2551,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("0.05, bg_lowerZ_m - height that bareground is lowered [m]\n")
         ip_csv.write("0.25, me_lowerDepth_m - depth to which eroded marsh edge is lowered to [m]\n")
         ip_csv.write("1.0, flt_lowerDepth_m - depth to which dead floating marsh is lowered to [m]\n")
-        ip_csv.write("%0.3f, mc_depth_threshold - default water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint\n" % mc_depth_threshold_def)
+        ip_csv.write("%0.3f, mc_depth_threshold - default water depth threshold (meters) defining deep water area to be excluded from marsh creation projects footprint - this is replaced with project-specific fill depths if provided in the separate MC Project List input file\n" % mc_depth_threshold_def)
         ip_csv.write("1.1211425, spsal_params[1] - SAV parameter - spring salinity parameter 1\n")
         ip_csv.write("-0.7870841, spsal_params[2] - SAV parameter - spring salinity parameter 2\n")
         ip_csv.write("1.5059876, spsal_params[3] - SAV parameter - spring salinity parameter 3\n")
