@@ -1594,7 +1594,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                         EHCellsArray[nn,5] = new_Medge_dict[cellID]
                 except:
                         flag_edge_ch += 1
-                
+            
+            # if not being updated (LWupdate <> 1) , keep original values
+            else:
+                new_marsh_area[nn] = orig_marsh_area[nn]
 
 
         # update Hydro compartment/link elevation attributes (if turned on as model option)
@@ -1794,7 +1797,14 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                             length = EHLinksArray[mm,10]
                             # change in link area is equal to the increase in marsh area between the two compartments
                             newwidth = origwidth*length - (darea_us + darea_ds)/length
-                            EHLinksArray[mm,11] = max(newwidth,30) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
+
+                            # set min/max width thresholds on marsh creation link updates
+                            # minimum width is currently hard-set to be no smaller than 30-m wide
+                            # maximum width is currently set to the square root of the smaller of the two compartments connected by the link
+                            # this assumes that the compartment is completely square and the width is not allowed to be wider than one of the four sides of the assumed-square compartment
+                            min_allowable_width = 30
+                            max_allowable_width = min( EHCellsArray[us_comp,1], EHCellsArray[ds_comp,1] )**0.5
+                            EHLinksArray[mm,11] = min(max_allowable_width,max(newwidth,min_allowable_width)) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
 
         ## save updated Cell and Link attributes to text files read into Hydro model
         np.savetxt(EHCellsFile,EHCellsArray,fmt='%.12f',header=cellsheader,delimiter=',',comments='')
