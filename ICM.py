@@ -1796,7 +1796,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                             origwidth = EHLinksArray[mm,11]
                             length = EHLinksArray[mm,10]
                             # change in link area is equal to the increase in marsh area between the two compartments
-                            newwidth = origwidth*length - (darea_us + darea_ds)/length
+                            newwidth = origwidth - (darea_us + darea_ds)/length
 
                             # set min/max width thresholds on marsh creation link updates
                             # minimum width is currently hard-set to be no smaller than 30-m wide
