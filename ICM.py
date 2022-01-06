@@ -1782,15 +1782,15 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         if year in mc_links_years:
             print('  Some composite marsh flow links are being updated due to marsh creation projects implemented during last year.')
             for mm in range(0,len(EHLinksArray)):
-                linkID = EHLinksArray[mm,0]
-                linktype = EHLinksArray[mm,7]
-                us_comp = EHLinksArray[mm,1]
-                ds_comp = EHLinksArray[mm,2]
+                linkID   = int(EHLinksArray[mm,0])
+                linktype = int(EHLinksArray[mm,7])
+                us_comp  = int(EHLinksArray[mm,1])
+                ds_comp  = int(EHLinksArray[mm,2])
                 if linktype == 11:
                     if linkID in mc_links:
                         linkindex = mc_links.index(linkID)
                         if year == mc_links_years[linkindex]:
-                            print(' Updating composite marsh flow link (link %s) for marsh creation project implemented in previous year.' % mm)
+                            print(' Updating composite marsh flow link (link %s) for marsh creation project implemented in previous year.' % linkID)
                             darea_us = new_marsh_area[us_comp] - orig_marsh_area[us_comp]
                             darea_ds = new_marsh_area[ds_comp] - orig_marsh_area[ds_comp]
                             origwidth = EHLinksArray[mm,11]
