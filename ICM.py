@@ -646,8 +646,13 @@ rr_projectIDs = []
 # Years (calendar year) to implement each respective levee and ridge restoration project listed above
 rr_years = []
 
-
-
+# Compartment numbers to have new bed elevations assigned (e.g. dredging)
+comps_to_change_elev = []
+# New bed elevation for compartments that will be updated for dredging
+comp_elevs = []
+# Years (calendar year) when compartments will have new elevations updated
+comp_years = []
+ 
 # check that project implementation variables are of the correct lengths
 InputErrorFlag = 0
 InputErrorMsg = ''
@@ -1805,7 +1810,19 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                             min_allowable_width = 30
                             max_allowable_width = min( EHCellsArray[us_comp,1], EHCellsArray[ds_comp,1] )**0.5
                             EHLinksArray[mm,11] = min(max_allowable_width,max(newwidth,min_allowable_width)) # do not let marsh link go to zero - allow some flow, minimum width is one pixel wide
-
+        
+        ## update compartment bed elevation for projects that have dredging and update open water elevation
+        # bed elevation is column 8 in cells array
+        if year in comp_years:
+            print('  Some Hydro comparments have a bed elevation being updated due to dredging projects implemented during year.')
+            for nn in range(0,len(EHCellsArray)):
+                cellID = EHCellsArray[nn,0]
+                cellindex = comps_to_change_elev.index(cellID)
+                if year == comp_years[cellindex]:
+                    new_bed_elev = comp_elevs[cellindex]
+                    EHCellsArray[nn,7] = new_bed_elev   # update bed elevation of open water area in attributes array
+                            
+                            
         ## save updated Cell and Link attributes to text files read into Hydro model
         np.savetxt(EHCellsFile,EHCellsArray,fmt='%.12f',header=cellsheader,delimiter=',',comments='')
         np.savetxt(EHLinksFile,EHLinksArray,fmt='%.12f',header=linksheader,delimiter=',',comments='')
