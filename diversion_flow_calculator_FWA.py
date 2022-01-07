@@ -40,45 +40,46 @@ TribQ_out_file = 'S07_G600_TribQ.csv'
 implementation = {}
 implementation['IAFT'] = 9999       # Increase Atchafalaya Flows to Terrebonne
 implementation['AtRD'] = 9999       # Atchafalaya River Diversion
-implementation['BLaF'] = 9999      # Bayou Lafourche Diversion
+implementation['BLaF'] = 0          # Bayou Lafourche Diversion (existing pump @ Bayou Lafourche - in FWOA)
+implementation['FDWB'] = 9999       # Freshwater Delivery to Western Barataria (pump capacity increase to BLaF diversion)
 implementation['UBaH'] = 9999       # Upper Barataria Hydrologic Restoration
 implementation['UFWD'] = 9999       # Union Freshwater Diversion
 implementation['WMPD'] = 9999       # West Maurepas Diversion
-implementation['MSRM'] = 0      # Mississippi River Reintroduction in Maurepas Swamp
+implementation['MSRM'] = 0          # Mississippi River Reintroduction in Maurepas Swamp
 implementation['EdDI'] = 9999       # Edgard Diversion
-implementation['Bonn'] = 0      # Bonnet Carre
-implementation['MLBD'] = 9999       # Manchac Landbridge Diversion # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
+implementation['Bonn'] = 0          # Bonnet Carre
+implementation['MLBD'] = 9999       # Manchac Landbridge Diversion  # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
 implementation['LaBr'] = 9999       # LaBranche Hydrological Restoration (not the same as LaBranche Diversion)
-implementation['LaBD'] = 9999       # LaBranche Diversion
-implementation['DavP'] = 0      # Davis Pond
+implementation['LaBD'] = 9999       # LaBranche Diversion           # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS - DO NOT ACTIVATE IN THIS CODE
+implementation['DavP'] = 0          # Davis Pond
 implementation['AmaD'] = 9999       # Ama Sediment Diversion
-implementation['IHNC'] = 0      # Inner Harbor Navigational Canal
+implementation['IHNC'] = 0          # Inner Harbor Navigational Canal
 implementation['CWDI'] = 9999       # Central Wetlands Diversion
-implementation['Caer'] = 0      # Caernarvon
+implementation['Caer'] = 0          # Caernarvon
 implementation['UBrD'] = 9999       # Upper Breton Diversion
-implementation['MBrD'] = 0      # Mid-Breton Sound Diversion
-implementation['Naom'] = 0      # Naomi
-implementation['MBaD'] = 0      # Mid-Barataria Diversion
-implementation['WPLH'] = 0      # West Pointe a la Hache
-implementation['LPlq'] = 9999      # Lower Plaquemines River Sediment Plan (yr2038)
+implementation['MBrD'] = 0          # Mid-Breton Sound Diversion
+implementation['Naom'] = 0          # Naomi
+implementation['MBaD'] = 0          # Mid-Barataria Diversion
+implementation['WPLH'] = 0          # West Pointe a la Hache
+implementation['LPlq'] = 9999       # Lower Plaquemines River Sediment Plan (yr2038)
 implementation['LBaD'] = 9999       # Lower Barataria Diversion
 implementation['LBrD'] = 9999       # Lower Breton Diversion
 
 
 
-nTributaries = 35               # number of riverine input timeseries included in TribQ, TribF, TribS, and QMult
-nMissRiv_Diversions = 22            # number of Mississippi River diversion timeseries included in TribQ, TribF, TribS, and QMult
-nBFD_Passes = 12                # number of distributary passes timeseries in the BFD included in TribQ, TribF, TribS, and QMult
+nTributaries = 35                   # number of riverine input timeseries included in TribQ, TribF, TribS, and QMult
+nMissRiv_Diversions = 21            # number of Mississippi River diversion timeseries included in TribQ, TribF, TribS, and QMult
+nBFD_Passes = 12                    # number of distributary passes timeseries in the BFD included in TribQ, TribF, TribS, and QMult
 nAtchRiv_Diversions = 2             # number of Atchafalaya River diversion timeseries included in TribQ, TribF, TribS, and QMult
 
 nTribs = nTributaries + nMissRiv_Diversions + nBFD_Passes + nAtchRiv_Diversions # total number of timeseries read in as tributary boundary conditions in TribQ
 
-trib_cols   = range(0,nTributaries)         # first 35 columns of TribQ.csv are tributary flows; diversions start in column 36
-date_col    = 67 #[nTribs]                  # last column of TribQ.csv is the date
-MissRiv_col = 10                        # column 11 of TribQ.csv is the Miss. River @ Tarbert Landing data
+trib_cols   = range(0,nTributaries) # first 35 columns of TribQ.csv are tributary flows; diversions start in column 36
+TribQ_in_date_col    = 67           # last column of input TribQ.csv is the date
+MissRiv_col = 10                    # column 11 of TribQ.csv is the Miss. River @ Tarbert Landing data
 
 TribQ_in    = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=trib_cols)
-dates_all   = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=date_col)
+dates_all   = np.genfromtxt(TribQ_in_file,delimiter=',',dtype=str,skip_header=1,usecols=TribQ_in_date_col)
 
 
 dates_all = [d.split()[1] for d in dates_all]
@@ -96,17 +97,15 @@ Atch_cfs = np.zeros(ndays)      # Atchafalaya River
 Atch_cms = np.zeros(ndays)      
 Morg_cfs = np.zeros(ndays)      # Morganza Floodway
 Morg_cms = np.zeros(ndays)
-IAFT_cfs = np.zeros(ndays)  # Increase Atchafalaya Flows to Terrebonne
+IAFT_cfs = np.zeros(ndays)      # Increase Atchafalaya Flows to Terrebonne
 IAFT_cms = np.zeros(ndays)
-AtRD_cfs = np.zeros(ndays)  # Atchafalaya River Diversion
+AtRD_cfs = np.zeros(ndays)      # Atchafalaya River Diversion
 AtRD_cms = np.zeros(ndays)
-BLaF_cfs = np.zeros(ndays)      # Bayou Lafourche Diversion
+BLaF_cfs = np.zeros(ndays)      # Bayou Lafourche Diversion / Freshwater Delivery to Westeran Barataria / Upper Barataria Hydrologic Restoration
 BLaF_cms = np.zeros(ndays)
-#UBaH_cfs = np.zeros(ndays)      # Upper Barataria Hydrologic Restoration (not used - added as additional flow to BLaF timeseries)
-#UBaH_cms = np.zeros(ndays)
 UFWD_cfs = np.zeros(ndays)      # Union Freshwater Diversion
 UFWD_cms = np.zeros(ndays)
-WMPD_cfs = np.zeros(ndays)      # West Maurepas Diversion
+WMPD_cfs = np.zeros(ndays)      # West Maurepas Sediment Diversion
 WMPD_cms = np.zeros(ndays)
 MSRM_cfs = np.zeros(ndays)      # Mississippi River Reintroduction in Maurepas Swamp
 MSRM_cms = np.zeros(ndays)
@@ -114,11 +113,11 @@ EdDI_cfs = np.zeros(ndays)      # Edgard Diversion
 EdDI_cms = np.zeros(ndays)
 Bonn_cfs = np.zeros(ndays)      # Bonnet Carre
 Bonn_cms = np.zeros(ndays)
-MLBD_cfs = np.zeros(ndays)      # Manchac Landbridge Diversion
+MLBD_cfs = np.zeros(ndays)      # Manchac Landbridge Diversion (timeseries not used - implemented via links)
 MLBD_cms = np.zeros(ndays)
 LaBr_cfs = np.zeros(ndays)      # LaBranche Hydrological Restoration
 LaBr_cms = np.zeros(ndays)
-LaBD_cfs = np.zeros(ndays)      # LaBranche Hydrological Restoration
+LaBD_cfs = np.zeros(ndays)      # LaBranche Diversion (timeseries not used - implemented via links)
 LaBD_cms = np.zeros(ndays)
 DavP_cfs = np.zeros(ndays)      # Davis Pond
 DavP_cms = np.zeros(ndays)
@@ -140,7 +139,7 @@ MBaD_cfs = np.zeros(ndays)      # Mid-Barataria Diversion
 MBaD_cms = np.zeros(ndays) 
 WPLH_cfs = np.zeros(ndays)      # West Point a la Hache
 WPLH_cms = np.zeros(ndays) 
-#LPlq_cfs = np.zeros(ndays)      # Lower Plaquemines River Sediment Plan (not used - added as additional flow to WPLH timeseries)
+#LPlq_cfs = np.zeros(ndays)      # Lower Plaquemines River Sediment Plan (timeseries not used - added as additional flow to WPLH timeseries)
 #LPlq_cms = np.zeros(ndays) 
 LBaD_cfs = np.zeros(ndays)      # Lower Barataria Diversion
 LBaD_cms = np.zeros(ndays) 
@@ -184,20 +183,24 @@ for d in range(0,ndays):
     # month, yr = int(date.split('/')[0]), int(date.split('/')[2])        # this will work if date is formatted as MM/DD/YYYY
     # year = date.split('-')[2]                                          # this will work if date is formatted as MM-DD-YYYY
     
-    Qresidual = MissTarb_cfs[d]
-                
-    ##############################
-    ###   Atchafalaya River    ###
-    ##############################
+    Qresidual   = MissTarb_cfs[d]       # this residual flow is the flow in the Mississippi River that is continuously updated as flows are diverted out of the river
+    
+    ##########################################
+    ###   Atchafalaya River @ Simmesport   ###
+    ##########################################
+    # input dataset is Mississippi River flow at Tarbert Landing
+    # Tarbert Landing is located downstream of the Old River Control Structure
     # Assume 70/30 flow split at Old River Control Structure (river mile 316)
     # 70% of Mississippi River flow is kept in main channel (this is the observed discharge at Tarbert Landing)
     # 30% of Mississippi River flow is diverted into Atchafalaya River
     
-    Qdiv = Qresidual/0.7*0.3
+    Q_ORCS = MissTarb_cfs[d]/0.7
+    Qdiv = Q_ORCS*0.3
+    
     Atch_cfs[d] = Qdiv
     Atch_cms[d] = Qdiv*(0.3048**3)
         
-    Qresidual_Atch = Atch_cfs[d]
+    Q_Atch_Simm = Qdiv
         
     ##############################
     ###   Morganza Floodway    ###
@@ -209,24 +212,37 @@ for d in range(0,ndays):
     Morg_cfs[d] = Qdiv
     Morg_cms[d] = Qdiv*(0.3048**3)
     
+    #####################################################
+    ###   Atchafalaya River at Morgan City (rating)   ###
+    #####################################################
+    
+    Q_Atch_MorganCity = 0.70*Q_Atch_Simm - 42040.0      # rating curve developed from G500 simulation by Moffat & Nichol
+    Qresidual_Atch = Q_Atch_MorganCity
+    
     ###################################################
     ###   Increase Atchafalaya Flows to Terrebonne  ###
     ###################################################
     # location at GIWW
-    # still need to determine rating curve to use (currently set to 0)
     # rating curve needs to be a function of Atchafalaya River @ Simmesport since it is calculated here from the flows directly downstream of Old River Control Structure
     # MP2023: project 139
-	#    Dredging of the Gulf Intracoastal Waterway (GIWW) and construction of a bypass structure at the Bayou Boeuf Lock from the Atchafalaya River 
-	#    to Terrebonne marshes allowing peak flows of approximately 20,000 cfs 
+    #    Dredging of the Gulf Intracoastal Waterway (GIWW) and construction of a bypass structure at the Bayou Boeuf Lock from the Atchafalaya River 
+    #    to Terrebonne marshes allowing peak flows of approximately 20,000 cfs 
+    #
+    # Rating curve for TE-110 30% design used a stage rating curve at Morgan City
+    # Converting the stage curve to a discharge rating curve resulted in:
+    #       diversion (cfs) = 0.14*Q_MorganCity(cfs) - 1,880
+    #
+    # the diversion is deactivated during the spring flood,
+    # which corresponds to a flow threshold of 250,000 cfs at Morgan City (417,000 cfs at Simmesport)
 
     impl_yr = implementation['IAFT']
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:   
-        if Qresidual_Atch >= 0:
+        if Q_Atch_MorganCity >= 250000:
             Qdiv = 0
         else:
-            Qdiv = min(0, 20000)
+            Qdiv = max(0,min(0.14*Q_Atch_MorganCity-1880.0, 30000))
             
     IAFT_cfs[d] = Qdiv
     IAFT_cms[d] = Qdiv*(0.3048**3)
@@ -237,36 +253,37 @@ for d in range(0,ndays):
     ###   Atchafalaya River Diversion    ###
     ########################################
     # location south of GIWW 
-    # still need to determine rating curve to use (currently set to 0)
     # rating curve needs to be a function of Atchafalaya River @ Simmesport since it is calculated here from the flows directly downstream of Old River Control Structure
-	# MP2023: project 108
-	#    30,000 cfs capacity (modeled at 26% of the Atchafalaya River flow upstream of the confluence with Bayou Shaffer)
+    # MP2023: project 108
+    #    30,000 cfs capacity (modeled at 26% of the Atchafalaya River flow upstream of the confluence with Bayou Shaffer)
     
     impl_yr = implementation['AtRD']
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:   
-        if Qresidual_Atch >= 0:
+        if Qresidual_Atch <= 0:
             Qdiv = 0
         else:
-            Qdiv = min(0, 30000)
+            Qdiv = min(0.26*Qresidual_Atch, 30000)
             
     AtRD_cfs[d] = Qdiv
     AtRD_cms[d] = Qdiv*(0.3048**3)
     Qresidual_Atch -= Qdiv
 
     
-    ######################################
-    ###   Bayou Lafourche Diversion    ###
-    ######################################
+    #####################################################
+    ###          Bayou Lafourche Diversion            ###
+    ###  & Freshwater Delivery to Western Barataria   ###
+    ###  &  Upper Barataria Hydrologic Restoration    ###
+    #####################################################
     # river mile 176
     # current condition is 500 cfs but an additional 1000 cfs pump is in the permitting stage as of 4/27/2021
     # Constant diversion flow of 1,500 cfs
-	# MP2023: project 322
-	#    Increase pump capacity from Mississippi River to Bayou Lafourche by 500 CFS
-
-    impl_yr = implementation['BLaF']
+    impl_yr  = implementation['BLaF']
+    impl_yr2 = implementation['FDWB']
+    impl_yr3 = implementation['UBaH']
     
+    # Bayou Lafourche Diversion (existing pump station - in FWOA)
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:   
@@ -274,36 +291,36 @@ for d in range(0,ndays):
             Qdiv = 1500
         else:
             Qdiv = Qresidual
-            
+    
+    # Freshwater Delivery to Western Barataria
+    # MP2023: project 322
+    # add additional 500 cfs capacity to Bayou Lafourche pump
+    if yr < yr0 + impl_yr2:
+        Qdiv += 0
+    else:   
+        if Qresidual >= 500:
+            Qdiv += 500
+        else:
+            Qdiv += Qresidual
+
+    # Upper Barataria Hydrologic Restoration
+    # MP2023: project 324
+    #  Construction of a 750 cfs pump/siphon structure along Bayou Lafourche to supply freshwater into the marshes, bayous, and lakes of the Upper Barataria Sub-Basin
+    # pump 750 cfs into Bayou Lafourche to be routed down BLaF and eventually eastward into Upper Barataria
+    # add this diversion flow to the pre-existing Bayou Lafourche flow calculated above
+    if yr < yr0 + impl_yr3:
+        Qdiv += 0
+    else:   
+        if Qresidual >= 750:
+            Qdiv += 750
+        else:
+            Qdiv += Qresidual
+
+    # update Bayou LaFourche array with diverted volumes from all possible projects        
     BLaF_cfs[d] = Qdiv
     BLaF_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
-    
-    
-    ###################################################
-    ###   Upper Barataria Hydrologic Restoration    ###
-    ###################################################
-    # river mile 176 
-    # additional flow pumped into Bayou Lafourche
-    # pump 750 cfs into Bayou Lafourche to be routed down BLaF and eventually eastward into Upper Barataria
-    # add this diversion flow to the pre-existing Bayou Lafourche flow calculated above
-	# MP2023: project 324
-	#     Construction of a 750 cfs pump/siphon structure along Bayou Lafourche to supply freshwater into the marshes, bayous, and lakes of the Upper Barataria Sub-Basin
 
-    impl_yr = implementation['UBaH']
-    
-    if yr < yr0 + impl_yr:
-        Qdiv = 0
-    else:   
-        if Qresidual >= 750:
-            Qdiv = 750
-        else:
-            Qdiv = Qresidual
-                
-    BLaF_cfs[d] += Qdiv
-    BLaF_cms[d] += Qdiv*(0.3048**3)
-    Qresidual -= Qdiv
-    
     
     #######################################
     ###   Union Freshwater Diversion    ###
@@ -311,11 +328,11 @@ for d in range(0,ndays):
     # river mile 169
     # No diversion flow below 200,000 or above 600,000, Diversion flow of 25,000 between 400,000 and 600,000, Else, diversion flow = 0.125x-25000
     # MP2023: project 244
-	#     modeled at 25,000 cfs when Mississippi River flow equals 400,000 cfs; 
-	#     closed when river flow is below 200,000 cfs or above 600,000 cfs; 
-	#     a variable flow rate calculated using a linear function from 0 to 25,000 cfs for river flow between 200,000 cfs and 400,000 cfs 
-	#     and held constant at 25,000 cfs for river flow between 400,000 cfs and 600,000 cfs
-	
+    #     modeled at 25,000 cfs when Mississippi River flow equals 400,000 cfs; 
+    #     closed when river flow is below 200,000 cfs or above 600,000 cfs; 
+    #     a variable flow rate calculated using a linear function from 0 to 25,000 cfs for river flow between 200,000 cfs and 400,000 cfs 
+    #     and held constant at 25,000 cfs for river flow between 400,000 cfs and 600,000 cfs
+    
     impl_yr = implementation['UFWD']
     
     if yr < yr0 + impl_yr:
@@ -333,26 +350,22 @@ for d in range(0,ndays):
     Qresidual -= Qdiv
      
     
-    ####################################
-    ###   West Maurepas Diversion    ###
-    ####################################
-    # river mile 162
+    #############################################
+    ###   West Maurepas Sediment Diversion    ###
+    #############################################
+    # river mile 169
     # Diversion flow of 3,000 cfs
-	# MP2023: project 305
-	#     modeled at 50,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
-	#     open with a variable flow rate calculated using a linear function from 0 to 50,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs;
+    # MP2023: project 305
+    #     modeled at 50,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
+    #     open with a variable flow rate calculated using a linear function from 0 to 50,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs;
     #     constant flow rate of 50,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs
-        
+    # Note that this is different than the West Maurepas Diversion from the 2012 and 2017 Master Plans (see below)
+
     impl_yr = implementation['WMPD']
     
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:
-#        if Qresidual >= 3000:
-#            Qdiv = 3000
-#        else:
-#            Qdiv = Qresidual
-
         if Qresidual < 200000:
             Qdiv = 0
         else:
@@ -361,8 +374,29 @@ for d in range(0,ndays):
     WMPD_cfs[d] = Qdiv
     WMPD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
-        
-    
+
+
+    #####################################
+    ###   West Maurepas Diversion     ###
+    ###  legacy from 2012 and 2017 MPs ##
+    #####################################
+    # river mile 162
+    # Diversion flow of 3,000 cfs
+
+# not used #    impl_yr = implementation['WMPD']
+# not used #    
+# not used #    if yr < yr0 + impl_yr:
+# not used #        Qdiv = 0
+# not used #    else:
+# not used #        if Qresidual >= 3000:
+# not used #            Qdiv = 3000
+# not used #        else:
+# not used #            Qdiv = Qresidual
+# not used #      
+# not used #    WMPD_cfs[d] = Qdiv
+# not used #    WMPD_cms[d] = Qdiv*(0.3048**3)
+# not used #    Qresidual -= Qdiv
+
     #################################################################
     ###   Mississippi River Reintroduction into Maurepas Swamp    ###
     #################################################################
@@ -393,10 +427,10 @@ for d in range(0,ndays):
     # river mile 137
     # off below 200,000; rating curve of 0.0625x-12500 between 200,000 and 600,000; constant flow of 25,000 cfs at 600,000; off between 600,000 and 1,250,000; constant flow of 35,000 cfs above 1,250,000
     # MP2023: project 323
-	#    modeled at 25,000 cfs when Mississippi River flow equals 600,000 cfs; 
-	#    open with a variable flow rate calculated using a linear function from 0 to 25,000 cfs for river flow between 200,000 cfs and 600,000 cfs; 
-	#    no flow between 600,000 cfs and 1,250,000 cfs; constand flow rate of 35,000 cfs when river is above 1,250,000 cfs
-	
+    #    modeled at 25,000 cfs when Mississippi River flow equals 600,000 cfs; 
+    #    open with a variable flow rate calculated using a linear function from 0 to 25,000 cfs for river flow between 200,000 cfs and 600,000 cfs; 
+    #    no flow between 600,000 cfs and 1,250,000 cfs; constand flow rate of 35,000 cfs when river is above 1,250,000 cfs
+    
     impl_yr = implementation['EdDI']
     
     if yr < yr0 + impl_yr:
@@ -440,10 +474,12 @@ for d in range(0,ndays):
     #########################################
     ###   Manchac Landbridge Diversion    ###
     #########################################
-    # IMPLEMENTED VIA LINKS FOR ALTERNATIVE RUNS DO NOT USE THIS
+    # IMPLEMENTED VIA LINKS FOR  RUNS DO NOT USE THIS RATING CURVE
+    # INSTEAD IMPLEMENT A NEW STATIC LINK WITH CAPACITY APPROXIMATELY EQUAL TO PEAK DIVERTED DISCHARGE
+    #
     # from Bonnet Carre, which is at river mile 128
-    # Diversion flow of 5,000 cfs at Bonnet Carre flow above 5,000 cfs 
-	# MP2023: project 242
+    # Diversion flow of 2,000 cfs at Bonnet Carre flow above 2,000 cfs *2017 MP had a diverted rate of 5,000 cfs*
+    # MP2023: project 242
     #    A structure in the existing western spillway guide levee with a capacity of 2,000 cfs to increase freshwater exchange with adjacent wetlands 
         
     impl_yr = implementation['MLBD']
@@ -463,10 +499,13 @@ for d in range(0,ndays):
     #########################################
     ###   LaBranche Diversion             ###
     #########################################
+    # IMPLEMENTED VIA LINKS FOR  RUNS DO NOT USE THIS RATING CURVE
+    # INSTEAD IMPLEMENT A NEW STATIC LINK WITH CAPACITY APPROXIMATELY EQUAL TO PEAK DIVERTED DISCHARGE
+    #
     # from Bonnet Carre, which is at river mile 128
-	# MP2023: project 304
+    # MP2023: project 304
     #    Modeled at 850 cfs when Bonnet Carre is at 10,000 cfs increasing linearly to 17,500 cfs 
-	#    when Bonnet Carre is at 250,000 cfs
+    #    when Bonnet Carre is at 250,000 cfs
         
     impl_yr = implementation['LaBD']
     
@@ -499,16 +538,14 @@ for d in range(0,ndays):
     DavP_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
     
-    #print(DavP_cfs)
-    
-    
+
     ###############################################
     ###   LaBranche Hydrologic Restoration    ###
     ###############################################
     # river mile 116
     # Diversion flow of 750 cfs at river flows above 750 cfs
-	# MP2023: project 245
-	#     Construction of a pump/siphon with a constant flow of 750 cfs into the LaBranche wetlands via the Mississippi River to restore the historically fresh to intermediate marshes
+    # MP2023: project 245
+    #     Construction of a pump/siphon with a constant flow of 750 cfs into the LaBranche wetlands via the Mississippi River to restore the historically fresh to intermediate marshes
         
     impl_yr = implementation['LaBr']
     
@@ -530,10 +567,10 @@ for d in range(0,ndays):
     ###################################
     # river mile 115
     # Diversion flow of rating curve 0.0625*Qresidual-12500 at river flows above 200,000 cfs, max flow 50,000cfs
-	# MP2023: project 243
-	#     modeled at 50,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
-	#     open with a variable flow rate calculated using a linear function from 0 to 50,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs; 
-	#     constant flow rate of 50,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs
+    # MP2023: project 243
+    #     modeled at 50,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
+    #     open with a variable flow rate calculated using a linear function from 0 to 50,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs; 
+    #     constant flow rate of 50,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs
         
     impl_yr = implementation['AmaD']
     
@@ -576,8 +613,8 @@ for d in range(0,ndays):
     #######################################
     # river mile 86
     # Diversion flow of rating curve 5,000 cfs at river flows above 5,000 cfs
-	# MP2023: project 014a
-	#     modeled at a constant flow of 5,000 cfs, independent of the Mississippi River flow
+    # MP2023: project 014a
+    #     modeled at a constant flow of 5,000 cfs, independent of the Mississippi River flow
         
     impl_yr = implementation['CWDI']
     
@@ -618,63 +655,48 @@ for d in range(0,ndays):
     # river mile 77
     # 250,000 cfs version: Diversion flow following rating curve of 0.3125*Qresidual-62500 at river flows above 200,000 cfs
     # 75,000 cfs version: Diversion flow following rating curve of 0.3048*Qresidual-18750 at river flows above 200,000 cfs
-	# MP2023:  project 013b
-	#     modeled at 75,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
-	#     open with a variable flow rate calculated using a linear function from 0 to 75,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs; 
-	#     constant flow rate of 75,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs
-
-    # 250,000 cfs #
+    # MP2023:  project 013b
+    #     modeled at 75,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
+    #     open with a variable flow rate calculated using a linear function from 0 to 75,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs; 
+    #     constant flow rate of 75,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs
         
     impl_yr = implementation['UBrD']
-    
-#    if yr < yr0 + impl_yr:
-#        Qdiv = 0
-#    else:
-#        if Qresidual < 200000:
-#            Qdiv = 0
-#        else:
-#            Qdiv = 0.3125*Qresidual-62500
-        
-#    UBrD_cfs[d] = Qdiv 
-#    UBrD_cms[d] = Qdiv*(0.3048**3)
-#    Qresidual -= Qdiv
-    
-    # 75,000 cfs #
-    
-#   impl_yr = 1
-    
+
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:
         if Qresidual < 200000:
             Qdiv = 0
         else:
-            Qdiv = 0.09375*Qresidual-18750
-         
+            Qdiv = 0.09375*Qresidual-18750      # 75,000 cfs Operations
+            #Qdiv = 0.3125*Qresidual-62500      # 250,000 cfs Operations
+
     UBrD_cfs[d] = Qdiv  
     UBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
-    
+
+        
     
     ##########################################
     ###   Mid Breton Sediment Diversion    ###
     ##########################################
     # river mile 69
     # 75k diversion: Diversion flow of rating curve 0.06667*Qresidual-8333 with a minimum of 5,000 cfs
-	# MP2023 FWOA using 55k diversion scenario: rating curve 0.04762*Qresidual-4524 with a minimum of 5,000 cfs
+    # MP2023 FWOA using 55k diversion scenario: rating curve 0.04762*Qresidual-4524 with a minimum of 5,000 cfs
         
     impl_yr = implementation['MBrD']
     
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:
-        Qdiv = max(5000,0.04762*Qresidual-4524)
-        
+        Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations
+        #Qdiv = max(5000,0.06667*Qresidual-8333)     # 75,000 cfs Operations
+    
     MBrD_cfs[d] = Qdiv
     MBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
     
-    
+
     ###################################
     ###   Naomi Siphon Diversion    ###
     ###################################
@@ -702,65 +724,25 @@ for d in range(0,ndays):
         # 250k @ 1.0 m : Diversion flow of rating curve 0.3125*residual - 62500 at river flows above 200,000
         # 35k - 75k @ 1.0 m : Diversion flow of rating curve 0.04375*residual - 8750 at river flows above 200,000
         # 75k @ 1.25 m , 5k min : Diversion flow of rating curve 0.06667*residual - 8333 with a minimum of 5,000 cfs
-        
 
-    
     impl_yr = implementation['MBaD']
 
-    ###### 75k @ 1.0 m ######
-
-#    if yr <yr0 + impl_yr:
-#       Qdiv = 0
-#    else:
-#        if Qresidual < 200000:
-#            Qdiv = 0
-#        else:
-#            Qdiv = 0.09375*Qresidual - 18750
-         
-#    MBaD_cfs[d] = Qdiv
-#    MBaD_cms[d] = Qdiv*(0.3048**3)
-#    Qresidual -= Qdiv
-        
-    ###### 250k @ 1.0 m ######
-    
-#    if yr <yr0 + impl_yr:
-#        Qdiv = 0
-#    else:
-#        if Qresidual < 200000:
-#            Qdiv = 0
-#        else:
-#            Qdiv = 0.3125*Qresidual-62500
-        
-#    MBaD_cfs[d] = Qdiv
-#    MBaD_cms[d] = Qdiv*(0.3048**3)
-#    Qresidual -= Qdiv
-        
-   ###### 35k - 75k @ 1.0 m ######
-     
-#    if yr <yr0 + impl_yr:
-#        Qdiv = 0
-#    else:
-#        if Qresidual < 200000:
-#            Qdiv = 0
-#        else:
-#            Qdiv = 0.04375*Qresidual-8750
-         
-#    MBaD_cfs[d] = Qdiv
-#    MBaD_cms[d] = Qdiv*(0.3048**3)
-#    Qresidual -= Qdiv
-        
-   ###### 75k @ 1.25 m , 5k min ######
-    
     if yr <yr0 + impl_yr:
         Qdiv = 0
     else:
-        Qdiv = max(5000, 0.06667*Qresidual-8333)
+#        if Qresidual < 200000:
+#            Qdiv = 0
+#        else::
+#            Qdiv = 0.09375*Qresidual - 18750       # 75k @ 1.0 m 
+#            Qdiv = 0.3125*Qresidual-62500          # 250k @ 1.0 m 
+#            Qdiv = 0.04375*Qresidual-8750          # 35k - 75k @ 1.0 m 
+        Qdiv = max(5000, 0.06667*Qresidual-8333)    # 75k @ 1.25 m , 5k min
         
     MBaD_cfs[d] = Qdiv
     MBaD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
     
-    
+
     ###################################
     ###   West Pointe a la Hache    ###
     ###################################
@@ -784,14 +766,14 @@ for d in range(0,ndays):
     ################################################
     # river mile 49 
     # MP2023: project 327
-	# Seven pumps/siphons located throughout the Mississippi River corridor
+    # Seven pumps/siphons located throughout the Mississippi River corridor
     # (assume all pumps/siphons are extracted at one location in the river located at West Point a la Hache)
     #
     # Each siphon is operated with the same rating curve ( Qresidual/225 - 1333.3 ):
     #     No flow diverted when river < 300,000 cfs
     #     Maximum flow diverted of 2,000 cfs when river > 750,000 cfs
     #     Linear relationship when river between 300,000 and 750,000 cfs
-	#     Operated December 1 through April 30
+    #     Operated December 1 through April 30
     # 
     # Since all 7 pump/siphons are being extracted from the Mississippi River flow timeseries at one location (assumed to be at WPLH)
     # this run will also assume that WPLH is operated with this same new operational curve
@@ -844,10 +826,10 @@ for d in range(0,ndays):
     ###################################
     # river mile 37
     # Diversion flow of rating curve 0.0625*residual-12500 at river flows above 200,000 cfs
-	# MP2023: project 006
+    # MP2023: project 006
     #    modeled at 50,000 cfs when the Mississippi River flow equals 1,000,000 cfs; 
-	#    open with a variable flow rate calculated using a linear function from 0 to 50,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs; 
-	#    constant flow rate of 50,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs	
+    #    open with a variable flow rate calculated using a linear function from 0 to 50,000 cfs for river flow between 200,000 cfs and 1,000,000 cfs; 
+    #    constant flow rate of 50,000 cfs for river flow above 1,000,000 cfs. No operation below 200,000 cfs	
         
     impl_yr = implementation['LBrD']
     
@@ -863,12 +845,12 @@ for d in range(0,ndays):
     LBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
 
-##############################################################################
-######      Calculate distributary flow at each BFD pass        ######
-######      Qresidual is no longer updated downstream of here   ######
-######      All passes will use the same input residual flow    ######
-######      rating curves come from Mead Allison rating curves  ######
-##############################################################################
+    ######################################################################
+    ######      Calculate distributary flow at each BFD pass        ######
+    ######      Qresidual is no longer updated downstream of here   ######
+    ######      All passes will use the same input residual flow    ######
+    ######      rating curves come from Mead Allison rating curves  ######
+    ######################################################################
         
     ############################
     ###   Mardi Gras Pass    ###
@@ -1021,6 +1003,11 @@ for d in range(0,ndays):
     SWPR_cfs[d] = Qdiv
     SWPR_cms[d] = Qdiv*(0.3048**3)
 
+
+####################################
+###   write new TribQ.csv file   ###
+####################################
+
 with open(TribQ_out_file,mode='w') as TribQ_out:
     # write header line to TribQ.csv
     line = '1'
@@ -1100,11 +1087,11 @@ with open(TribQ_out_file,mode='w') as TribQ_out:
         line = '%s,%s' % (line,CGap_cms[d])             # Cubits Gap
         line = '%s,%s' % (line,PLou_cms[d])             # Pass A Loutre
         line = '%s,%s' % (line,SPas_cms[d])             # South Pass
-        line = '%s,%s' % (line,SWPS_cms[d])            # South West Pass calculated from curve (not used in model)
+        line = '%s,%s' % (line,SWPS_cms[d])             # South West Pass calculated from curve (not used in model)
         #line = '%s,%s' % (line,SWPR_cms[d])             # South West Pass calculated from residual flow to close mass balance on Miss Riv flow in/out
         line = '%s,%s' % (line,IAFT_cms[d])             # Increase Atchafalaya Flows to Terrebonne
         line = '%s,%s' % (line,AtRD_cms[d])             # Atchafalaya River Diversion
-        line = '%s,%s' % (line,LaBD_cms[d])             # LaBranche Diversion
+        #line = '%s,%s' % (line,LaBD_cms[d])             # LaBranche Diversion
         line = '%s,! %s' % (line, dates_all[d])         # Date
         
         TribQ_out.write('%s\n' % line)
