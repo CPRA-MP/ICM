@@ -1017,81 +1017,81 @@ with open(TribQ_out_file,mode='w') as TribQ_out:
     TribQ_out.write('%s\n' % line)          
     for d in range(0,ndays):
         # write tributary flow read in from original TribQ.csv
-        line = '%s' % TribQ_in[d][0]                    # Neches River at Beaumont TX
+        line = '%s' % TribQ_in[d][0]                    # ncol 01 # Neches River at Beaumont TX
         for t in range(1,nTributaries):
-            line = '%s,%s' % (line,TribQ_in[d][t])      # Sabine River at Ruliff TX
-                                                        # Vinton Canal
-                                                        # Calcasieu River near Kinder LA
-                                                        # Bayou Lacassine near Lake Arthur LA
-                                                        # Mermentau River at Mermentau LA
-                                                        # Vermilion River at Surrey St at Lafayette LA
-                                                        # Charenton Drainage Canal at Baldwin LA
-                                                        # GIWW at Franklin
-                                                        # Atch_cms #Atchafalaya River
-                                                        # Mississippi River Upstream (Tarbert Landing)
-                                                        # GIWW at Larose
-                                                        # Bayou Lafourche at Thibodeaux LA
-                                                        # Amite River near Denham Springs LA
-                                                        # Natalbany River at Baptist LA
-                                                        # Tickfaw River at Holden LA
-                                                        # Tangipahoa River at Robert LA
-                                                        # Tchefuncte River near Folsom LA
-                                                        # Bogue Chitto near Bush LA
-                                                        # Pearl River near Bogalusa LA
-                                                        # Wolf River near Landon MS
-                                                        # Biloxi River at Wortham MS
-                                                        # Pascagoula River at Merrill MS
-                                                        # Tensaw River near Mount Vernon AL
-                                                        # Mobile River at River Mile 31 at Bucks AL
-                                                        # Mobile1
-                                                        # Mobile 2
-                                                        # Jourdan
-                                                        # Violet Runoff
-                                                        # NE Lake Pontchartrain ungaged drainage (Bayou Bonfouca)
-                                                        # SE Lake Pontchartrain ungaged drainage (Orleans Parish)
-                                                        # S Lake Pontchartrain ungaged drainage (Jefferson Parish)
-                                                        # SW Lake Pontchartrain ungaged drainage
-                                                        # S Lake Maurepas ungaged drainage
-                                                        # NE Lake Pontchartrain ungaged drainage (Bayou LaCombe)      
-        
+            line = '%s,%s' % (line,TribQ_in[d][t])      # ncol 02 # Sabine River at Ruliff TX
+                                                        # ncol 03 # Vinton Canal
+                                                        # ncol 04 # Calcasieu River near Kinder LA
+                                                        # ncol 05 # Bayou Lacassine near Lake Arthur LA
+                                                        # ncol 06 # Mermentau River at Mermentau LA
+                                                        # ncol 07 # Vermilion River at Surrey St at Lafayette LA
+                                                        # ncol 08 # Charenton Drainage Canal at Baldwin LA
+                                                        # ncol 09 # GIWW at Franklin
+                                                        # ncol 10 # Atch_cms #Atchafalaya River
+                                                        # ncol 11 # Mississippi River Upstream (Tarbert Landing)
+                                                        # ncol 12 # GIWW at Larose
+                                                        # ncol 13 # Bayou Lafourche at Thibodeaux LA
+                                                        # ncol 14 # Amite River near Denham Springs LA
+                                                        # ncol 15 # Natalbany River at Baptist LA
+                                                        # ncol 16 # Tickfaw River at Holden LA
+                                                        # ncol 17 # Tangipahoa River at Robert LA
+                                                        # ncol 18 # Tchefuncte River near Folsom LA
+                                                        # ncol 19 # Bogue Chitto near Bush LA
+                                                        # ncol 20 # Pearl River near Bogalusa LA
+                                                        # ncol 21 # Wolf River near Landon MS
+                                                        # ncol 22 # Biloxi River at Wortham MS
+                                                        # ncol 23 # Pascagoula River at Merrill MS
+                                                        # ncol 24 # Tensaw River near Mount Vernon AL
+                                                        # ncol 25 # Mobile River at River Mile 31 at Bucks AL
+                                                        # ncol 26 # Mobile1
+                                                        # ncol 27 # Mobile 2
+                                                        # ncol 28 # Jourdan
+                                                        # ncol 29 # Violet Runoff
+                                                        # ncol 30 # NE Lake Pontchartrain ungaged drainage (Bayou Bonfouca)
+                                                        # ncol 31 # SE Lake Pontchartrain ungaged drainage (Orleans Parish)
+                                                        # ncol 32 # S Lake Pontchartrain ungaged drainage (Jefferson Parish)
+                                                        # ncol 33 # SW Lake Pontchartrain ungaged drainage
+                                                        # ncol 34 # S Lake Maurepas ungaged drainage
+                                                        # ncol 35 # NE Lake Pontchartrain ungaged drainage (Bayou LaCombe)      
+
         # write calculated diversion/pass flow calculated above
-        line = '%s,%s' % (line,Morg_cms[d])             # Morganza Spillway
-        line = '%s,%s' % (line,BLaF_cms[d])             # Bayou LaFourche Diversion (including additional flow for Upper Barataria Hydrologic Restoration)
-        line = '%s,%s' % (line,UFWD_cms[d])             # Union Freshwater Diversion
-        line = '%s,%s' % (line,WMPD_cms[d])             # West Maurepas Diversion
-        line = '%s,%s' % (line,MSRM_cms[d])             # Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
-        line = '%s,%s' % (line,EdDI_cms[d])             # Edgard Diversion
-        line = '%s,%s' % (line,Bonn_cms[d])             # Bonnet Carre
-        line = '%s,%s' % (line,MLBD_cms[d])             # Manchac Landbridge Diversion
-        line = '%s,%s' % (line,LaBr_cms[d])             # LaBranche Hydrologic Restoration
-        line = '%s,%s' % (line,DavP_cms[d])             # Davis Pond
-        line = '%s,%s' % (line,AmaD_cms[d])             # Ama Sediment Diversion
-        line = '%s,%s' % (line,IHNC_cms[d])             # Inner Harbor Navigational Canal
-        line = '%s,%s' % (line,CWDI_cms[d])             # Central Wetlands Diversion
-        line = '%s,%s' % (line,Caer_cms[d])             # Caernarvon
-        line = '%s,%s' % (line,UBrD_cms[d])             # Upper Breton Diversion
-        line = '%s,%s' % (line,MBrD_cms[d])             # Mid-Breton Sound Diversion
-        line = '%s,%s' % (line,MBaD_cms[d])             # Mid-Barataria Diversion
-        line = '%s,%s' % (line,Naom_cms[d])             # Naomi
-        line = '%s,%s' % (line,WPLH_cms[d])             # West Point a la Hache (including additional flow for Lower Plaquemines River Sediment Plan)
-        line = '%s,%s' % (line,LBaD_cms[d])             # Lower Barataria iversion
-        line = '%s,%s' % (line,LBrD_cms[d])             # Lower Breton Diversion
-        line = '%s,%s' % (line,MGPS_cms[d])             # Mardi Gras Pass
-        line = '%s,%s' % (line,Bohe_cms[d])             # Bohemia
-        line = '%s,%s' % (line,Ostr_cms[d])             # Ostrica
-        line = '%s,%s' % (line,FStP_cms[d])             # Ft St Phillip
-        line = '%s,%s' % (line,Bapt_cms[d])             # Baptiste Collette
-        line = '%s,%s' % (line,GrPa_cms[d])             # Grand Pass
-        line = '%s,%s' % (line,WBay_cms[d])             # West Bay Diversion
-        line = '%s,%s' % (line,SCut_cms[d])             # SmallCuts
-        line = '%s,%s' % (line,CGap_cms[d])             # Cubits Gap
-        line = '%s,%s' % (line,PLou_cms[d])             # Pass A Loutre
-        line = '%s,%s' % (line,SPas_cms[d])             # South Pass
-        line = '%s,%s' % (line,SWPS_cms[d])             # South West Pass calculated from curve (not used in model)
-        #line = '%s,%s' % (line,SWPR_cms[d])             # South West Pass calculated from residual flow to close mass balance on Miss Riv flow in/out
-        line = '%s,%s' % (line,IAFT_cms[d])             # Increase Atchafalaya Flows to Terrebonne
-        line = '%s,%s' % (line,AtRD_cms[d])             # Atchafalaya River Diversion
-        #line = '%s,%s' % (line,LaBD_cms[d])             # LaBranche Diversion
-        line = '%s,! %s' % (line, dates_all[d])         # Date
+        line = '%s,%s' % (line,Morg_cms[d])             # ncol 36 # Morganza Spillway
+        line = '%s,%s' % (line,BLaF_cms[d])             # ncol 37 # Bayou LaFourche Diversion (including additional flow for Upper Barataria Hydrologic Restoration)
+        line = '%s,%s' % (line,UFWD_cms[d])             # ncol 38 # Union Freshwater Diversion
+        line = '%s,%s' % (line,WMPD_cms[d])             # ncol 39 # West Maurepas Diversion
+        line = '%s,%s' % (line,MSRM_cms[d])             # ncol 40 # Mississippi River Reintroduction in Maurepas Swamp (East Maurepas Diversion in 2017 MP)
+        line = '%s,%s' % (line,EdDI_cms[d])             # ncol 41 # Edgard Diversion
+        line = '%s,%s' % (line,Bonn_cms[d])             # ncol 42 # Bonnet Carre
+        line = '%s,%s' % (line,MLBD_cms[d])             # ncol 43 # Manchac Landbridge Diversion
+        line = '%s,%s' % (line,LaBr_cms[d])             # ncol 44 # LaBranche Hydrologic Restoration
+        line = '%s,%s' % (line,DavP_cms[d])             # ncol 45 # Davis Pond
+        line = '%s,%s' % (line,AmaD_cms[d])             # ncol 46 # Ama Sediment Diversion
+        line = '%s,%s' % (line,IHNC_cms[d])             # ncol 47 # Inner Harbor Navigational Canal
+        line = '%s,%s' % (line,CWDI_cms[d])             # ncol 48 # Central Wetlands Diversion
+        line = '%s,%s' % (line,Caer_cms[d])             # ncol 49 # Caernarvon
+        line = '%s,%s' % (line,UBrD_cms[d])             # ncol 50 # Upper Breton Diversion
+        line = '%s,%s' % (line,MBrD_cms[d])             # ncol 51 # Mid-Breton Sound Diversion
+        line = '%s,%s' % (line,MBaD_cms[d])             # ncol 52 # Mid-Barataria Diversion
+        line = '%s,%s' % (line,Naom_cms[d])             # ncol 53 # Naomi
+        line = '%s,%s' % (line,WPLH_cms[d])             # ncol 54 # West Point a la Hache (including additional flow for Lower Plaquemines River Sediment Plan)
+        line = '%s,%s' % (line,LBaD_cms[d])             # ncol 55 # Lower Barataria iversion
+        line = '%s,%s' % (line,LBrD_cms[d])             # ncol 56 # Lower Breton Diversion
+        line = '%s,%s' % (line,MGPS_cms[d])             # ncol 57 # Mardi Gras Pass
+        line = '%s,%s' % (line,Bohe_cms[d])             # ncol 58 # Bohemia
+        line = '%s,%s' % (line,Ostr_cms[d])             # ncol 59 # Ostrica
+        line = '%s,%s' % (line,FStP_cms[d])             # ncol 60 # Ft St Phillip
+        line = '%s,%s' % (line,Bapt_cms[d])             # ncol 61 # Baptiste Collette
+        line = '%s,%s' % (line,GrPa_cms[d])             # ncol 62 # Grand Pass
+        line = '%s,%s' % (line,WBay_cms[d])             # ncol 63 # West Bay Diversion
+        line = '%s,%s' % (line,SCut_cms[d])             # ncol 64 # SmallCuts
+        line = '%s,%s' % (line,CGap_cms[d])             # ncol 65 # Cubits Gap
+        line = '%s,%s' % (line,PLou_cms[d])             # ncol 66 # Pass A Loutre
+        line = '%s,%s' % (line,SPas_cms[d])             # ncol 67 # South Pass
+        line = '%s,%s' % (line,SWPS_cms[d])             # ncol 68 # South West Pass calculated from curve (not used in model)
+        #line = '%s,%s' % (line,SWPR_cms[d])             # ncol 69 #  South West Pass calculated from residual flow to close mass balance on Miss Riv flow in/out
+        line = '%s,%s' % (line,IAFT_cms[d])             # ncol 70 # Increase Atchafalaya Flows to Terrebonne
+        line = '%s,%s' % (line,AtRD_cms[d])             # ncol 71 # Atchafalaya River Diversion
+        #line = '%s,%s' % (line,LaBD_cms[d])             # ncol 72 #  LaBranche Diversion
+        line = '%s,! %s' % (line, dates_all[d])         # ncol 73 # Date
         
         TribQ_out.write('%s\n' % line)
