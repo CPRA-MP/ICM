@@ -1088,10 +1088,10 @@ with open(TribQ_out_file,mode='w') as TribQ_out:
         line = '%s,%s' % (line,PLou_cms[d])             # ncol 66 # Pass A Loutre
         line = '%s,%s' % (line,SPas_cms[d])             # ncol 67 # South Pass
         line = '%s,%s' % (line,SWPS_cms[d])             # ncol 68 # South West Pass calculated from curve (not used in model)
-        #line = '%s,%s' % (line,SWPR_cms[d])             # ncol 69 #  South West Pass calculated from residual flow to close mass balance on Miss Riv flow in/out
-        line = '%s,%s' % (line,IAFT_cms[d])             # ncol 70 # Increase Atchafalaya Flows to Terrebonne
-        line = '%s,%s' % (line,AtRD_cms[d])             # ncol 71 # Atchafalaya River Diversion
-        #line = '%s,%s' % (line,LaBD_cms[d])             # ncol 72 #  LaBranche Diversion
-        line = '%s,! %s' % (line, dates_all[d])         # ncol 73 # Date
+        #line = '%s,%s' % (line,SWPR_cms[d])                       # South West Pass calculated from residual flow to close mass balance on Miss Riv flow in/out
+        line = '%s,%s' % (line,IAFT_cms[d])             # ncol 69 # Increase Atchafalaya Flows to Terrebonne
+        line = '%s,%s' % (line,AtRD_cms[d])             # ncol 70 # Atchafalaya River Diversion
+        #line = '%s,%s' % (line,LaBD_cms[d])                       # LaBranche Diversion
+        line = '%s,! %s' % (line, dates_all[d])         # ncol 71 # Date
         
         TribQ_out.write('%s\n' % line)
