@@ -6,13 +6,29 @@ import sys
 s = sys.argv[1]      #'S06'
 g = sys.argv[2]      #'G501'
 
+tribQ_file = 'TribQ.csv'
+tribS_file = 'TribS.csv'
+tribF_file = 'TribF.csv'
+temp_file  = 'Meteorology.csv'
+
+copyflag = input('Does this run (%s %s) use a FWA diversion-specific TribQ built by diversion_calculator_FWA.py?\n\n Yes [y] \n No [n]' % (s,g) )
+if copyflag == 'y':
+    g2copyQ = g
+    g2copySF = 'G600'
+    print('Looking for input files: \n%s_%s_%s \n%s_%s_%s \n%s_%s_%s' % (s,g2copyQ,tribQ_file,s,g2copySF,tribS_file,s,g2copySF,tribF_file)
+else:
+    g2copyQ = 'G500'
+    print('Looking for FWOA input files.')
+
 os.chdir('%s/%s/hydro' % (s,g) )
 infol = '../../../FWOA_boundary_conditions' # relative path to FWOA BC from S##/G###/hydro directory
 
 print( 'Setting up files for %s %s' % (s,g) )
 
-print( 'copying group-specific tributary file for %s %s' % (s,g) )
-shutil.copyfile('%s/%s_%s_TribQ.csv' % (infol,s,g),'TribQ.csv' )
+print( 'copying group-specific tributary files for %s %s' % (s,g) )
+shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copyQ,tribQ_file),tribQ_file )
+shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copySF,tribS_file),tribS_file )
+shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copySF,tribF_file),tribF_file )
 # do not need to worry about copying over TribF and TribS since the sediment concentrations do not change since they are multiplied by the TribQ
 
 #'%s/%s_Meteorology.csv' % (infol,s),    '%s/%s_MissRToC.csv' % (infol,s),   '%s/%s_PET' % (infol,s),    '%s/%s_Precip_With_Storms.csv' % (infol,s),'%s/%s_BCToC2.dat' % (infol,s),'%s/%s_TideData.csv' % (infol,s)
@@ -26,10 +42,7 @@ for newf in infiles:
 
 
 print( 'prepping 1D input files for %s %s' % (s,g) )
-tribQ_file = 'TribQ.csv'
-tribF_file = 'TribF.csv'
-tribS_file = 'TribS.csv'
-temp_file  = 'Meteorology.csv'
+
 
 # 1D channel reaches
 rch_trib = {}
@@ -124,7 +137,7 @@ for rch in rch_trib.keys():
     pad_days = [1,2]    # the number of extra days that will be padded to the end of each input file to account for interpolation in time on last days
     default_val = 0.0
     trib_col = trib_number - 1
-    date_col = 71
+    date_col = 71 - 1
     
     # read in daily timeseries as strings so that the datestring is maintained
     Q_in    = np.genfromtxt(tribQ_file,usecols=[trib_col,date_col],delimiter=',',dtype=str,skip_header=1)
