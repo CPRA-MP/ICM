@@ -15,6 +15,14 @@ print( 'copying group-specific tributary file for %s %s' % (s,g) )
 shutil.copyfile('%s/%s_%s_TribQ.csv' % (infol,s,g),'TribQ.csv' )
 # do not need to worry about copying over TribF and TribS since the sediment concentrations do not change since they are multiplied by the TribQ
 
+# Erroneously thought that the sediment concentration files were identical between scenarios, however since flow rating curves were used to develop sediment concentrations
+# there are actually differences between S07 and s08 sediment files.
+# This needs to be corrected in future simulations!
+
+
+
+# do not need to worry about copying over TribF and TribS since the sediment concentrations do not change since they are multiplied by the TribQ
+
 #'%s/%s_Meteorology.csv' % (infol,s),    '%s/%s_MissRToC.csv' % (infol,s),   '%s/%s_PET' % (infol,s),    '%s/%s_Precip_With_Storms.csv' % (infol,s),'%s/%s_BCToC2.dat' % (infol,s),'%s/%s_TideData.csv' % (infol,s)
 infiles = ['Meteorology.csv','MissRToC.csv','PET.csv','Precip.csv','BCToC2.dat','TideData.csv']
 
