@@ -27,8 +27,16 @@ print( 'Setting up files for %s %s' % (s,g) )
 
 print( 'copying group-specific tributary files for %s %s' % (s,g) )
 shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copyQ,tribQ_file),tribQ_file )
-shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copySF,tribS_file),tribS_file )
-shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copySF,tribF_file),tribF_file )
+#shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copySF,tribS_file),tribS_file )
+#shutil.copyfile('%s/%s_%s_%s' % (infol,s,g2copySF,tribF_file),tribF_file )
+
+# FWOA runs (and FWA projects) erroneously used S07 TribS and TribF files - for consistency with FWOA we need to only use S07 files
+shutil.copyfile('%s/S07_%s_%s' % (infol,g2copySF,tribS_file),tribS_file )
+shutil.copyfile('%s/S07_%s_%s' % (infol,g2copySF,tribF_file),tribF_file )
+
+# Erroneously though that the sediment concentration files were identical between scenarios, however since flow rating curves were used to develop sediment concentrations
+# there are actually differences between S07 and s08 sediment files.
+# This needs to be corrected in future simulations!
 # do not need to worry about copying over TribF and TribS since the sediment concentrations do not change since they are multiplied by the TribQ
 
 #'%s/%s_Meteorology.csv' % (infol,s),    '%s/%s_MissRToC.csv' % (infol,s),   '%s/%s_PET' % (infol,s),    '%s/%s_Precip_With_Storms.csv' % (infol,s),'%s/%s_BCToC2.dat' % (infol,s),'%s/%s_TideData.csv' % (infol,s)
