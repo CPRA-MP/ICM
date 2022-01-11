@@ -32,15 +32,31 @@ if os.path.exists (outdir) == False:
 
 
 grid2comp = {}
-comp2eco = {}
 grid2comp_file = '%s/grid_lookup_500m.csv' % hydro_dir
+g2c = np.genfromtxt(grid2comp_file,delimiter=',',skip_header=1,usecols=[0,1])
+for pair in g2c:
+    grid2comp[int(pair[0])] = int(pair[1])
+    
+ecoregions = []   
+comp2eco = {}
 comp2eco_file = '%s/input/compartment_ecoregion.csv' % morph_dir
-
+c2e = np.genfromtxt(comp2eco_file,delimiter=',',skip_header=1,usecols=[0,4])
+for pair in c2e:
+    comp2eco[int(pair[0])] = pair[1]
+    if pair[1] not in ecoregions:
+        ecoregions.append(pair[1])
 
 compID = grid2comp[cID]
 er = comp2eco[compID]
 
-
+# count number of grid cells in each ecoregion
+eco_grid_n = {}
+for er in ecoregions:
+    eco_grid_n[er] = 0
+    
+for grid in grid2comp.keys():
+    er = comp2eco[grid2comp[grid]]
+    eco_grid_n[er] += 1
 
 with open(input_file,mode='w') as outcsv:
     outcsv.write(',pro_no,S,year,coverage_code,ecoregion,value\n')
@@ -69,6 +85,13 @@ with open(input_file,mode='w') as outcsv:
             for sp in sp_names:
                 sp_index = sp_names.index(sp)
                 LVMout_d[er][sp] += row[sp_index + 1]  # sp_names does not have CELLID included from the header row, where that was still imported into LVMout, hence the +1
+
+        # convert annual sum to average coverage
+        for er in ecoregions:
+            for sp in sp_names:
+                LVMout_d[er][sp] = LVMout_d[er][sp]/float(eco_grid_n[er])
+                
+                
 
         # write annual summary for each ecoregion to file
         for er in ecoregions:
@@ -105,7 +128,7 @@ for row in data_in:
     yr = int(row[3])- spinup_years #year with conversion from ICM model year to FWOA elapsed year
     cc = row[4] #coverage code, e.g. 'COES' or 'WATER'
     cc = cc.lstrip(' ') 
-    cid = int(row[5]) #cell ID
+    cid = row[5] #ecoregion
     area = float(row[6]) #coverage value of that type [0-1]
      
     # the year and timeseries arrays will be ordered by the order of the input file...if not chronological in the input file, these arrays will be out of order
@@ -140,11 +163,11 @@ for y in years:
 
 for S in list(PSEHts[prj].keys()): #scenarios
     for P in list(PSEHts.keys()): #projects
-        for Cl in list(PSEHts[P][S].keys()): # cell ids 
+        for Cl in list(PSEHts[P][S].keys()): # ecoregion ids 
             try:
                 # here we could add another iterative level that pulls the years in - without this the code here implicitly assumes that the input dataframe is chronologically ordered
                 print(' - plotting %s %s %s' % (S,P,Cl) )
-                png_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_%02d_%02d_V_vgtyp_%s.png' % (outdir,S,P,minY+spinup_years,maxY+spinup_years,Cl)
+                png_file = '%s/MP2023_%s_%s_C000_U00_V00_%s_O_%02d_%02d_V_vgtyp.png' % (outdir,S,P,Cl,minY+spinup_years,maxY+spinup_years)
     
                 bars = []
                 legtxt = []
@@ -537,7 +560,7 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 #set axes and chart titles
                 x_txt = 'Year'
                 y_txt = 'Coverage Type'
-                title_txt = 'Coverage:  %s - %s - ICM-LAVegMod CellID: %s' % (S,P,Cl)
+                title_txt = 'Coverage:  %s - %s - ICM-LAVegMod Ecoregion: %s' % (S,P,Cl)
                 #print the number of unique coverages at the top of each bar
                 for r in range(0,maxY):
                     if r in range(0,maxY,2):    # stagger vertical offset of label every other year
