@@ -22,7 +22,7 @@ veg_dir = r'./%s/%s/veg' % (S,G)
 hydro_dir = r'./%s/%s/hydro' % (S,G)
 morph_dir = r'./%s/%s/geomorph' % (S,G)
 
-outdir = '%s/coverage_timeseries' % veg_dir
+outdir = '%s/coverage_timeseries/ecoregion' % veg_dir
 input_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_V_ecoregion_barplot_input.csv' % (veg_dir,S,G)
 spinup_years = 2
 
@@ -40,14 +40,12 @@ for pair in g2c:
 ecoregions = []   
 comp2eco = {}
 comp2eco_file = '%s/input/compartment_ecoregion.csv' % morph_dir
-c2e = np.genfromtxt(comp2eco_file,delimiter=',',skip_header=1,usecols=[0,4])
+c2e = np.genfromtxt(comp2eco_file,delimiter=',',skip_header=1,usecols=[0,4],dtype='str')
 for pair in c2e:
     comp2eco[int(pair[0])] = pair[1]
     if pair[1] not in ecoregions:
         ecoregions.append(pair[1])
 
-compID = grid2comp[cID]
-er = comp2eco[compID]
 
 # count number of grid cells in each ecoregion
 eco_grid_n = {}
@@ -73,7 +71,7 @@ with open(input_file,mode='w') as outcsv:
         # convert numpy array of LVMout into a dictionary with the ecoregion and species names the keys - this will be the sum of the ecoregion that is covered by each species type
         LVMout_d = {}
         for er in ecoregions:
-            LVMout_d[er] = []
+            LVMout_d[er] = {}
             for sp in sp_names:
                 LVMout_d[er][sp] = 0.0
         
@@ -96,8 +94,8 @@ with open(input_file,mode='w') as outcsv:
         # write annual summary for each ecoregion to file
         for er in ecoregions:
             coverages = LVMout_d[er]
-            for i in range(0,len(sp_names)):
-                outcsv.write('%d,%s,%s,%d,%s,%d,%f\n' % (m,G,S,Y,sp_names[i],er,coverages[i]) )
+            for sp in sp_names:
+                outcsv.write('%d,%s,%s,%d,%s,%s,%f\n' % (m,G,S,Y,sp,er,coverages[sp]) )
         
                 m += 1
 
