@@ -1535,7 +1535,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         new_bed_dict={}
         new_marsh_dict={}
 
-        orig_marsh_area = {}
+        orig_marsh_area_dict = {}
         new_marsh_area = {}
 
         flag_cell_wat = 0
@@ -1562,7 +1562,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         for nn in range(0,len(EHCellsArray)):
             cellID = EHCellsArray[nn,0]
             cellarea = EHCellsArray[nn,1]
-            orig_marsh_area[nn] = EHCellsArray[nn,4]*cellarea   # store original marsh area for link adjustment calculations later
+            orig_marsh_area_dict[cellID] = EHCellsArray[nn,4]*cellarea   # store original marsh area for link adjustment calculations later
             
             # check that Hydro Compartment should have landscape areas updated 
             if LWupdate[cellID] == 1:
@@ -1591,7 +1591,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 except:
                     flag_cell_wat += 1
             
-                new_marsh_area[nn] = EHCellsArray[nn,4]*cellarea  # store updated marsh area for link adjustment calculations later
+                new_marsh_area_dict[cellID] = EHCellsArray[nn,4]*cellarea  # store updated marsh area for link adjustment calculations later
 
                 # update marsh edge area, in attributes array
                 try:
@@ -1602,7 +1602,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             
             # if not being updated (LWupdate <> 1) , keep original values
             else:
-                new_marsh_area[nn] = orig_marsh_area[nn]
+                new_marsh_area_dict[cellID] = orig_marsh_area_dict[cellID]
 
 
         # update Hydro compartment/link elevation attributes (if turned on as model option)
@@ -1796,8 +1796,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                         linkindex = mc_links.index(linkID)
                         if year == mc_links_years[linkindex]:
                             print(' Updating composite marsh flow link (link %s) for marsh creation project implemented in previous year.' % linkID)
-                            darea_us = new_marsh_area[us_comp] - orig_marsh_area[us_comp]
-                            darea_ds = new_marsh_area[ds_comp] - orig_marsh_area[ds_comp]
+                            darea_us = new_marsh_area_dict[us_comp] - orig_marsh_area_dict[us_comp]
+                            darea_ds = new_marsh_area_dict[ds_comp] - orig_marsh_area_dict[ds_comp]
                             origwidth = EHLinksArray[mm,11]
                             length = EHLinksArray[mm,10]
                             # change in link area is equal to the increase in marsh area between the two compartments
