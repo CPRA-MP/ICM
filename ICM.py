@@ -1536,7 +1536,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         new_marsh_dict={}
 
         orig_marsh_area_dict = {}
-        new_marsh_area = {}
+        new_marsh_area_dict = {}
 
         flag_cell_wat = 0
         flag_cell_upl = 0
