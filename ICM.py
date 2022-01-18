@@ -1817,10 +1817,11 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             print('  Some Hydro comparments have a bed elevation being updated due to dredging projects implemented during year.')
             for nn in range(0,len(EHCellsArray)):
                 cellID = EHCellsArray[nn,0]
-                cellindex = comps_to_change_elev.index(cellID)
-                if year == comp_years[cellindex]:
-                    new_bed_elev = comp_elevs[cellindex]
-                    EHCellsArray[nn,7] = new_bed_elev   # update bed elevation of open water area in attributes array
+                if cellID in comps_to_change_elev:
+                    cellindex = comps_to_change_elev.index(cellID)
+                    if year == comp_years[cellindex]:
+                        new_bed_elev = comp_elevs[cellindex]
+                        EHCellsArray[nn,7] = new_bed_elev   # update bed elevation of open water area in attributes array
                             
                             
         ## save updated Cell and Link attributes to text files read into Hydro model
