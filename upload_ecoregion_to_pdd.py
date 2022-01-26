@@ -145,7 +145,9 @@ for S in scens2update:
             if nrb > 0:
                 print(' Failed to parse %d rows in %s. Check lines:' % (nrb,lvfile))
                 print(badrows)
+        
 
+        
 print('\nupdating PDD (via Pandas SQL functions) ')
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 for S in scens2update:
@@ -174,7 +176,40 @@ for S in scens2update:
                     except:
                         print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))
 
-
+# look up marsh creation element volumes and footprints
+for S in scens2update:
+    for G in groups2update:
+        geoout = 'S%02d/G%03d/geomorph/output/' % (S,G)
+        eid_yr_vol = {}
+        eid_yr_area = {}       
+        for f in os.listdir(geoout):
+            if f.endswith('MC_VolArea.csv')
+                print('Found MC projects implemented in this run: %s %s. % (S,G) )
+                MCVA = np.genfromtxt(f,delimiter=',',skip_header=1,dtype='str')
+                impyear = f.split('_')[8]
+                for row in MCVA:
+                    element = row[0]
+                    volume = row[1]
+                
+                    # found a new MC element - build empty dictionary for yearly values
+                    if element not in eid_yr_vol.keys():
+                        print('  - Element: %s' % element)
+                        eid_yr_vol[element] = {}
+                        eid_yr_area[element] = {}
+                        for year in range(1,53):
+                            eid_yr_vol[element][year] = 0.0
+                            eid_yr_area[element][year] = 0.0
+                
+                    # update sediment volume for implementation year (leave all other years 0)
+                    eid_yr_vol[int(impyear)][int(element)] = float(volume)
+                    
+                     
+        
+        
+        
+        
+        
+        
 with open(logfile,mode='a') as lf:
     lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
