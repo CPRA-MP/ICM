@@ -4,6 +4,14 @@ import psycopg2
 import io
 import pandas as pd
 from datetime import datetime as dt
+datestr = dt.now()
+
+scens2update = []
+groups2update = []
+years2update = range(1,53)  #[]
+backup = True
+overwrite = False
+update_MC_direct_benefits = True
 
 # connection info for PDD SQL engine
 host = 'vm007.bridges2.psc.edu'
@@ -19,9 +27,6 @@ logfile = '%s/_logfile.csv' % pdd_bk_dir
 if os.path.isfile(logfile) == False:
     with open(logfile,mode='w') as lf:
         lf.write('datetime,user,action\n')
-
-backup = True
-overwrite = False
 
 connection_info = {'host': host,'dbname':db_name,'user':user,'password':password}
 connection_string = ' '.join([f"{key}='{value}'" for key, value in connection_info.items()])
@@ -59,22 +64,6 @@ if overwrite == True:
     with open(logfile,mode='a') as lf:
         lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
-
-scens2update = []
-groups2update = []
-years2update = []
-
-#scens2update = [0]
-#groups2update = [0]
-#years2update = [2018]
-
-#scens2update = [7]#[6,8,9]
-#groups2update =[500]
-#years2update = range(1,48)#53)
-
-
-
-
 codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
 eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
 eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
@@ -107,7 +96,6 @@ for S in scens2update:
 #       Year_FWOA [%d]
 #       Note [%s]
 
-datestr = dt.now()
 
 for S in scens2update:
     for G in groups2update:
@@ -175,34 +163,71 @@ for S in scens2update:
                         df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
                     except:
                         print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))
+with open(logfile,mode='a') as lf:
+    lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+
 
 # look up marsh creation element volumes and footprints
-for S in scens2update:
-    for G in groups2update:
-        geoout = 'S%02d/G%03d/geomorph/output/' % (S,G)
-        eid_yr_vol = {}
-        eid_yr_area = {}       
-        for f in os.listdir(geoout):
-            if f.endswith('MC_VolArea.csv')
-                print('Found MC projects implemented in this run: %s %s. % (S,G) )
-                MCVA = np.genfromtxt(f,delimiter=',',skip_header=1,dtype='str')
-                impyear = f.split('_')[8]
-                for row in MCVA:
-                    element = row[0]
-                    volume = row[1]
-                
-                    # found a new MC element - build empty dictionary for yearly values
-                    if element not in eid_yr_vol.keys():
-                        print('  - Element: %s' % element)
-                        eid_yr_vol[element] = {}
-                        eid_yr_area[element] = {}
-                        for year in range(1,53):
-                            eid_yr_vol[element][year] = 0.0
-                            eid_yr_area[element][year] = 0.0
-                
-                    # update sediment volume for implementation year (leave all other years 0)
-                    eid_yr_vol[int(impyear)][int(element)] = float(volume)
+if update_MC_direct_benefits == True:
+    actionnote = 'Uploaded direct benefits for MC elements in: '
+    for S in scens2update:
+        for G in groups2update:
+            actionnote = '%s S%02dG%03d' % (actionnote,S,G)
+            geoout = 'S%02d/G%03d/geomorph/output/' % (S,G)
+            eid_yr_vol = {}
+            eid_yr_area = {}       
+            for f in os.listdir(geoout):
+                if f.endswith('MC_VolArea.csv')
+                    print('Found MC projects implemented in this run: %s %s. % (S,G) )
+                    MCVA = np.genfromtxt(f,delimiter=',',skip_header=1,dtype='str')
+                    impyear = f.split('_')[8]
+                    for row in MCVA:
+                        element = row[0]
+                        volume = row[1]
                     
+                        # found a new MC element - build empty dictionary for yearly values
+                        if element not in eid_yr_vol.keys():
+                            print('  - Element: %s' % element)
+                            eid_yr_vol[element] = {}
+                            eid_yr_area[element] = {}
+                            for year in range(1,53):
+                                eid_yr_vol[element][year] = 0.0
+                                eid_yr_area[element][year] = 0.0
+                    
+                        # update sediment volume for implementation year (leave all other years 0)
+                        eid_yr_vol[int(impyear)][int(element)] = float(volume)
+                    
+                    # look up direct benefit calculations for elementID for current simulation
+                    direct_benefit_file = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_W_MCdir.csv' % (geoout,S,G)
+                    print('Importing direct benefits from: %s' % direct_benefit_file)
+                          
+                    db = np.genfromtxt(direct_benefit_file,delimiter=',',dtype='str',skip_header=1)
+                    for row in db:
+                        y = int(row[2])
+                        c = row[3]
+                        e = int(row[4])
+                        a = int(row[5])
+                        if e in eid_yr_area.keys():
+                            if c in ['LND','BRG','UPL','FLT']:
+                                eid_yr_area[e][y] += a
+                          
+                          
+                    for Y in years2update:
+                        if Y == 1:
+                            FWOAY = -2
+                        elif Y == 2:
+                            FWOAY = -1
+                        else:
+                            FWOAY = Y-2
+                        for eid in eid_yr_vol.keys():
+                            V = eid_yr_vol[eid][Y]
+                            A = eid_yr_area[eid][Y]
+                            
+                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'ElementID':eid,'Year_ICM':Y,'Year_FWOA':FWOAY,'MarshArea_m2':A,'MarshVolume_m3':V,'Date':datestr,'ImplementationPeriod':IP},index=[0])
+                            df2up.to_sql('mc', engine, if_exists='append', schema='icm', index=False)     
+                          
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
                      
         
         
@@ -210,8 +235,7 @@ for S in scens2update:
         
         
         
-with open(logfile,mode='a') as lf:
-    lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+
 
 
 
