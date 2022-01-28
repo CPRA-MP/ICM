@@ -200,8 +200,8 @@ if update_MC_direct_benefits == True:
                         eid_yr_vol[e] = {}
                         eid_yr_area[e] = {}
                         for year in range(1,53):
-                            eid_yr_vol[e][y] = 0.0
-                            eid_yr_area[e][y] = 0.0
+                            eid_yr_vol[e][year] = 0.0
+                            eid_yr_area[e][year] = 0.0
                             eid_ip[e] = 0
                     if c in ['LND','BRG','UPL','FLT']:
                         eid_yr_area[e][y] += a
