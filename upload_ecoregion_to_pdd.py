@@ -3,6 +3,7 @@ import os
 import psycopg2
 import io
 import pandas as pd
+import numpy as np
 from datetime import datetime as dt
 datestr = dt.now()
 
@@ -10,6 +11,7 @@ scens2update = []
 groups2update = []
 years2update = range(1,53)  #[]
 backup = True
+tables_to_backup = ['land_veg','mc']
 overwrite = False
 update_ecoregion_values = False
 update_MC_direct_benefits = True
@@ -33,18 +35,19 @@ connection_info = {'host': host,'dbname':db_name,'user':user,'password':password
 connection_string = ' '.join([f"{key}='{value}'" for key, value in connection_info.items()])
 
 if backup == True:
+    for dbt in tables_to_backup:
 # Running query using PANDAS dataframes & PSYCOPG2
-    print('Backing up PDD icm.land_veg to %s' % pdd_bk_dir)
-    datestr = dt.now()
-    conn = psycopg2.connect(connection_string)
-    sqlstr = "select * from icm.land_veg;"
-    output=pd.read_sql_query(sqlstr,conn)
+        print('Backing up PDD icm.%s to %s' % ( dbtable, pdd_bk_dir))
+        datestr = dt.now()
+        conn = psycopg2.connect(connection_string)
+        sqlstr = "select * from icm.%s;" % dbtable
+        output=pd.read_sql_query(sqlstr,conn)
     
-    bkfile = '%s/mp23_pdd_icm.land_veg_%04d.%02d.%02d.%02d.%02d.%02d.csv' % ( pdd_bk_dir,dt.now().year,dt.now().month,dt.now().day,dt.now().hour,dt.now().minute,dt.now().second )
-    output.to_csv(bkfile)
-    actionnote = 'downloaded backup copy of icm.land_veg to file: %s' % bkfile
-    with open(logfile,mode='a') as lf:
-        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+        bkfile = '%s/mp23_pdd_icm.%s_%04d.%02d.%02d.%02d.%02d.%02d.csv' % ( pdd_bk_dir,dbtable,dt.now().year,dt.now().month,dt.now().day,dt.now().hour,dt.now().minute,dt.now().second )
+        output.to_csv(bkfile)
+        actionnote = 'downloaded backup copy of icm.%s to file: %s' % (dbtable,bkfile)
+        with open(logfile,mode='a') as lf:
+            lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
 if overwrite == True:
 #Running delete SQL queries using PSYCOPG2 instead of PANDAS
@@ -177,67 +180,95 @@ if update_MC_direct_benefits == True:
         for G in groups2update:
             actionnote = '%s S%02dG%03d' % (actionnote,S,G)
             geoout = 'S%02d/G%03d/geomorph/output/' % (S,G)
+            direct_benefit_file = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_W_MCdir.csv' % (geoout,S,G)                          
+            db = np.genfromtxt(direct_benefit_file,delimiter=',',dtype='str',skip_header=1)
+            print('Importing direct land area benefits from: %s' % direct_benefit_file)
             eid_yr_vol = {}
-            eid_yr_area = {}       
-            for f in os.listdir(geoout):
-                if f.endswith('MC_VolArea.csv')
-                    print('Found MC projects implemented in this run: %s %s.' % (S,G) )
-                    MCVA = np.genfromtxt('%s/%s' % (geoout,f),delimiter=',',skip_header=1,dtype='str')
-                    impyear = f.split('_')[8]
-                    
-                    if MCVA.ndim == 1:
-                        nMCVArows = 1
-                    else:
-                        nMCVArows = MCVA.shape[0]
-                    
-                    for nr in range(0,nMCVArows):
-                        if nMCVArows == 1:
-                            data = MCVA
+            eid_yr_area = {}
+            eid_ip = {}
+            
+            # read in direct benefit land area per zone for FWOA
+            if G == 500:
+                for row in db:
+                    y = int(row[2])
+                    c = row[3]
+                    e = int(row[4])
+                    a = int(row[5])
+                    # if new element, build empty timeseries dictionary for element
+                    if e not in eid_yr_area.keys():
+                        print('Processing FWOA data for MC element: %s' % e)
+                        eid_yr_vol[e] = {}
+                        eid_yr_area[e] = {}
+                        for year in range(1,53):
+                            eid_yr_vol[e][y] = 0.0
+                            eid_yr_area[e][y] = 0.0
+                            eid_ip[e] = 0
+                    if c in ['LND','BRG','UPL','FLT']:
+                        eid_yr_area[e][y] += a
+            
+            # if not FWOA, check to see if there are any MC elements implemented in run
+            else:
+                for f in os.listdir(geoout):
+                    if f.endswith('MC_VolArea.csv'):
+                        print('Found MC projects implemented in this run: %s %s.' % (S,G) )
+                        MCVA = np.genfromtxt('%s/%s' % (geoout,f),delimiter=',',skip_header=1,dtype='str')
+                        impyear = int(f.split('_')[8])
+                        if MCVA.ndim == 1:
+                            nMCVArows = 1
                         else:
-                            data = MCVA[nr]
-                        element = data[0]
-                        volume = data[1]
+                            nMCVArows = MCVA.shape[0]
                     
-                        # found a new MC element - build empty dictionary for yearly values
-                        if element not in eid_yr_vol.keys():
-                            print('  - Element: %s' % element)
-                            eid_yr_vol[element] = {}
-                            eid_yr_area[element] = {}
-                            for year in range(1,53):
-                                eid_yr_vol[element][year] = 0.0
-                                eid_yr_area[element][year] = 0.0
+                        for nr in range(0,nMCVArows):
+                            if nMCVArows == 1:
+                                data = MCVA
+                            else:
+                                data = MCVA[nr]
+                            element = int(data[0])
+                            volume = float(data[1])
+                                            
+                            # found a new MC element - build empty dictionary for yearly values
+                            if element not in eid_yr_vol.keys():
+                                print('  - Element: %s' % element)
+                                eid_yr_vol[element] = {}
+                                eid_yr_area[element] = {}
+                                for year in range(1,53):
+                                    eid_yr_vol[element][year] = 0.0
+                                    eid_yr_area[element][year] = 0.0
                     
-                        # update sediment volume for implementation year (leave all other years 0)
-                        eid_yr_vol[int(impyear)][int(element)] = float(volume)
-                    
-                    # look up direct benefit calculations for elementID for current simulation
-                    direct_benefit_file = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_W_MCdir.csv' % (geoout,S,G)
-                    print('Importing direct benefits from: %s' % direct_benefit_file)
-                          
-                    db = np.genfromtxt(direct_benefit_file,delimiter=',',dtype='str',skip_header=1)
-                    for row in db:
-                        y = int(row[2])
-                        c = row[3]
-                        e = int(row[4])
-                        a = int(row[5])
-                        if e in eid_yr_area.keys():
-                            if c in ['LND','BRG','UPL','FLT']:
-                                eid_yr_area[e][y] += a
-                          
-                          
-                    for Y in years2update:
-                        if Y == 1:
-                            FWOAY = -2
-                        elif Y == 2:
-                            FWOAY = -1
-                        else:
-                            FWOAY = Y-2
-                        for eid in eid_yr_vol.keys():
-                            V = eid_yr_vol[eid][Y]
-                            A = eid_yr_area[eid][Y]
+                            # update sediment volume for implementation year (leave all other years 0)
+                            eid_yr_vol[element][impyear] = volume
                             
-                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'ElementID':eid,'Year_ICM':Y,'Year_FWOA':FWOAY,'MarshArea_m2':A,'MarshVolume_m3':V,'Date':datestr,'ImplementationPeriod':IP},index=[0])
-                            df2up.to_sql('mc', engine, if_exists='append', schema='icm', index=False)     
+                            # update implementation period for element
+                            if impyear < 23:
+                                eid_ip[element] = 1
+                            else:
+                                eid_ip[element] = 2                      
+                        # look up direct benefit calculations for elementID for all years
+                        for row in db:
+                            y = int(row[2])
+                            c = row[3]
+                            e = int(row[4])
+                            a = int(row[5])
+                            if e in eid_yr_area.keys():
+                                if c in ['LND','BRG','UPL','FLT']:
+                                    eid_yr_area[e][y] += a
+            # done looking up volumes and areas for all elements and all years in this run
+            # uploading to PDD
+            print('Uploading direct benefit area and marsh creation volumes for run S%02d G%03d' % (S,G))
+            for Y in years2update:
+                if Y == 1:
+                    FWOAY = -2
+                elif Y == 2:
+                    FWOAY = -1
+                else:
+                    FWOAY = Y-2
+                for eid in eid_yr_vol.keys():
+                    V = eid_yr_vol[eid][Y]
+                    A = eid_yr_area[eid][Y]
+                    IP = eid_ip[eid]           
+                            
+                    df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'ElementID':eid,'Year_ICM':Y,'Year_FWOA':FWOAY,'MarshArea_m2':A,'MarshVolume_m3':V,'Date':datestr,'ImplementationPeriod':IP},index=[0])
+                    df2up.to_sql('mc', engine, if_exists='append', schema='icm', index=False)     
                           
     with open(logfile,mode='a') as lf:
         lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
