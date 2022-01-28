@@ -11,6 +11,7 @@ groups2update = []
 years2update = range(1,53)  #[]
 backup = True
 overwrite = False
+update_ecoregion_values = False
 update_MC_direct_benefits = True
 
 # connection info for PDD SQL engine
@@ -138,33 +139,35 @@ for S in scens2update:
         
 print('\nupdating PDD (via Pandas SQL functions) ')
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
-for S in scens2update:
-    for G in groups2update:
-        print('uploading S%02d G%03d...' % (S,G) )
-        note = ''
-        for Y in years2update:
-            if Y == 1:
-                FWOAY = -2
-                note = 'landscape at end of first ICM Spinup Year'
-            elif Y == 2:
-                FWOAY = -1
-                note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year'
-            elif Y == 2018:
-                FWOAY = 2018
-                note = 'existing conditions; landscape from 2018 USGS data'
-            else:
-                FWOAY = Y-2
-                note = 'landscape at end of ICM year'
-            for C in codes2update:
-                for E in eco2update:
-                    val2write = d[S][G][Y][C][E]
-                    try:
-                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
-                        df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
-                    except:
-                        print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))
-with open(logfile,mode='a') as lf:
-    lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+
+if update_ecoregion_values == True:
+    for S in scens2update:
+        for G in groups2update:
+            print('uploading S%02d G%03d...' % (S,G) )
+            note = ''
+            for Y in years2update:
+                if Y == 1:
+                    FWOAY = -2
+                    note = 'landscape at end of first ICM Spinup Year'
+                elif Y == 2:
+                    FWOAY = -1
+                    note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year'
+                elif Y == 2018:
+                    FWOAY = 2018
+                    note = 'existing conditions; landscape from 2018 USGS data'
+                else:
+                    FWOAY = Y-2
+                    note = 'landscape at end of ICM year'
+                for C in codes2update:
+                    for E in eco2update:
+                        val2write = d[S][G][Y][C][E]
+                        try:
+                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
+                            df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
+                        except:
+                            print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
 
 # look up marsh creation element volumes and footprints
@@ -178,12 +181,22 @@ if update_MC_direct_benefits == True:
             eid_yr_area = {}       
             for f in os.listdir(geoout):
                 if f.endswith('MC_VolArea.csv')
-                    print('Found MC projects implemented in this run: %s %s. % (S,G) )
-                    MCVA = np.genfromtxt(f,delimiter=',',skip_header=1,dtype='str')
+                    print('Found MC projects implemented in this run: %s %s.' % (S,G) )
+                    MCVA = np.genfromtxt('%s/%s' % (geoout,f),delimiter=',',skip_header=1,dtype='str')
                     impyear = f.split('_')[8]
-                    for row in MCVA:
-                        element = row[0]
-                        volume = row[1]
+                    
+                    if MCVA.ndim == 1:
+                        nMCVArows = 1
+                    else:
+                        nMCVArows = MCVA.shape[0]
+                    
+                    for nr in range(0,nMCVArows):
+                        if nMCVArows == 1:
+                            data = MCVA
+                        else:
+                            data = MCVA[nr]
+                        element = data[0]
+                        volume = data[1]
                     
                         # found a new MC element - build empty dictionary for yearly values
                         if element not in eid_yr_vol.keys():
