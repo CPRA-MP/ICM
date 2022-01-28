@@ -35,7 +35,7 @@ connection_info = {'host': host,'dbname':db_name,'user':user,'password':password
 connection_string = ' '.join([f"{key}='{value}'" for key, value in connection_info.items()])
 
 if backup == True:
-    for dbt in tables_to_backup:
+    for dbtable in tables_to_backup:
 # Running query using PANDAS dataframes & PSYCOPG2
         print('Backing up PDD icm.%s to %s' % ( dbtable, pdd_bk_dir))
         datestr = dt.now()
