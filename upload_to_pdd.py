@@ -208,11 +208,13 @@ if update_MC_direct_benefits == True:
             
             # if not FWOA, check to see if there are any MC elements implemented in run
             else:
+                update_volume = 0
                 for f in os.listdir(geoout):
                     if f.endswith('MC_VolArea.csv'):
-                        print('Found MC projects implemented in this run: %s %s.' % (S,G) )
                         MCVA = np.genfromtxt('%s/%s' % (geoout,f),delimiter=',',skip_header=1,dtype='str')
                         impyear = int(f.split('_')[8])
+                        print('Found MC projects implemented in this run: %s %s - year %02d.' % (S,G,impyear) )
+                        update_volume = 1
                         if MCVA.ndim == 1:
                             nMCVArows = 1
                         else:
@@ -243,15 +245,16 @@ if update_MC_direct_benefits == True:
                                 eid_ip[element] = 1
                             else:
                                 eid_ip[element] = 2                      
-                        # look up direct benefit calculations for elementID for all years
-                        for row in db:
-                            y = int(row[2])
-                            c = row[3]
-                            e = int(row[4])
-                            a = int(row[5])
-                            if e in eid_yr_area.keys():
-                                if c in ['LND','BRG','UPL','FLT']:
-                                    eid_yr_area[e][y] += a
+                # look up direct benefit calculations for elementID for all years
+                if update_volume > 0:
+                    for row in db:
+                        y = int(row[2])
+                        c = row[3]
+                        e = int(row[4])
+                        a = int(row[5])
+                        if e in eid_yr_area.keys():
+                            if c in ['LND','BRG','UPL','FLT']:
+                                eid_yr_area[e][y] += a
             # done looking up volumes and areas for all elements and all years in this run
             # uploading to PDD
             print('Uploading direct benefit area and marsh creation volumes for run S%02d G%03d' % (S,G))
