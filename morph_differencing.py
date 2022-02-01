@@ -9,9 +9,24 @@ import rasterio as rio
 from rasterio.plot import plotting_extent
 
 s   = int(sys.argv[1])
-g   = int(sys.argv[2])
-yr1 = int(sys.argv[3])
-yr0 = int(sys.argv[4])
+g1  = int(sys.argv[2])
+g0  = int(sys.argv[3])
+yr1 = int(sys.argv[4])
+yr0 = int(sys.argv[5])
+rastype = sys.argv[6]
+difftype = sys.argv[7]
+
+# difftype = 'lndtypdiff'    # land type comparison to FWOA at same year - uses input rastype = 'lndtyp30'
+#difftype = 'lndchg'        # land type comparison to initial conditions - uses input rastype = 'lndtyp30'
+#difftype = 'salavdiff'     # annual mean salinity comparison to FWOA at same year - uses input rastype = 'salav30'
+#difftype = 'salmxdiff'     # annual max salinity comparison to FWOA at same year - uses input rastype = 'salmx30'
+#difftype = 'mwldiff'       # annual mean water level comparison to FWOA at same year - uses input rastype = 'mwl30'
+#difftype = 'elevdiff'      # elevation comparison to FWOA at same year - uses input rastype = 'dem30'
+
+
+
+
+
 
 print('\n\nComparing year %02d to year %02d for for S%02d G%03d:' % (yr1,yr0,s,g) )
 
@@ -42,16 +57,22 @@ for fol in [xyz_fol,tif_fol,png_fol,ts_fol]:
 ############################################
 print('\ncalculating land change (binary file)')
 
-ras1_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_lndtyp30.xyz.b' % (out_fol,s,g,yr1,yr1)
+ras1_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g1,yr1,yr1,rastype)
 if yr0 == 0:
-    ras0_bin_pth    = 'S%02d/G%03d/geomorph/input/MP2023_S00_G500_C000_U00_V00_SLA_I_00_00_W_lndtyp30.xyz.b' % (s,g)
+    ras0_bin_pth    = 'S%02d/G500/geomorph/input/MP2023_S00_G500_C000_U00_V00_SLA_I_00_00_W_%s.xyz.b' % (s,rastype)
 else:
-    ras0_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_lndtyp30.xyz.b' % (out_fol,s,g,yr0,yr0)
+    ras0_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g0,yr0,yr0,rastype)
 
+'lndtypdiff'
+'lndchg'
 
+ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g1,yr0,yr1,difftype)
 
-ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_lndchg.xyz.b' % (out_fol,s,g,yr0,yr1)
-difftype        = 'dlw'
+if rastype == 'lndtyp30':
+    difftype = 'dlw'
+else:
+    difftype = 'dz'
+    
 nras_str        = '170852857'
 noData_str      = '-9999'
 
@@ -63,7 +84,7 @@ subprocess.call(cmdstr1)
 ##      Convert land change raster from binary to ASCI     ##
 #############################################################
 print('\nconverting binary file to ASCI raster')
-xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_lndchg.xyz' % (xyz_fol,s,g,yr0,yr1)
+xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,s,g1,yr0,yr1,difftype)
 x_bin_pth       = '%s/raster_x_coord.b' % out_fol
 y_bin_pth       = '%s/raster_y_coord.b' % out_fol
 dtype           = 'int' #'flt'
@@ -76,8 +97,8 @@ subprocess.call(cmdstr2)
 ##      Convert land change raster from ASCI to TIF        ##
 #############################################################
 print('\nconverting ASCI raster to TIF')
-tif_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_lndchg.tif' % (tif_fol,s,g,yr0,yr1)
-footnote = 'MP2023 FWOA simulations'
+tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.tif' % (tif_fol,s,g1,yr0,yr1,difftype)
+footnote        = ''
 cmdstr3 = ['gdal_translate', xyz_asc_pth, tif_pth]
 subprocess.call(cmdstr3)
 
@@ -86,38 +107,73 @@ subprocess.call(cmdstr3)
 ##      Convert land change raster from TIF to PNG         ##
 #############################################################
 print('\nmapping TIF to PNG image')
-png_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_lndchg.png' % (png_fol,s,g,yr0,yr1)
-png_title = 'S%02d G%03d - Land Change from year %02d to %02d'  % (s,g,yr0,yr1)
-footnote = 'MP2023 FWOA simulations scenario selection - July 2021'
 
-# color map and legend used for LandWater Difference rasters.
-lwdiff_map = {}
-lwdiff_map[-9999]=[-9999.5, 10.5, 'white','no data']
-lwdiff_map[11] = [10.5,11.5,'silver',     'land']
-lwdiff_map[12] = [11.5,12.5,'darkred',    'land->water (LOSS)']
-lwdiff_map[13] = [12.5,13.5,'tan',        'land->bare']
-lwdiff_map[21] = [13.5,21.5,'green',      'water->land (GAIN)']
-lwdiff_map[22] = [21.5,22.5,'darkblue',   'water']
-lwdiff_map[23] = [22.5,23.5,'aquamarine', 'water->bare (GAIN)']
-lwdiff_map[31] = [23.5,31.5,'gainsboro',  'bare->land']
-lwdiff_map[32] = [31.5,32.5,'pink',       'bare->water (LOSS)']
-lwdiff_map[33] = [32.5,33.5,'saddlebrown','bare']
-lwdiff_map[44] = [33.5,44.5,'grey',      'upland']
-lwdiff_map[51] = [50.5,51.5,'lightgreen', 'flotant->water->land']
-lwdiff_map[52] = [51.5,52.5,'lightcoral', 'flotant to water (LOSS)']
-lwdiff_map[53] = [52.5,53.5,'beige', 'flotant->water->bare']
-lwdiff_map[55] = [54.5,55.5,'lightgray',  'flotant']
+difftype_title = difftype_titles[difftype]
+png_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.png' % (png_fol,s,g1,yr0,yr1,difftype)
+png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s,g1,yr1,s,g0,yr0,difftype_title)
+footnote = ''
 
-cmap_list_lwd = []
-cmap_norm_list_lwd = [lwdiff_map[-9999][0]]
-leg_lab_lwd = {}
-for lwdt in lwdiff_map.keys():
-    cmap_norm_list_lwd.append(lwdiff_map[lwdt][1])
-    cmap_list_lwd.append(lwdiff_map[lwdt][2])
-    leg_lab_lwd[lwdiff_map[lwdt][2]] = lwdiff_map[lwdt][3]
-cmap          = ListedColormap(cmap_list_lwd)
-norm          = colors.BoundaryNorm(cmap_norm_list_lwd, len(cmap_norm_list_lwd) )
-legend_labels = leg_lab_lwd
+
+
+if difftype in ['lndtypdiff','lndchg']:
+    # color map and legend used for LandWater Difference rasters.
+    diff_map = {}
+    diff_map[-9999]=[-9999.5, 10.5, 'white','no data']
+    diff_map[11] = [10.5,11.5,'silver',     'land']
+    diff_map[12] = [11.5,12.5,'darkred',    'land->water (LOSS)']
+    diff_map[13] = [12.5,13.5,'tan',        'land->bare']
+    diff_map[21] = [13.5,21.5,'green',      'water->land (GAIN)']
+    diff_map[22] = [21.5,22.5,'darkblue',   'water']
+    diff_map[23] = [22.5,23.5,'aquamarine', 'water->bare (GAIN)']
+    diff_map[31] = [23.5,31.5,'gainsboro',  'bare->land']
+    diff_map[32] = [31.5,32.5,'pink',       'bare->water (LOSS)']
+    diff_map[33] = [32.5,33.5,'saddlebrown','bare']
+    diff_map[44] = [33.5,44.5,'grey',      'upland']
+    diff_map[51] = [50.5,51.5,'lightgreen', 'flotant->water->land']
+    diff_map[52] = [51.5,52.5,'lightcoral', 'flotant to water (LOSS)']
+    diff_map[53] = [52.5,53.5,'beige', 'flotant->water->bare']
+    diff_map[55] = [54.5,55.5,'lightgray',  'flotant']
+    
+    cmap_list = []
+    cmap_norm_list = [diff_map[-9999][0]]       # sets lower left bound on cmap_normalizing to -9999.5, as set in diff_map above
+    leg_lab = {}
+    for dt in diff_map.keys():
+        cmap_norm_list.append(diff_map[dt][1])
+        cmap_list.append(diff_map[dt][2])
+        leg_lab[diff_map[dt][2]] = diff_map[dt][3]
+
+    cmap = ListedColormap(cmap_list)
+    norm = colors.BoundaryNorm(cmap_norm_list, len(cmap_norm_list) )
+    legend_labels = leg_lab
+
+elif difftype in ['salavdiff','salmxdiff']:
+    # color map and legend used for Salinity Difference rasters
+cmap_lc = ListedColormap(['white','darkblue','skyblue',])
+norm_lc = colors.BoundaryNorm([-9999.999, -10, -5, -1.5, ,-0.5, 0.5, 1.5],7)           # BoundaryNorm bins set to map integer values of -3, -2, -1, 0, & 1
+leg_lab_lc = {'darkblue': 'salinity reduction > 10 ppt','skyblue':'dead flotant','orange':'marsh edge erosion','whitesmoke':'no change','forestgreen':'land gain'}
+
+
+# color map and legend used for LandChange rasters
+cmap_lc = ListedColormap(['white','orange','skyblue','darkblue','whitesmoke','forestgreen'])
+norm_lc = colors.BoundaryNorm([-9999.999, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5],7)           # BoundaryNorm bins set to map integer values of -3, -2, -1, 0, & 1
+leg_lab_lc = {'darkblue': 'inundation loss','skyblue':'dead flotant','orange':'marsh edge erosion','whitesmoke':'no change','forestgreen':'land gain'}
+
+
+
+    cmap = ListedColormap(cmap_list)
+    norm = colors.BoundaryNorm(cmap_norm_list, len(cmap_norm_list) )
+    legend_labels = leg_lab
+
+
+
+'mwldiff'
+'elevdiff'
+
+
+
+
+
+
 
 # open and read TIF raster with rasterio
 with rio.open(tif_pth) as open_tif:
