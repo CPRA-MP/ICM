@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
+from matplotlib import cm
 import rasterio as rio
 from rasterio.plot import plotting_extent
 
@@ -146,34 +147,10 @@ if difftype in ['lndtypdiff','lndchg']:
     norm = colors.BoundaryNorm(cmap_norm_list, len(cmap_norm_list) )
     legend_labels = leg_lab
 
-elif difftype in ['salavdiff','salmxdiff']:
+elif difftype in ['salavdiff','salmxdiff','mwldiff','elevdiff']:
     # color map and legend used for Salinity Difference rasters
-cmap_lc = ListedColormap(['white','darkblue','skyblue',])
-norm_lc = colors.BoundaryNorm([-9999.999, -10, -5, -1.5, ,-0.5, 0.5, 1.5],7)           # BoundaryNorm bins set to map integer values of -3, -2, -1, 0, & 1
-leg_lab_lc = {'darkblue': 'salinity reduction > 10 ppt','skyblue':'dead flotant','orange':'marsh edge erosion','whitesmoke':'no change','forestgreen':'land gain'}
-
-
-# color map and legend used for LandChange rasters
-cmap_lc = ListedColormap(['white','orange','skyblue','darkblue','whitesmoke','forestgreen'])
-norm_lc = colors.BoundaryNorm([-9999.999, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5],7)           # BoundaryNorm bins set to map integer values of -3, -2, -1, 0, & 1
-leg_lab_lc = {'darkblue': 'inundation loss','skyblue':'dead flotant','orange':'marsh edge erosion','whitesmoke':'no change','forestgreen':'land gain'}
-
-
-
-    cmap = ListedColormap(cmap_list)
-    norm = colors.BoundaryNorm(cmap_norm_list, len(cmap_norm_list) )
-    legend_labels = leg_lab
-
-
-
-'mwldiff'
-'elevdiff'
-
-
-
-
-
-
+    cmap = cm.seismic
+    norm = colors.CenteredNorm() 
 
 # open and read TIF raster with rasterio
 with rio.open(tif_pth) as open_tif:
@@ -184,9 +161,12 @@ fig,ax = plt.subplots(figsize=(11,5))               # figsize in inches
 tif_map = ax.imshow(tif,cmap=cmap,norm=norm)
 
 # build legend
-patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
-ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='x-small',ncol=3)
-
+if difftype in ['lndtypdiff','lndchg']:
+    patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
+    ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='x-small',ncol=3)
+elif difftype in ['salavdiff','salmxdiff','mwldiff','elevdiff']:
+    fig.colorbar(tif_map,ax=ax)
+    
 # generic figure edits
 ax.set_axis_off()
 ax.set_title(png_title,fontsize='small')
