@@ -9,7 +9,7 @@ def write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perfflag=1):
         out = sbat.write('#SBATCH -p RM-shared\n')                              # use RM-shared partition
         out = sbat.write('#SBATCH -t 01:30:00\n')                               # set max simulation limit to 48 hours
         out = sbat.write('#SBATCH -N 1\n')                                      # use only one node
-        out = sbat.write('#SBATCH --ntasks-per-node 20\n')                      # use only 16 cores of one node
+        out = sbat.write('#SBATCH --ntasks-per-node 20\n')                      # use only 20 cores of one node
         out = sbat.write('#SBATCH -J %s\n' % tag8)                              # assign Job Name
         out = sbat.write('#SBATCH -o %s.log\n' % tag8)                          # set name for log file
         out = sbat.write('#SBATCH --mail-user=%s\n' % email)                    # set email address for notifications
@@ -30,49 +30,98 @@ import sys
 import shutil
 
 s = int(sys.argv[1])
-g = int(sys.argv[2])
-sy = 2019
-#years = [2029,2041,2055,2069]
-years = range(2019,2071)
-years =[]
-plot_hydro = True
-plot_veg = True
+g_fwa = int(sys.argv[2])
+g_fwoa = int(sys.argv[3])
 
-py   = 'postprocess.py'                                                              # ICM control code to use for this simulation (e.g. ICM.py)
+sy = 2019
+ny = 2070
+ey_ic = 2       # elapsed year of initial conditions landscape
+map_interval = 1
+
+# build list of years that will have outputs mapped
+years = [sy]
+for yr in range(2020,ny+1,map_interval):
+    years.append(yr)
+
+plot_TIFs      = True
+plot_FFIBS     = True
+plot_IC_change = True
+plot_FWOA_diff = True
+plot_hydro_ts  = False
+plot_veg_ts    = True
+
 perf    = 1                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
 account = 'bcs200002p'                                                          # XSEDE allocation account
 email   = 'eric.white@la.gov'                                                   # emails for notification on queue
 sbatch_file = 'postprocess.submit'
 
+# set raster and difference raster types for FWOA diff function call
+diffrastypes = {}
+diffrastypes['lndtypdiff']  = 'lndtyp30'
+diffrastypes['salavdiff']   = 'salav30'
+diffrastypes['salmxdiff']   = 'salmx30'
+diffrastypes['mwldiff']     = 'mwl30'
+diffrastypes['elevdiff']    = 'dem30'
+    
 
 
 for y in years:
-    print('post-processing: S%02d G%03d - yr %s' % (s,g,y) )
-    cmd1      = 'python ICM_tif_mapping.py %s %s %s %s\n' % (s,g,y,sy) 
-    cmd2      = 'python ICM_FFIBS_mapping.py %s %s %s %s\n' % (s,g,y,sy) 
-    cmd3      = 'python morph_differencing.py %s %s %s 2\n' % (s, g, y-sy+1)
-    ctrl_str = cmd1 + cmd2 + cmd3
+    # this script will batch submit ICM_tif_mapping, ICM_FFIBS_mapping and ICM_morph_differencing for one year in the same job to the queue
+    # all data types in ICM_tif_mappingwill be looped over BEFORE the job moves on to ICM_FFIBS and ICM_morph_differencing
+    print('post-processing: S%02d G%03d - yr %s' % (s,g_fwa,y) )
     
-    tag8    = 'pp%01d%03d%02d' % (s,g,y-sy+1) 
+    # calculate elaped years used by ICM_morph_differencing
+    ey =  y-sy+1
+    
+    if plot_TIFs == True:
+        print('   - mapping Morph outputs as TIFs/PNGs')
+        cmd1 = 'python ICM_tif_mapping.py %s %s %s %s\n' % (s,g_fwa,y,sy) 
+    else:
+        cmd1 = ''
+        
+    if plot_FFIBS == True:
+        print('   - mapping LAVegMod FFIBS outputs as TIFs/PNGs')
+        cmd2 = 'python ICM_FFIBS_mapping.py %s %s %s %s\n' % (s,g_fwa,y,sy) 
+    else:
+        cmd2 = ''
+    
+    if plot_IC_change = True:
+        cmd3 = 'python ICM_morph_differencing.py %s %s %s %s %s\n' % (s, g_fwa, g_fwa, ey, ey_ic, 'lndtyp30', 'lndchg')
+    else:
+        cmd3 = ''
+    
+    ctrl_str = cmd1 + cmd2
+    
+    if plot_FWOA_diff == True:
+        print('   - mapping Morph Difference from FWOA outputs as TIFs/PNGs')
+        for difftype in diffrastypes.keys():
+            rastype = rastypes[difftype]        
+            cmd4 = 'python ICM_morph_differencing.py %s %s %s %s %s\n' % (s, g_fwa, g_fwoa, ey, ey, rastype, difftype)
+        
+            ctrl_str = ctrl_str + cmd4
+    
+    
+    # write sbatch file with final list of function calls saved to ctrol_str
+    tag8    = 'pp%01d%03d%02d' % (s,g_fwa,y-sy+1) 
     write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
     
     cmdstr = ['sbatch', '%s' % sbatch_file]
     cmdout = subprocess.check_output(cmdstr).decode()
 
     
-if plot_hydro == True:
-    print('plotting ICM-Hydro timeseries: S%02d G%03d' % (s,g) )
-    tag8 = 'hyts%01d%03d' % (s,g)
-    ctrl_str = 'python ICM-Hydro_plotting_noCRMS.py %s %s' % (s,g)
+if plot_hydro_ts == True:
+    print('plotting ICM-Hydro timeseries: S%02d G%03d' % (s,g_fwa) )
+    tag8 = 'hyts%01d%03d' % (s,g_fwa)
+    ctrl_str = 'python ICM-Hydro_plotting_noCRMS.py %s %s' % (s,g_fwa)
     write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
     cmdstr = ['sbatch', '%s' % sbatch_file]
     cmdout = subprocess.check_output(cmdstr).decode()
     
-if plot_veg == True:
-    print('plotting ICM-LAVegMod timeseries: S%02d G%03d' % (s,g) )
+if plot_veg_ts == True:
+    print('plotting ICM-LAVegMod timeseries: S%02d G%03d' % (s,g_fwa) )
     last_year = 2070
-    tag8 = 'vgts%01d%03d' % (s,g)
-    ctrl_str = 'python ICM-Veg_timeseries_plotting.py %s %s %s' % (s,g,last_year)
+    tag8 = 'vgts%01d%03d' % (s,g_fwa)
+    ctrl_str = 'python ICM-Veg_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
     write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
     cmdstr = ['sbatch', '%s' % sbatch_file]
     cmdout = subprocess.check_output(cmdstr).decode()
