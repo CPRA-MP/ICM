@@ -32,6 +32,10 @@ import shutil
 s = int(sys.argv[1])
 g_fwa = int(sys.argv[2])
 g_fwoa = int(sys.argv[3])
+c = 0
+u = 0
+v = 0
+r = 'SLA'
 
 sy = 2019
 ny = 2070
@@ -43,12 +47,13 @@ years = [sy]
 for yr in range(2020,ny+1,map_interval):
     years.append(yr)
 
-plot_TIFs      = True
-plot_FFIBS     = True
-plot_IC_change = True
-plot_FWOA_diff = True
-plot_hydro_ts  = False
-plot_veg_ts    = True
+rename_hydro    = True
+plot_TIFs       = True
+plot_FFIBS      = True
+plot_IC_change  = True
+plot_FWOA_diff  = True
+plot_hydro_ts   = False
+plot_veg_ts     = True
 
 perf    = 1                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
 account = 'bcs200002p'                                                          # XSEDE allocation account
@@ -63,12 +68,22 @@ diffrastypes['salmxdiff']   = 'salmx30'
 diffrastypes['mwldiff']     = 'mwl30'
 diffrastypes['elevdiff']    = 'dem30'
     
-
+if rename_hydro == True:
+    out_fol = 'S%02d/G%03d/hydro' % (s,g)
+    print('renaming Hydro *.out files in: %s' % out_fol)
+    for out in os.listdir(out_fol):
+        if out.endswith('.out'):
+            out1 = '%s/%s' % (out_fol,out)
+            out2 = '%s/MP2023_S%02d_G%03d_C%03d_U%02d_V%02d_%r_O_01_52_H_%s' % (out_fol,s,g,c,u,v,r,out)
+            if out.startswith('MP2023'):
+                print('%s already exists - skipping rename' % out1)
+            else:
+                os.rename(out1,out2)
 
 for y in years:
     # this script will batch submit ICM_tif_mapping, ICM_FFIBS_mapping and ICM_morph_differencing for one year in the same job to the queue
     # all data types in ICM_tif_mappingwill be looped over BEFORE the job moves on to ICM_FFIBS and ICM_morph_differencing
-    print('post-processing: S%02d G%03d - yr %s' % (s,g_fwa,y) )
+    print('submitting post-processing jobs for: S%02d G%03d - yr %s' % (s,g_fwa,y) )
     
     # calculate elaped years used by ICM_morph_differencing
     ey =  y-sy+1
