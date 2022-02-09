@@ -16,6 +16,7 @@ yr1 = int(sys.argv[4])
 yr0 = int(sys.argv[5])
 rastype = sys.argv[6]
 difftype = sys.argv[7]
+spinup = 2
 
 # difftype = 'lndtypdiff'    # land type comparison to FWOA at same year - uses input rastype = 'lndtyp30'
 #difftype = 'lndchg'        # land type comparison to initial conditions - uses input rastype = 'lndtyp30'
@@ -113,7 +114,7 @@ print('\nmapping TIF to PNG image')
 
 difftype_title = difftype_titles[difftype]
 png_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.png' % (png_fol,s,g1,yr0,yr1,difftype)
-png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s,g1,yr1,s,g0,yr0,difftype_title)
+png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s,g1,yr1-spinup,s,g0,yr0-spinup,difftype_title)
 footnote = ''
 
 
@@ -121,34 +122,40 @@ footnote = ''
 if difftype in ['lndtypdiff','lndchg']:
     # color map and legend used for LandWater Difference rasters.
     diff_map = {}
-    diff_map[-9999]=[-9999.5, 10.5, 'white','no data']
-    diff_map[11] = [10.5,11.5,'silver',     'land']
-    diff_map[12] = [11.5,12.5,'darkred',    'land->water (LOSS)']
-    diff_map[13] = [12.5,13.5,'tan',        'land->bare']
-    diff_map[21] = [13.5,21.5,'green',      'water->land (GAIN)']
-    diff_map[22] = [21.5,22.5,'darkblue',   'water']
-    diff_map[23] = [22.5,23.5,'aquamarine', 'water->bare (GAIN)']
-    diff_map[31] = [23.5,31.5,'gainsboro',  'bare->land']
-    diff_map[32] = [31.5,32.5,'pink',       'bare->water (LOSS)']
-    diff_map[33] = [32.5,33.5,'saddlebrown','bare']
-    diff_map[44] = [33.5,44.5,'grey',      'upland']
-    diff_map[51] = [50.5,51.5,'lightgreen', 'flotant->water->land']
-    diff_map[52] = [51.5,52.5,'lightcoral', 'flotant to water (LOSS)']
-    diff_map[53] = [52.5,53.5,'beige', 'flotant->water->bare']
-    diff_map[55] = [54.5,55.5,'lightgray',  'flotant']
-    
+    diff_map[-9999] = ['white',        'no data']
+    diff_map[11]    = ['silver',       'land']
+    diff_map[12]    = ['darkred',      'land->water (LOSS)']
+    diff_map[13]    = ['tan',          'land->bare']
+    diff_map[21]    = ['green',        'water->land (GAIN)']
+    diff_map[22]    = ['darkblue',     'water']
+    diff_map[23]    = ['aquamarine',   'water->bare (GAIN)']
+    diff_map[31]    = ['gainsboro',    'bare->land']
+    diff_map[32]    = ['pink',         'bare->water (LOSS)']
+    diff_map[33]    = ['saddlebrown',  'bare']
+    diff_map[44]    = ['grey',         'upland']
+    diff_map[51]    = ['lightgreen',   'flotant->water->land']
+    diff_map[52]    = ['lightcoral',   'flotant to water (LOSS)']
+    diff_map[53]    = ['beige',        'flotant->water->bare']
+    diff_map[55]    = ['lightgray',    'flotant']
+
+    vals = []
+    bounds = []
     cmap_list = []
-    cmap_norm_list = [diff_map[-9999][0]]       # sets lower left bound on cmap_normalizing to -9999.5, as set in diff_map above
-    leg_lab = {}
+    label_list = []
+    patches = []
+
     for dt in diff_map.keys():
-        cmap_norm_list.append(diff_map[dt][1])
-        cmap_list.append(diff_map[dt][2])
-        leg_lab[diff_map[dt][2]] = diff_map[dt][3]
+        vals.append(dt)
+        bounds.append(dt - 0.5)
+        cmap_list.append(diff_map[dt][0])
+        label_list.append(diff_map[dt][1])
+        patches.append( Patch( color=diff_map[dt][0],label=diff_map[dt][1] ) )
 
-    cmap = ListedColormap(cmap_list)
-    norm = colors.BoundaryNorm(cmap_norm_list, len(cmap_norm_list) )
-    legend_labels = leg_lab
-
+    cmap = colors.ListedColormap(cmap_list)
+    norm = colors.BoundaryNorm(bounds,len(bounds))
+    
+    
+    
 elif difftype in ['salavdiff','salmxdiff','mwldiff','elevdiff']:
     # color map and legend used for Salinity Difference rasters
     cmap = cm.seismic
@@ -160,7 +167,7 @@ with rio.open(tif_pth) as open_tif:
 
 # map 2D raster with matplotlib
 fig,ax = plt.subplots(figsize=(11,5))               # figsize in inches
-tif_map = ax.imshow(tif,cmap=cmap,norm=norm)
+tif_map = ax.imshow(tif,cmap=cmap,norm=norm,interpolation='none')
 
 # build legend
 if difftype in ['lndtypdiff','lndchg']:
