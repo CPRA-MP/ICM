@@ -146,13 +146,13 @@ for ftype in ftype_list:
     
             fig,ax = plt.subplots(figsize=(11,5))
             if ftype == 'salav30':
-                tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0)
+                tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0,interpolation='none')
                 plt.colorbar(tif_map)
             elif ftype == 'salmx30':
-                tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0)
+                tif_map = ax.imshow(tif_na,cmap=cmap,vmin=0.0,vmax=36.0,interpolation='none')
                 plt.colorbar(tif_map)
             else:
-                tif_map = ax.imshow(tif,cmap=cmap,norm=norm)
+                tif_map = ax.imshow(tif,cmap=cmap,norm=norm,interpolation='none')
                 patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
                 ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='small')
             
