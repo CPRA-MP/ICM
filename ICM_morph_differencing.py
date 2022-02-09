@@ -29,13 +29,14 @@ difftype = sys.argv[7]
 
 
 
-print('\n\nComparing year %02d to year %02d for for S%02d G%03d:' % (yr1,yr0,s,g) )
+print('\n\nComparing year %02d to year %02d for for S%02d G%03d:' % (yr1,yr0,s,g1) )
 
 #############################
 ##      Setup folders      ##
 #############################
 print('\nsetting up folders')
-out_fol         = 'S%02d/G%03d/geomorph/output' % (s,g)
+out_fol0         = 'S%02d/G%03d/geomorph/output' % (s,g0)
+out_fol1         = 'S%02d/G%03d/geomorph/output' % (s,g1)
 xyz_fol         = '%s/xyz' % out_fol 
 tif_fol         = '%s/tif' % out_fol
 png_fol         = '%s/png' % out_fol
@@ -58,16 +59,13 @@ for fol in [xyz_fol,tif_fol,png_fol,ts_fol]:
 ############################################
 print('\ncalculating land change (binary file)')
 
-ras1_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g1,yr1,yr1,rastype)
+ras1_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g1,yr1,yr1,rastype)
 if yr0 == 0:
     ras0_bin_pth    = 'S%02d/G500/geomorph/input/MP2023_S00_G500_C000_U00_V00_SLA_I_00_00_W_%s.xyz.b' % (s,rastype)
 else:
-    ras0_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g0,yr0,yr0,rastype)
+    ras0_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol0,s,g0,yr0,yr0,rastype)
 
-'lndtypdiff'
-'lndchg'
-
-ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g1,yr0,yr1,difftype)
+ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g1,yr0,yr1,difftype)
 
 if rastype == 'lndtyp30':
     difftype = 'dlw'
@@ -86,8 +84,8 @@ subprocess.call(cmdstr1)
 #############################################################
 print('\nconverting binary file to ASCI raster')
 xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,s,g1,yr0,yr1,difftype)
-x_bin_pth       = '%s/raster_x_coord.b' % out_fol
-y_bin_pth       = '%s/raster_y_coord.b' % out_fol
+x_bin_pth       = '%s/raster_x_coord.b' % out_fol1
+y_bin_pth       = '%s/raster_y_coord.b' % out_fol1
 dtype           = 'int' #'flt'
 
 cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, ras01_bin_pth, dtype, nras_str]
