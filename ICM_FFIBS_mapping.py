@@ -152,7 +152,7 @@ if 1<20:
 
 
     fig,ax = plt.subplots(figsize=(11,5))
-    tif_map = ax.imshow(FFIBS_30_na,cmap=cmap,norm=norm)
+    tif_map = ax.imshow(FFIBS_30_na,cmap=cmap,norm=norm,interpolation='none')
     patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
     ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='small',ncol=2)
     
