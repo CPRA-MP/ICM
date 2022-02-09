@@ -24,9 +24,13 @@ difftype = sys.argv[7]
 #difftype = 'mwldiff'       # annual mean water level comparison to FWOA at same year - uses input rastype = 'mwl30'
 #difftype = 'elevdiff'      # elevation comparison to FWOA at same year - uses input rastype = 'dem30'
 
-
-
-
+difftype_titles                 = {}
+difftype_titles['lndtypdiff']   = 'Land type'
+difftype_titles['lndchg']       = 'Land type'
+difftype_titles['salavdiff']    = 'Mean annual salinity (ppt)' 
+difftype_titles['salmxdiff']    = 'Maximum 2-week mean salinity (ppt)'
+difftype_titles['mwldiff']      = 'Mean annual water level (m)'
+difftype_titles['elevdiff']     = 'Elevation (m)'
 
 
 print('\n\nComparing year %02d to year %02d for for S%02d G%03d:' % (yr1,yr0,s,g1) )
