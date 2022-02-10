@@ -42,10 +42,10 @@ print('\n\nComparing year %02d to year %02d for for S%02d G%03d:' % (yr1,yr0,s,g
 print('\nsetting up folders')
 out_fol0         = 'S%02d/G%03d/geomorph/output' % (s,g0)
 out_fol1         = 'S%02d/G%03d/geomorph/output' % (s,g1)
-xyz_fol         = '%s/xyz' % out_fol 
-tif_fol         = '%s/tif' % out_fol
-png_fol         = '%s/png' % out_fol
-ts_fol          = '%s/ts'  % out_fol
+xyz_fol         = '%s/xyz' % out_fol1
+tif_fol         = '%s/tif' % out_fol1
+png_fol         = '%s/png' % out_fol1
+ts_fol          = '%s/ts'  % out_fol1
 
 
 for fol in [xyz_fol,tif_fol,png_fol,ts_fol]:
