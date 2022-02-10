@@ -142,22 +142,22 @@ if difftype in ['lndtypdiff','lndchg']:
 # color map and legend used for Salinity Difference rasters    
 elif difftype in ['salavdiff','salmxdiff']:
     diff_map = {}
-    diff_map[-9999] = ['white',        '                    no data']
-    diff_map[-20]   = ['darkred',      '            dsal <  -20 ppt']
-    diff_map[-10]   = ['firebrick',    '  -20 ppt ≤ dsal <  -10 ppt']
-    diff_map[-5]    = ['red',          '  -10 ppt ≤ dsal <   -5 ppt']
-    diff_map[-2]    = ['darkorange',   '   -5 ppt ≤ dsal <   -2 ppt']
-    diff_map[-1]    = ['orange',       '   -2 ppt ≤ dsal <   -1 ppt']
-    diff_map[-0.5]  = ['gold',         '   -1 ppt ≤ dsal < -0.5 ppt']
-    diff_map[-0.1]  = ['yellow',       ' -0.5 ppt ≤ dsal < -0.1 ppt']
-    diff_map[0.1]   = ['lightgray',    ' -0.1 ppt ≤ dsal < +0.1 ppt']
-    diff_map[0.5]   = ['paleturquoise',' +0.1 ppt ≤ dsal < +0.5 ppt']
-    diff_map[1]     = ['lightskyblue', ' +0.5 ppt ≤ dsal <   +1 ppt']
-    diff_map[2]     = ['deepskyblue',  '   +1 ppt ≤ dsal <   +2 ppt']
-    diff_map[5]     = ['dodgerblue',   '   +2 ppt ≤ dsal <   +5 ppt']
-    diff_map[10]    = ['blue',         '   +5 ppt ≤ dsal <  +10 ppt']
-    diff_map[20]    = ['darkblue',     '  +10 ppt ≤ dsal <  +20 ppt']
-    diff_map[40]    = ['indigo',       '  +20 ppt ≤ dsal           ']
+    diff_map[-9999] = ['white',        'no data']
+    diff_map[-36]   = ['indigo',       'dsal <  -20 ppt']
+    diff_map[-20]   = ['darkblue',     '-20 ppt ≤ dsal < -10 ppt']
+    diff_map[-10]   = ['blue',         '-10 ppt ≤ dsal < -5 ppt']
+    diff_map[-5]    = ['dodgerblue',   '-5 ppt ≤ dsal < -2 ppt']
+    diff_map[-2]    = ['deepskyblue',  '-2 ppt ≤ dsal < -1 ppt']
+    diff_map[-1]    = ['lightskyblue', '-1 ppt ≤ dsal < -0.5 ppt']
+    diff_map[-0.5]  = ['paleturquoise','-0.5 ppt ≤ dsal < -0.1 ppt']
+    diff_map[-0.1]  = ['lightgray',    '-0.1 ppt ≤ dsal < +0.1 ppt']
+    diff_map[0.1]   = ['yellow',       '+0.1 ppt ≤ dsal < +0.5 ppt']
+    diff_map[0.5]   = ['gold',         '+0.5 ppt ≤ dsal < +1 ppt']
+    diff_map[1]     = ['orange',       '+1 ppt ≤ dsal < +2 ppt']
+    diff_map[2]     = ['darkorange',   '+2 ppt ≤ dsal < +5 ppt']
+    diff_map[5]     = ['red',          '+5 ppt ≤ dsal < +10 ppt']
+    diff_map[10]    = ['firebrick',    '+10 ppt ≤ dsal < +20 ppt']
+    diff_map[20]    = ['darkred',      '+20 ppt ≤ dsal']
     
 # color map and legend used for Stage and Elevation Difference rasters
 elif ['mwldiff','elevdiff']:
@@ -208,7 +208,7 @@ fig,ax = plt.subplots(figsize=(11,5))               # figsize in inches
 tif_map = ax.imshow(tif,cmap=cmap,norm=norm,interpolation='none')
 
 # build legend
-ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='x-small',ncol=3)
+ax.legend(handles=patches,bbox_to_anchor=[0.5,0],loc='upper center',frameon=False,edgecolor='black',facecolor='white',fontsize='xx-small',ncol=6)
     
 # generic figure edits
 ax.set_axis_off()
