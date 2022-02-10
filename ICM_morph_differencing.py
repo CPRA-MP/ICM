@@ -208,7 +208,6 @@ fig,ax = plt.subplots(figsize=(11,5))               # figsize in inches
 tif_map = ax.imshow(tif,cmap=cmap,norm=norm,interpolation='none')
 
 # build legend
-patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
 ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='x-small',ncol=3)
     
 # generic figure edits
