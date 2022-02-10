@@ -120,9 +120,8 @@ png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s
 footnote = ''
 
 
-
+# color map and legend used for LandWater Difference rasters.
 if difftype in ['lndtypdiff','lndchg']:
-    # color map and legend used for LandWater Difference rasters.
     diff_map = {}
     diff_map[-9999] = ['white',        'no data']
     diff_map[11]    = ['silver',       'land']
@@ -139,29 +138,66 @@ if difftype in ['lndtypdiff','lndchg']:
     diff_map[52]    = ['lightcoral',   'flotant to water (LOSS)']
     diff_map[53]    = ['beige',        'flotant->water->bare']
     diff_map[55]    = ['lightgray',    'flotant']
-
-    vals = []
-    bounds = []
-    cmap_list = []
-    label_list = []
-    patches = []
-
-    for dt in diff_map.keys():
-        vals.append(dt)
-        bounds.append(dt - 0.5)
-        cmap_list.append(diff_map[dt][0])
-        label_list.append(diff_map[dt][1])
-        patches.append( Patch( color=diff_map[dt][0],label=diff_map[dt][1] ) )
-
-    cmap = colors.ListedColormap(cmap_list)
-    norm = colors.BoundaryNorm(bounds,len(bounds))
+       
+# color map and legend used for Salinity Difference rasters    
+elif difftype in ['salavdiff','salmxdiff']:
+    diff_map = {}
+    diff_map[-9999] = ['white',        '                    no data']
+    diff_map[-20]   = ['darkred',      '            dsal <  -20 ppt']
+    diff_map[-10]   = ['firebrick',    '  -20 ppt ≤ dsal <  -10 ppt']
+    diff_map[-5]    = ['red',          '  -10 ppt ≤ dsal <   -5 ppt']
+    diff_map[-2]    = ['darkorange',   '   -5 ppt ≤ dsal <   -2 ppt']
+    diff_map[-1]    = ['orange',       '   -2 ppt ≤ dsal <   -1 ppt']
+    diff_map[-0.5]  = ['gold',         '   -1 ppt ≤ dsal < -0.5 ppt']
+    diff_map[-0.1]  = ['yellow',       ' -0.5 ppt ≤ dsal < -0.1 ppt']
+    diff_map[0.1]   = ['lightgray',    ' -0.1 ppt ≤ dsal < +0.1 ppt']
+    diff_map[0.5]   = ['paleturquoise',' +0.1 ppt ≤ dsal < +0.5 ppt']
+    diff_map[1]     = ['lightskyblue', ' +0.5 ppt ≤ dsal <   +1 ppt']
+    diff_map[2]     = ['deepskyblue',  '   +1 ppt ≤ dsal <   +2 ppt']
+    diff_map[5]     = ['dodgerblue',   '   +2 ppt ≤ dsal <   +5 ppt']
+    diff_map[10]    = ['blue',         '   +5 ppt ≤ dsal <  +10 ppt']
+    diff_map[20]    = ['darkblue',     '  +10 ppt ≤ dsal <  +20 ppt']
+    diff_map[40]    = ['indigo',       '  +20 ppt ≤ dsal           ']
+    
+# color map and legend used for Stage and Elevation Difference rasters
+elif ['mwldiff','elevdiff']:
+    diff_map = {}
+    diff_map[-9999] = ['white',        '                    no data']
+    diff_map[-20]   = ['darkred',      '            dZ <  -20 ppt']
+    diff_map[-10]   = ['firebrick',    '  -20 ppt ≤ dsal <  -10 ppt']
+    diff_map[-5]    = ['red',          '  -10 ppt ≤ dsal <   -5 ppt']
+    diff_map[-2]    = ['darkorange',   '   -5 ppt ≤ dsal <   -2 ppt']
+    diff_map[-1]    = ['orange',       '   -2 ppt ≤ dsal <   -1 ppt']
+    diff_map[-0.5]  = ['gold',         '   -1 ppt ≤ dsal < -0.5 ppt']
+    diff_map[-0.1]  = ['yellow',       ' -0.5 ppt ≤ dsal < -0.1 ppt']
+    diff_map[0.1]   = ['lightgray',    ' -0.1 ppt ≤ dsal < +0.1 ppt']
+    diff_map[0.5]   = ['paleturquoise',' +0.1 ppt ≤ dsal < +0.5 ppt']
+    diff_map[1]     = ['lightskyblue', ' +0.5 ppt ≤ dsal <   +1 ppt']
+    diff_map[2]     = ['deepskyblue',  '   +1 ppt ≤ dsal <   +2 ppt']
+    diff_map[5]     = ['dodgerblue',   '   +2 ppt ≤ dsal <   +5 ppt']
+    diff_map[10]    = ['blue',         '   +5 ppt ≤ dsal <  +10 ppt']
+    diff_map[20]    = ['darkblue',     '  +10 ppt ≤ dsal <  +20 ppt']
+    diff_map[40]    = ['indigo',       '  +20 ppt ≤ dsal           ']
+        
     
     
+vals = []
+bounds = []
+cmap_list = []
+label_list = []
+patches = []
+
+for dt in diff_map.keys():
+    vals.append(dt)
+    bounds.append(dt - 0.01)        # set bound to just to the left of mapping value bins set about in 'diff_map' dict
+    cmap_list.append(diff_map[dt][0])
+    label_list.append(diff_map[dt][1])
+    patches.append( Patch( color=diff_map[dt][0],label=diff_map[dt][1] ) )
+
+cmap = colors.ListedColormap(cmap_list)
+norm = colors.BoundaryNorm(bounds,len(bounds))
     
-elif difftype in ['salavdiff','salmxdiff','mwldiff','elevdiff']:
-    # color map and legend used for Salinity Difference rasters
-    cmap = cm.seismic
-    norm = colors.CenteredNorm() 
+
 
 # open and read TIF raster with rasterio
 with rio.open(tif_pth) as open_tif:
@@ -172,11 +208,8 @@ fig,ax = plt.subplots(figsize=(11,5))               # figsize in inches
 tif_map = ax.imshow(tif,cmap=cmap,norm=norm,interpolation='none')
 
 # build legend
-if difftype in ['lndtypdiff','lndchg']:
-    patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
-    ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='x-small',ncol=3)
-elif difftype in ['salavdiff','salmxdiff','mwldiff','elevdiff']:
-    fig.colorbar(tif_map,ax=ax)
+patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
+ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='x-small',ncol=3)
     
 # generic figure edits
 ax.set_axis_off()
