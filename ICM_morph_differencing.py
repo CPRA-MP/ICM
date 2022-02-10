@@ -73,14 +73,14 @@ else:
 ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g1,yr0,yr1,difftype)
 
 if rastype == 'lndtyp30':
-    difftype = 'dlw'
+    morph_difftype = 'dlw'
 else:
-    difftype = 'dz'
+    morph_difftype = 'dz'
     
 nras_str        = '170852857'
 noData_str      = '-9999'
 
-cmdstr1 = ['./morph_diff_v23.0.0', ras1_bin_pth, ras0_bin_pth, ras01_bin_pth, difftype, nras_str, noData_str]
+cmdstr1 = ['./morph_diff_v23.0.0', ras1_bin_pth, ras0_bin_pth, ras01_bin_pth, morph_difftype, nras_str, noData_str]
 subprocess.call(cmdstr1)
 
 
