@@ -118,7 +118,8 @@ for y in years:
     
     # write sbatch file with final list of function calls saved to ctrol_str
     tag8    = 'pp%01d%03d%02d' % (s,g_fwa,y-sy+1) 
-    write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
+    sbatch_file_unique = 'S%02d.G%03d.%04d.%s' % (s,g_fwa,y,sbatch_file)
+    write_sbatch(sbatch_file_unique,account,email,tag8,ctrl_str,perf)
     
     cmdstr = ['sbatch', '%s' % sbatch_file]
     cmdout = subprocess.check_output(cmdstr).decode()
