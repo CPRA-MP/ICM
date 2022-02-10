@@ -69,12 +69,12 @@ diffrastypes['mwldiff']     = 'mwl30'
 diffrastypes['elevdiff']    = 'dem30'
     
 if rename_hydro == True:
-    out_fol = 'S%02d/G%03d/hydro' % (s,g)
+    out_fol = 'S%02d/G%03d/hydro' % (s,g_fwa)
     print('renaming Hydro *.out files in: %s' % out_fol)
     for out in os.listdir(out_fol):
         if out.endswith('.out'):
             out1 = '%s/%s' % (out_fol,out)
-            out2 = '%s/MP2023_S%02d_G%03d_C%03d_U%02d_V%02d_%r_O_01_52_H_%s' % (out_fol,s,g,c,u,v,r,out)
+            out2 = '%s/MP2023_S%02d_G%03d_C%03d_U%02d_V%02d_%r_O_01_52_H_%s' % (out_fol,s,g_fwa,c,u,v,r,out)
             if out.startswith('MP2023'):
                 print('%s already exists - skipping rename' % out1)
             else:
@@ -100,8 +100,8 @@ for y in years:
     else:
         cmd2 = ''
     
-    if plot_IC_change = True:
-        cmd3 = 'python ICM_morph_differencing.py %s %s %s %s %s\n' % (s, g_fwa, g_fwa, ey, ey_ic, 'lndtyp30', 'lndchg')
+    if plot_IC_change == True:
+        cmd3 = 'python ICM_morph_differencing.py %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwa, ey, ey_ic, 'lndtyp30', 'lndchg')
     else:
         cmd3 = ''
     
@@ -110,8 +110,8 @@ for y in years:
     if plot_FWOA_diff == True:
         print('   - mapping Morph Difference from FWOA outputs as TIFs/PNGs')
         for difftype in diffrastypes.keys():
-            rastype = rastypes[difftype]        
-            cmd4 = 'python ICM_morph_differencing.py %s %s %s %s %s\n' % (s, g_fwa, g_fwoa, ey, ey, rastype, difftype)
+            rastype = diffrastypes[difftype]        
+            cmd4 = 'python ICM_morph_differencing.py %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwoa, ey, ey, rastype, difftype)
         
             ctrl_str = ctrl_str + cmd4
     
