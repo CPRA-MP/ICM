@@ -74,8 +74,10 @@ ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b
 
 if rastype == 'lndtyp30':
     morph_difftype = 'dlw'
+    dtype          = 'int'
 else:
     morph_difftype = 'dz'
+    dtype          = 'flt'
     
 nras_str        = '170852857'
 noData_str      = '-9999'
@@ -91,7 +93,7 @@ print('\nconverting binary file to ASCI raster')
 xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,s,g1,yr0,yr1,difftype)
 x_bin_pth       = '%s/raster_x_coord.b' % out_fol1
 y_bin_pth       = '%s/raster_y_coord.b' % out_fol1
-dtype           = 'int' #'flt'
+
 
 cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, ras01_bin_pth, dtype, nras_str]
 subprocess.call(cmdstr2)
