@@ -121,7 +121,7 @@ for y in years:
     sbatch_file_unique = 'S%02d.G%03d.%04d.%s' % (s,g_fwa,y,sbatch_file)
     write_sbatch(sbatch_file_unique,account,email,tag8,ctrl_str,perf)
     
-    cmdstr = ['sbatch', '%s' % sbatch_file]
+    cmdstr = ['sbatch', '%s' % sbatch_file_unique]
     cmdout = subprocess.check_output(cmdstr).decode()
 
     
@@ -129,8 +129,9 @@ if plot_hydro_ts == True:
     print('plotting ICM-Hydro timeseries: S%02d G%03d' % (s,g_fwa) )
     tag8 = 'hyts%01d%03d' % (s,g_fwa)
     ctrl_str = 'python ICM-Hydro_plotting_noCRMS.py %s %s' % (s,g_fwa)
-    write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
-    cmdstr = ['sbatch', '%s' % sbatch_file]
+    sbatch_file_uniqueH = 'S%02d.G%03d.%04d.hydTS.%s' % (s,g_fwa,y,sbatch_file)
+    write_sbatch(sbatch_file_uniqueH,account,email,tag8,ctrl_str,perf)
+    cmdstr = ['sbatch', '%s' % sbatch_file_uniqueH]
     cmdout = subprocess.check_output(cmdstr).decode()
     
 if plot_veg_ts == True:
@@ -138,6 +139,7 @@ if plot_veg_ts == True:
     last_year = 2070
     tag8 = 'vgts%01d%03d' % (s,g_fwa)
     ctrl_str = 'python ICM-Veg_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
-    write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
-    cmdstr = ['sbatch', '%s' % sbatch_file]
+    sbatch_file_uniqueV = 'S%02d.G%03d.%04d.vegTS.%s' % (s,g_fwa,y,sbatch_file)
+    write_sbatch(sbatch_file_uniqueV,account,email,tag8,ctrl_str,perf)
+    cmdstr = ['sbatch', '%s' % sbatch_file_uniqueV]
     cmdout = subprocess.check_output(cmdstr).decode()
