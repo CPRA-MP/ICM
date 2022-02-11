@@ -69,9 +69,9 @@ if hotstart == True:
     print('found multiple values for at least one year - indicating run was hotstarted.')
     orig = lvfile
     back = '%s.old' % orig
-    print('copying original file with new *.old extension.')
+    print('copying original LandVeg file with new *.old extension.')
     os.rename(orig,back)
-    print('writing new file using only the last instance of each year with repeated data.')
+    print('writing new LandVeg file using only the last instance of each year with repeated data.')
     
     with open(lvfile,mode='w') as lvf_new:
         lvf_new.write(header):
@@ -85,4 +85,43 @@ if hotstart == True:
 else:
     print('did not find any repeat/hotstarted data.')
 
-
+    
+if hotstart == True:
+    qd = './S%02d/G%02d/geomorph/output_qaqc' % (S,G)
+    print('cleaning up QAQC CSV files in %s' % qd)
+    for qcfile in os.listdir(qd):
+        if qcfile.startswith('MP2023_S%02d_G%03d' % (S,G)):
+            orig = qcfile
+            back = '%s.old' % orig
+            os.rename(orig,back)
+            c1_3_yr = {}
+            c5_25_yr = {}
+            with open(qcfile,mode='r') as qcf:
+                nr = 0
+                for r in qcf:
+                    if nr == 0:
+                        header = r
+                    else:
+                        try:
+                            y = int(r.split(',')[3])
+                            c1_3 = r.split(',')[0:3]
+                            c5_25 = r.split(',')[4:]  
+                
+                            if y not in c1_3_yr.keys():
+                                c1_3_yr[y] = []
+                                c5_25_yr[y] = []
+                            
+                            c1_3_yr[y].append(c1_3)
+                            c5_25_yr[y].append(c5_25)
+                    nr += 1
+                    
+            with open(qcfile,mode='w') as qcf_new:
+                qcf_new.write(header)
+                for y in c1_3_yr.keys():
+                    c1_3 = c1_3_yr[y][-1]       # if multiple entries for given year, y, use the last one
+                    c4 = y
+                    c5_25 = c5_25_yr[y][-1]     # if multiple entries for given year, y, use the last one
+                    row2write = '%s,%s,%s,%s' % (c1_3[0],c1_3[1],c1_3[2],c4)
+                    for v in c5_25:
+                        row2write = '%s,%s' % (row2write,v)
+                    qcf_new.write(row2write)    # the last item in c5_25 should have the newline character \n already included in row2write
