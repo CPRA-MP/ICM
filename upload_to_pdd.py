@@ -57,8 +57,8 @@ if overwrite == True:
     cur = conn.cursor()
 #    sqlstr = "delete from icm.land_veg;"  # deletes all rows in table
 #    actionnote = 'deleted all rows in SQL server copy of icm.land_veg'
-    sv = 7
-    sqlstr = 'delete from icm.land_veg where land_veg."Scenario"=%d;' % sv
+    data2delete ='"ModelGroup"=606'            #'"Scenario"=7'
+    sqlstr = 'delete from icm.land_veg where land_veg.%s;' % data2delete
     actionnote = 'deleted all S07 data in SQL server copy of icm.land_veg'
     cur.execute(sqlstr)
     conn.commit()
