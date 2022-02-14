@@ -59,7 +59,7 @@ if overwrite == True:
 #    actionnote = 'deleted all rows in SQL server copy of icm.land_veg'
     data2delete ='"ModelGroup"=606'            #'"Scenario"=7'
     sqlstr = 'delete from icm.land_veg where land_veg.%s;' % data2delete
-    actionnote = 'deleted all S07 data in SQL server copy of icm.land_veg'
+    actionnote = 'deleted all %s data in SQL server copy of icm.land_veg' % data2delete
     cur.execute(sqlstr)
     conn.commit()
     cur.close()
