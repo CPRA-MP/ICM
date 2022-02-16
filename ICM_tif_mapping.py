@@ -17,6 +17,7 @@ g = int(sys.argv[2])                 # g = '503'
 year = int(sys.argv[3])         # year = 2015
 startyear = int(sys.argv[4])    # startyear = 2015
 
+overwrite = 0       # overwrite=0 will not overwrite files if they exist, overwrite=1 will overwrite pre-existing files
 spinup_years = 2
 elapsedyear = year - startyear + 1
 footnote = ''
@@ -35,6 +36,12 @@ ftype_mapPNG        = [1,1,1,1,0,0,0] #True, True, True, True, False,False]
 #############################
 ##      Setup folders      ##
 #############################
+print('Begin TIF mapping for S%02d G%03d - yr %s' % (s,g,year))
+if overwrite == 1:
+    print(' - File overwrite flag setting turned ON (1) - output files will be overwritten if they already exist.')
+else:
+    print(' - File overwrite flag setting turned OFF (0) - output files will NOT be overwritten if they already exist.')      
+
 print('\nsetting up folders')
 
 out_fol         = 'S%02d/G%03d/geomorph/output' % (s,g)
@@ -98,7 +105,7 @@ for ftype in ftype_list:
         legend_labels   = leg_lab_list[ntyp]        
     except:
         print('\n')
-        print('  No settings available for **%s** output type' % ftype)
+        print('  No colormap settings available for **%s** output type' % ftype)
 
     try:
         xyz_bin_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g,elapsedyear,elapsedyear,ftype)
@@ -106,7 +113,6 @@ for ftype in ftype_list:
         tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif'   % (tif_fol,s,g,elapsedyear,elapsedyear,ftype_out)
         png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png'   % (png_fol,s,g,elapsedyear,elapsedyear,ftype_out)
 
-        
         x_bin_pth       = '%s/raster_x_coord.b' % out_fol
         y_bin_pth       = '%s/raster_y_coord.b' % out_fol
         nras_str        = '170852857'
@@ -118,8 +124,12 @@ for ftype in ftype_list:
         #############################################################
         ##      Convert from binary to ASCI     ##
         #############################################################        
+        if os.path.isfile(xyz_asc_pth) == True:
+            bin2xyz = bin2xyz*overwrite
+            print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
+        
         if bin2xyz == True:
-            print('\nconverting binary file to ASCI raster')
+            print('\nconverting binary file to ASCI raster - %s ' % ftype)
             cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, xyz_bin_pth, dtype, nras_str]
             subprocess.call(cmdstr2)
         
@@ -127,17 +137,29 @@ for ftype in ftype_list:
         #############################################################
         ##      Convert raster from ASCI to TIF        ##
         #############################################################
+        if os.path.isfile(tif_pth) == True:
+            xyz2tif = xyz2tif*overwrite
+            print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
+                  
         if xyz2tif == True:
-            print('\nconverting ASCI raster to TIF')
+            print('\nconverting ASCI raster to TIF - %s ' % ftype)
             cmdstr3 = ['gdal_translate', xyz_asc_pth, tif_pth]
             subprocess.call(cmdstr3)
         
-        
+        if os.path.isfile(tif_pth) == True:
+            print('\ndeleting XYZ ASCI raster file - %s' % ftype)
+            cmdstr4 = ['rm',xyz_asc_pth]
+            subprocess.call(cmdstr4)
+            
         ############################################
         ##      Map TIF raster to PNG image       ##
         ############################################
+        if os.path.isfile(png_pth) == True:
+            mapPNG = mapPNG*overwrite
+            print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
+                  
         if mapPNG == True:    
-            print('\nmapping TIF to PNG image')
+            print('\nmapping TIF to PNG image - %s ' % ftype)
     
             # open and read TIF raster with rasterio  - then filter for NoData
             with rio.open(tif_pth) as open_tif:
@@ -164,8 +186,11 @@ for ftype in ftype_list:
             # save as image
             plt.savefig(png_pth,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
             
-        
-    
     
     except:
             print('failed to convert and/or map %s' % ftype)
+
+                  
+        
+        
+        
