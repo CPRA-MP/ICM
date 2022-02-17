@@ -158,7 +158,7 @@ if os.path.isfile(tif_pth) == True:
 ##      Convert land change raster from TIF to PNG         ##
 #############################################################
 if mapPNG == True:    
-    print('\nmapping TIF to PNG image - %s' % difftype')
+    print('\nmapping TIF to PNG image - %s' % difftype)
     # color map and legend used for LandWater Difference rasters.
     if difftype in ['lndtypdiff','lndchg']:
         diff_map = {}
