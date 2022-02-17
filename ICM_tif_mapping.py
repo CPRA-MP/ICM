@@ -121,26 +121,37 @@ for ftype in ftype_list:
         png_title = '%s - S%02d - G%03d - Year %02d' % (ftype_labels[ntyp],s,g,elapsedyear-spinup_years)
 
 
-        #############################################################
-        ##      Convert from binary to ASCI     ##
-        #############################################################        
+        ################################################
+        ##      Check for old files for overwrite     ##
+        ################################################
         if os.path.isfile(xyz_asc_pth) == True:
             bin2xyz = bin2xyz*overwrite
             print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
         
+        if os.path.isfile(tif_pth) == True:
+            xyz2tif = xyz2tif*overwrite
+            print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
+        
+        xyz2tif = xyz2tif*bin2xyz    # update XYZ flag - if TIF exists and is not being overwritten, then no need to build XYZ
+        
+        if os.path.isfile(png_pth) == True:
+            mapPNG = mapPNG*overwrite
+            print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
+        
+        
+
+        ##########################################
+        ##      Convert from binary to ASCI     ##
+        ##########################################
         if bin2xyz == True:
             print('\nconverting binary file to ASCI raster - %s ' % ftype)
             cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, xyz_bin_pth, dtype, nras_str]
             subprocess.call(cmdstr2)
         
         
-        #############################################################
+        #################################################
         ##      Convert raster from ASCI to TIF        ##
-        #############################################################
-        if os.path.isfile(tif_pth) == True:
-            xyz2tif = xyz2tif*overwrite
-            print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
-                  
+        #################################################
         if xyz2tif == True:
             print('\nconverting ASCI raster to TIF - %s ' % ftype)
             cmdstr3 = ['gdal_translate', xyz_asc_pth, tif_pth]
@@ -154,10 +165,6 @@ for ftype in ftype_list:
         ############################################
         ##      Map TIF raster to PNG image       ##
         ############################################
-        if os.path.isfile(png_pth) == True:
-            mapPNG = mapPNG*overwrite
-            print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
-                  
         if mapPNG == True:    
             print('\nmapping TIF to PNG image - %s ' % ftype)
     
