@@ -61,16 +61,26 @@ try:
 
     png_title = 'Habitat Classification - S%02d - G%03d - Year %02d' % (s,g,elapsedyear-spinup_years)
 
-   
-    ############################################
-    ##           Read in TIF rasters          ##
-    ############################################
-    if os.path.isfile(xyz_asc_pth) == True:
+
+    ################################################
+    ##      Check for old files for overwrite     ##
+    ################################################    
+    if os.path.isfile(FFIBStif_pth) == True:
         build_TIF = overwrite
         print('\nTIF raster file already exists - will use overwrite flag setting (%d) - FFIBS ' % (overwrite))
     else:
         build_TIF = 1
-        
+    
+    if os.path.isfile(png_pth) == True:
+        mapPNG = overwrite
+        print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
+    else:
+        mapPNG = 1
+    
+    
+    ############################################
+    ##           Read in TIF rasters          ##
+    ############################################
     if build_TIF == True:
         print('\ncombining FFIBS and landtype files')
     
@@ -153,12 +163,6 @@ try:
     ##########################################
     ##      Map TIF raster to PNG image     ##
     ##########################################
-    if os.path.isfile(png_pth) == True:
-        mapPNG = overwrite
-        print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
-    else:
-        mapPNG = 1
-    
     if mapPNG == True:
         print('\nSaving FFIBS map as PNG file.')
         # color map and legend used for LandType rasters
