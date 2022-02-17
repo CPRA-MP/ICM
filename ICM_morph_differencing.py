@@ -100,14 +100,14 @@ else:
     
 if os.path.isfile(xyz_asc_pth) == True:
     bin2xyz = overwrite
-    print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,diffftype))
+    print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,difftype))
 else:
     bin2xyz = 1
 bin2xyz = xyz2tif*bin2xyz    # update XYZ flag - if TIF exists and is not being overwritten, then no need to build XYZ
 
 if os.path.isfile(ras01_bin_pth) == True:
     build_bin = overwrite
-    print('\nDifference binary raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,diffftype))
+    print('\nDifference binary raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,difftype))
 else:
     build_bin = 1
        
