@@ -83,17 +83,38 @@ difftype_title = difftype_titles[difftype]
 png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s,g1,yr1-spinup,s,g0,yr0-spinup,difftype_title)
 footnote = ''
 
+################################################
+##      Check for old files for overwrite     ##
+################################################
+if os.path.isfile(png_pth) == True:
+    mapPNG = overwrite
+    print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,difftype))
+else:
+    mapPNG = 1
+    
+if os.path.isfile(tif_pth) == True:
+    xyz2tif = overwrite
+    print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
+else:
+    xyz2tif == 1
+    
+if os.path.isfile(xyz_asc_pth) == True:
+    bin2xyz = overwrite
+    print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,diffftype))
+else:
+    bin2xyz = 1
+bin2xyz = xyz2tif*bin2xyz    # update XYZ flag - if TIF exists and is not being overwritten, then no need to build XYZ
 
-
-############################################
-##      Calculate land change raster      ##
-############################################
 if os.path.isfile(ras01_bin_pth) == True:
     build_bin = overwrite
     print('\nDifference binary raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,diffftype))
 else:
     build_bin = 1
-    
+       
+
+############################################
+##      Calculate land change raster      ##
+############################################
 if build_bin == True:
     print('\ncalculating land change (binary file)')
     if rastype == 'lndtyp30':
@@ -113,12 +134,6 @@ if build_bin == True:
 #############################################################
 ##      Convert land change raster from binary to ASCI     ##
 #############################################################
-if os.path.isfile(xyz_asc_pth) == True:
-    bin2xyz = overwrite
-    print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,diffftype))
-else:
-    bin2xyz = 1
-    
 if bin2xyz == True:
     print('\nconverting binary file to ASCI raster - %s' % difftype)
     cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, ras01_bin_pth, dtype, nras_str]
@@ -128,12 +143,6 @@ if bin2xyz == True:
 #############################################################
 ##      Convert land change raster from ASCI to TIF        ##
 #############################################################
-if os.path.isfile(tif_pth) == True:
-    xyz2tif = overwrite
-    print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
-else:
-    xyz2tif == 1
-
 if xyz2tif == True:
     print('\nconverting ASCI raster to TIF - %s' % difftype)
     cmdstr3 = ['gdal_translate', xyz_asc_pth, tif_pth]
@@ -148,12 +157,6 @@ if os.path.isfile(tif_pth) == True:
 #############################################################
 ##      Convert land change raster from TIF to PNG         ##
 #############################################################
-if os.path.isfile(png_pth) == True:
-    mapPNG = overwrite
-    print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,difftype))
-else:
-    mapPNG = 1
-
 if mapPNG == True:    
     print('\nmapping TIF to PNG image - %s' % difftype')
     # color map and legend used for LandWater Difference rasters.
