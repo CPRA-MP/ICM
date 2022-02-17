@@ -124,6 +124,10 @@ for ftype in ftype_list:
         ################################################
         ##      Check for old files for overwrite     ##
         ################################################
+        if os.path.isfile(png_pth) == True:
+            mapPNG = mapPNG*overwrite
+            print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
+
         if os.path.isfile(xyz_asc_pth) == True:
             bin2xyz = bin2xyz*overwrite
             print('\nASCI raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
@@ -131,13 +135,7 @@ for ftype in ftype_list:
         if os.path.isfile(tif_pth) == True:
             xyz2tif = xyz2tif*overwrite
             print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
-        
-        xyz2tif = xyz2tif*bin2xyz    # update XYZ flag - if TIF exists and is not being overwritten, then no need to build XYZ
-        
-        if os.path.isfile(png_pth) == True:
-            mapPNG = mapPNG*overwrite
-            print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
-        
+        bin2xyz = xyz2tif*bin2xyz    # update XYZ flag - if TIF exists and is not being overwritten, then no need to build XYZ
         
 
         ##########################################
