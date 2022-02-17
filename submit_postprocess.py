@@ -108,7 +108,7 @@ for y in years:
     else:
         cmd3 = ''
     
-    ctrl_str = cmd1 + cmd2
+    ctrl_str = cmd1 + cmd2 + cmd3
     
     if plot_FWOA_diff == True:
         print('   - mapping Morph Difference from FWOA outputs as TIFs/PNGs')
@@ -131,7 +131,7 @@ for y in years:
 if plot_hydro_ts == True:
     print('plotting ICM-Hydro timeseries: S%02d G%03d' % (s,g_fwa) )
     tag8 = 'hyts%01d%03d' % (s,g_fwa)
-    ctrl_str = 'python ICM-Hydro_plotting_noCRMS.py %s %s' % (s,g_fwa)
+    ctrl_str = 'python ICM-Hydro_plotting_noCRMS.py %s %s\n' % (s,g_fwa)
     sbatch_file_uniqueH = 'S%02d.G%03d.%04d.hydTS.%s' % (s,g_fwa,y,sbatch_file)
     write_sbatch(sbatch_file_uniqueH,account,email,tag8,ctrl_str,perf)
     cmdstr = ['sbatch', '%s' % sbatch_file_uniqueH]
@@ -142,8 +142,8 @@ if plot_veg_ts == True:
     last_year = 2070
     tag8 = 'vgts%01d%03d' % (s,g_fwa)
     
-    cmd1 = 'python ICM-Veg_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
-    cmd2 = 'python ICM-Veg_ecoregion_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
+    cmd1 = 'python ICM-Veg_timeseries_plotting.py %s %s %s\n' % (s,g_fwa,last_year)
+    cmd2 = 'python ICM-Veg_ecoregion_timeseries_plotting.py %s %s %s\n' % (s,g_fwa,last_year)
     ctrl_str = cmd1 + cmd2
     
     sbatch_file_uniqueV = 'S%02d.G%03d.%04d.vegTS.%s' % (s,g_fwa,y,sbatch_file)
