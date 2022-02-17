@@ -141,7 +141,11 @@ if plot_veg_ts == True:
     print('plotting ICM-LAVegMod timeseries: S%02d G%03d' % (s,g_fwa) )
     last_year = 2070
     tag8 = 'vgts%01d%03d' % (s,g_fwa)
-    ctrl_str = 'python ICM-Veg_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
+    
+    cmd1 = 'python ICM-Veg_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
+    cmd2 = 'python ICM-Veg_ecoregion_timeseries_plotting.py %s %s %s' % (s,g_fwa,last_year)
+    ctrl_str = cmd1 + cmd2
+    
     sbatch_file_uniqueV = 'S%02d.G%03d.%04d.vegTS.%s' % (s,g_fwa,y,sbatch_file)
     write_sbatch(sbatch_file_uniqueV,account,email,tag8,ctrl_str,perf)
     cmdstr = ['sbatch', '%s' % sbatch_file_uniqueV]
