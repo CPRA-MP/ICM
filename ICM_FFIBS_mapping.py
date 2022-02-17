@@ -45,13 +45,12 @@ for fol in [xyz_fol,tif_fol,png_fol]:
 
 
 
-#try:
-if 1<20:
+try:
     LVMout_pth      = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_V_vegty.asc+' % (veg_fol,s,g,elapsedyear,elapsedyear)
     FFIBSasc_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.asc' % (veg_fol,s,g,elapsedyear,elapsedyear)
-    FFIBStif_pth       = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_FFIBS.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
+    FFIBStif_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_FFIBS.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
     LTtif_pth       = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_lndtyp.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
-    LVGtif_pth      = '%s/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.tif' % (in_fol)
+    LVgridtif_pth      = '%s/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.tif' % (in_fol)
     png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.png' % (png_fol,s,g,elapsedyear,elapsedyear)
 
     png_title = 'Habitat Classification - S%02d - G%03d - Year %02d' % (s,g,elapsedyear-spinup_years)
@@ -70,11 +69,11 @@ if 1<20:
     LTcrs = 'EPSG:26915'                    # EPSG code for UTM Zone 15N projection
 
     # read in ICM-LAVegMod grid raster        
-    with rio.open(LVGtif_pth) as open_tif:
-        LVGtif = open_tif.read(1)
-    LVGtif = LVGtif[:-20]       # input grid TIF for grid has 20 additional rows of NoData at the bottom of the raster compared to the LT tif from Morph
+    with rio.open(LVgridtif_pth) as open_tif:
+        LVgridtif = open_tif.read(1)
+    LVgridtif = LVgridtif[:-20]       # input grid TIF for grid has 20 additional rows of NoData at the bottom of the raster compared to the LT tif from Morph
     
-    if LVGtif.shape != LTtif.shape:
+    if LVgridtif.shape != LTtif.shape:
         print('Grid and landtype rasters are not of the same shape')
         sys.exit()
 
@@ -105,13 +104,13 @@ if 1<20:
     ############################
     # map FFIBS score to 30-m grid when the Landtype = 1, otherwise remap Landtype to higher values
     
-    FFIBS_30 = LVGtif*0.0     # build zero array in equal dimensions of grid30 tif
-    rows,cols = LVGtif.shape
+    FFIBS_30 = LVgridtif*0.0     # build zero array in equal dimensions of grid30 tif
+    rows,cols = LVgridtif.shape
     for r in range(0,rows):
         if r in range(0,rows,int(rows/10)):
             print('processed %s of %s rows...' % (r,rows))
         for c in range(0,cols):
-            gridID = LVGtif[r][c]
+            gridID = LVgridtif[r][c]
             LT   = LTtif[r][c]
             if gridID > 0:
                 if LT > 0:
@@ -164,5 +163,5 @@ if 1<20:
     # save as image
     plt.savefig(png_pth,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
     
-#except:
-#        print('failed to convert and/or map %s' % ftype)
+except:
+        print('failed to convert and/or map %s' % ftype)
