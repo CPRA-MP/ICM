@@ -94,7 +94,7 @@ else:
     
 if os.path.isfile(tif_pth) == True:
     xyz2tif = overwrite
-    print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,ftype))
+    print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,diffftype))
 else:
     xyz2tif == 1
     
