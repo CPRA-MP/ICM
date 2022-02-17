@@ -50,7 +50,7 @@ try:
     FFIBSasc_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.asc' % (veg_fol,s,g,elapsedyear,elapsedyear)
     FFIBStif_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_FFIBS.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
     LTtif_pth       = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_lndtyp.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
-    LVgridtif_pth      = '%s/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.tif' % (in_fol)
+    LVgridtif_pth   = '%s/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.tif' % (in_fol)
     png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.png' % (png_fol,s,g,elapsedyear,elapsedyear)
 
     png_title = 'Habitat Classification - S%02d - G%03d - Year %02d' % (s,g,elapsedyear-spinup_years)
