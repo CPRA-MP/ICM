@@ -55,7 +55,7 @@ plot_FWOA_diff  = True
 plot_hydro_ts   = False
 plot_veg_ts     = True
 
-perf    = 1                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
+perf    = 0                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
 account = 'bcs200002p'                                                          # XSEDE allocation account
 email   = 'eric.white@la.gov'                                                   # emails for notification on queue
 sbatch_file = 'postprocess.submit'
@@ -65,7 +65,7 @@ diffrastypes = {}
 diffrastypes['lndtypdiff']  = 'lndtyp30'
 diffrastypes['salavdiff']   = 'salav30'
 diffrastypes['salmxdiff']   = 'salmx30'
-diffrastypes['mwldiff']     = 'mwl30'
+diffrastypes['inundiff']    = 'inun30'
 diffrastypes['elevdiff']    = 'dem30'
     
 if rename_hydro == True:
