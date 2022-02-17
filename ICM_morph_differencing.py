@@ -24,7 +24,7 @@ spinup = 2
 #difftype = 'lndchg'        # land type comparison to initial conditions - uses input rastype = 'lndtyp30'
 #difftype = 'salavdiff'     # annual mean salinity comparison to FWOA at same year - uses input rastype = 'salav30'
 #difftype = 'salmxdiff'     # annual max salinity comparison to FWOA at same year - uses input rastype = 'salmx30'
-#difftype = 'mwldiff'       # annual mean water level comparison to FWOA at same year - uses input rastype = 'mwl30'
+#difftype = 'inundiff'      # annual mean inundation depth comparison to FWOA at same year - uses input rastype = 'inun30'
 #difftype = 'elevdiff'      # elevation comparison to FWOA at same year - uses input rastype = 'dem30'
 
 difftype_titles                 = {}
@@ -32,9 +32,23 @@ difftype_titles['lndtypdiff']   = 'Land type'
 difftype_titles['lndchg']       = 'Land type'
 difftype_titles['salavdiff']    = 'Mean annual salinity (ppt)' 
 difftype_titles['salmxdiff']    = 'Maximum 2-week mean salinity (ppt)'
-difftype_titles['mwldiff']      = 'Mean annual water level (m)'
+difftype_titles['inundiff']     = 'Mean annual inundation depth (m)'
 difftype_titles['elevdiff']     = 'Elevation (m)'
 
+
+difftype_title = difftype_titles[difftype]
+png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s,g1,yr1-spinup,s,g0,yr0-spinup,difftype_title)
+footnote = ''
+
+if rastype == 'lndtyp30':
+    morph_difftype = 'dlw'
+    dtype          = 'int'
+else:
+    morph_difftype = 'dz'
+    dtype          = 'flt'
+    
+nras_str        = '170852857'
+noData_str      = '-9999'
 
 
 #############################
@@ -78,11 +92,7 @@ xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' 
 tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.tif' % (tif_fol,s,g1,yr0,yr1,difftype)
 png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.png' % (png_fol,s,g1,yr0,yr1,difftype)
 
-
-difftype_title = difftype_titles[difftype]
-png_title = 'S%02d G%03d year %02d compared to S%02d G%03d year %02d - %s'  % (s,g1,yr1-spinup,s,g0,yr0-spinup,difftype_title)
-footnote = ''
-
+    
 ################################################
 ##      Check for old files for overwrite     ##
 ################################################
@@ -117,20 +127,10 @@ else:
 ############################################
 if build_bin == True:
     print('\ncalculating land change (binary file)')
-    if rastype == 'lndtyp30':
-        morph_difftype = 'dlw'
-        dtype          = 'int'
-    else:
-        morph_difftype = 'dz'
-        dtype          = 'flt'
-        
-    nras_str        = '170852857'
-    noData_str      = '-9999'
-    
     cmdstr1 = ['./morph_diff_v23.0.0', ras1_bin_pth, ras0_bin_pth, ras01_bin_pth, morph_difftype, nras_str, noData_str]
     subprocess.call(cmdstr1)
-    
 
+    
 #############################################################
 ##      Convert land change raster from binary to ASCI     ##
 #############################################################
@@ -139,7 +139,7 @@ if bin2xyz == True:
     cmdstr2 = ['./morph_rasters_bin2xyz_v23.0.0',xyz_asc_pth, x_bin_pth, y_bin_pth, ras01_bin_pth, dtype, nras_str]
     subprocess.call(cmdstr2)
 
-
+    
 #############################################################
 ##      Convert land change raster from ASCI to TIF        ##
 #############################################################
@@ -199,7 +199,7 @@ if mapPNG == True:
         diff_map[20]    = ['darkred',      '+20 ppt ≤ dSal']
         
     # color map and legend used for Stage and Elevation Difference rasters
-    elif ['mwldiff','elevdiff']:
+    elif ['inundiff','elevdiff']:
         diff_map = {}
         diff_map[-9999] = ['white',        'no data']
         diff_map[-100]  = ['darkred',      'dZ < -2.0 m']
@@ -217,8 +217,6 @@ if mapPNG == True:
         diff_map[1.0]   = ['blue',          '+1.0 m ≤ dZ < +1.5 m']
         diff_map[1.5]   = ['darkblue',      '+1.5 m ≤ dZ < 2.0 m']
         diff_map[2.0]   = ['indigo',        '+2.0 m ≤ dZ']
-            
-        
         
     vals = []
     bounds = []
@@ -235,8 +233,6 @@ if mapPNG == True:
     
     cmap = colors.ListedColormap(cmap_list)
     norm = colors.BoundaryNorm(bounds,len(bounds))
-        
-    
     
     # open and read TIF raster with rasterio
     with rio.open(tif_pth) as open_tif:
