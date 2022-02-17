@@ -96,7 +96,7 @@ if os.path.isfile(tif_pth) == True:
     xyz2tif = overwrite
     print('\nTIF raster file already exists - will use overwrite flag setting (%d) - %s ' % (overwrite,difftype))
 else:
-    xyz2tif == 1
+    xyz2tif = 1
     
 if os.path.isfile(xyz_asc_pth) == True:
     bin2xyz = overwrite
