@@ -73,7 +73,7 @@ try:
     
     if os.path.isfile(png_pth) == True:
         mapPNG = overwrite
-        print('\nPNG image file already exists - will use overwrite flag setting(%d) - %s ' % (overwrite,ftype))
+        print('\nPNG image file already exists - will use overwrite flag setting(%d) - FFIBS ' % (overwrite))
     else:
         mapPNG = 1
     
