@@ -101,7 +101,10 @@ for y in years:
         cmd2 = ''
     
     if plot_IC_change == True:
-        cmd3 = 'python ICM_morph_differencing.py %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwa, ey, ey_ic, 'lndtyp30', 'lndchg')
+        if ey > ey_ic:
+            cmd3 = 'python ICM_morph_differencing.py %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwa, ey, ey_ic, 'lndtyp30', 'lndchg')
+        else:
+            cmd3 = ''
     else:
         cmd3 = ''
     
