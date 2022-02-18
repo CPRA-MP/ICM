@@ -561,12 +561,12 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 y_txt = 'Vegetation Species Coverage'
                 title_txt = '%s - %s - Ecoregion: %s' % (S,P,Cl)
                 #print the number of unique coverages at the top of each bar
-                for r in range(0,maxY):
-                    if r in range(0,maxY,2):    # stagger vertical offset of label every other year
-                        voffset = 0.95
-                    else:
-                        voffset = 0.97
-                    plt.text(r+0.55,voffset,str(int(BBs[r])),fontsize=6)
+                for r in range(minY,maxY+1):
+                    #if r in range(0,maxY+1,2):    # stagger vertical offset of label every other year
+                    #    voffset = 0.95
+                    #else:
+                    #    voffset = 0.97
+                    plt.text(r,1.01,str(int(BBs[r])),fontsize=6)
                 
                 plt.legend(ncol=3,fontsize='small',bbox_to_anchor=(0.5,-0.2), loc='upper center', borderaxespad=0.00)
                 plt.ylabel(y_txt)
