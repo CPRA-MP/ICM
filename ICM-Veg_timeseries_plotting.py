@@ -36,6 +36,7 @@ with open(path_cellID,mode='r') as gridfile:
                 cell_comp[cell] = comp
                 cell_eco[cell]  = er
                 cell_qaqc[cell] = qaqc
+        nl += 1
 cell_ID = []
 for c in cell_comp.keys():
     cell_ID.append(c)
