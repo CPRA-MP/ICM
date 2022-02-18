@@ -23,7 +23,7 @@ cell_eco  = {}
 cell_qaqc = {}
 
 path_cellID = r'./%s/%s/geomorph/output_qaqc/CellIDs_to_plot.csv' % (S,G)
-with open(path_cellID,mode='r',dtype='str') as gridfile:
+with open(path_cellID,mode='r') as gridfile:
     nl = 0
     for line in gridfile:
         ls = line.split(',')
