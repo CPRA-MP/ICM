@@ -12,7 +12,7 @@ endyear = int(sys.argv[3])
 
 S = 'S%02d' % s
 G = 'G%03d' % g
-years = range(1,endyear-2019+1)
+years = range(1,endyear-2019+2)
 
 asc_grid_rows = 371
 ngrid = 173898
@@ -557,8 +557,8 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 
                 #set axes and chart titles
                 x_txt = 'Year'
-                y_txt = 'Coverage Type'
-                title_txt = 'Coverage:  %s - %s - ICM-LAVegMod Ecoregion: %s' % (S,P,Cl)
+                y_txt = 'Vegetation Species Coverage'
+                title_txt = '%s - %s - Ecoregion: %s' % (S,P,Cl)
                 #print the number of unique coverages at the top of each bar
                 for r in range(0,maxY):
                     if r in range(0,maxY,2):    # stagger vertical offset of label every other year
@@ -570,7 +570,7 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 plt.legend(ncol=3,fontsize='small',bbox_to_anchor=(0.5,-0.2), loc='upper center', borderaxespad=0.00)
                 plt.ylabel(y_txt)
                 plt.xlabel(x_txt)
-                plt.title(title_txt)
+                plt.title(title_txt,fontsize='small')
                 
                 plt.savefig(png_file, bbox_inches='tight') 
                 #plt.show()
