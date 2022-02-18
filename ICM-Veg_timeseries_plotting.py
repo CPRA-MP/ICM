@@ -540,8 +540,8 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 
                 #set axes and chart titles
                 x_txt = 'Year'
-                y_txt = 'Coverage Type'
-                title_txt = 'Coverage:  %s - %s - %s'  % (S,P,qaqc_tag)
+                y_txt = 'Vegetation Species Coverage'
+                title_txt = '%s - %s - %s - ICM-Hydro CompID: %s   -  ICM-LAVegMod CellID: %s'  % (S,P,qaqc_tag, hydro_comp,Cl)
                 footnote = 'ICM-Hydro CompID: %s   -  ICM-LAVegMod CellID: %s' % (hydro_comp,Cl)
 
                 #print the number of unique coverages at the top of each bar
@@ -555,8 +555,8 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 plt.legend(ncol=3,fontsize='small',bbox_to_anchor=(0.5,-0.2), loc='upper center', borderaxespad=0.00)
                 plt.ylabel(y_txt)
                 plt.xlabel(x_txt)
-                plt.title(title_txt)
-                plt.figtext(0.9,0.1,footnote,fontsize='xx-small',horizontalalignment='right')
+                plt.title(title_txt,fontsize='small')
+                #plt.figtext(0.9,0.1,footnote,fontsize='xx-small',horizontalalignment='right')
                 
                 plt.savefig(png_file, bbox_inches='tight') 
                 #plt.show()
