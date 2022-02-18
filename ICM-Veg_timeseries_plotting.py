@@ -12,7 +12,7 @@ endyear = int(sys.argv[3])
 
 S = 'S%02d' % s
 G = 'G%03d' % g
-years = range(1,endyear-2019+1)
+years = range(1,endyear-2019+2)
 
 asc_grid_rows = 371
 ngrid = 173898
