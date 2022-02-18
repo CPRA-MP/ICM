@@ -17,10 +17,30 @@ years = range(1,endyear-2019+1)
 asc_grid_rows = 371
 ngrid = 173898
 
-#specify all directories needed: 
-path_cellID = r'./%s/%s/geomorph/output_qaqc/CellIDs_to_plot.csv' % (S,G)
 #read the cell IDs of where we want output 
-cell_ID =  np.genfromtxt(path_cellID,skip_header=1, delimiter=',', dtype='int') ###INPUT csv containing the cell IDs for the cells of interest 
+cell_comp = {}
+cell_eco  = {}
+cell_qaqc = {}
+
+path_cellID = r'./%s/%s/geomorph/output_qaqc/CellIDs_to_plot.csv' % (S,G)
+with open(path_cellID,mode='r',dtype='str') as gridfile:
+    nl = 0
+    for line in gridfile:
+        ls = line.split(',')
+        if nl > 0:
+            cell = int(ls[0])
+            comp = int(ls[1])
+            er   = ls[2].strip()
+            qaqc = ls[3].strip()
+            if cell > 0:            # some qaqc sites are outside of Veg Domain and have -9999 values for cell ID - skip those sites
+                cell_comp[cell] = comp
+                cell_eco[cell]  = er
+                cell_qaqc[cell] = qaqc
+cell_ID = []
+for c in cell_comp.keys():
+    cell_ID.append(c)
+    
+#cell_ID =  np.genfromtxt(path_cellID,skip_header=1, delimiter=',', dtype='int') ###INPUT csv containing the cell IDs for the cells of interest 
 
 veg_dir = r'./%s/%s/veg' % (S,G)
 
@@ -121,9 +141,13 @@ for S in list(PSEHts[prj].keys()): #scenarios
     for P in list(PSEHts.keys()): #projects
         for Cl in list(PSEHts[P][S].keys()): # cell ids 
             try:
+                hydro_comp = cell_comp[Cl]
+                ecoregion = cell_eco[Cl]
+                qaqc_tag = cell_qaqc[Cl]
+                
                 # here we could add another iterative level that pulls the years in - without this the code here implicitly assumes that the input dataframe is chronologically ordered
-                print(' - plotting %s %s %s' % (S,P,Cl) )
-                png_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_%02d_%02d_V_vgtyp_%s.png' % (outdir,S,P,minY+spinup_years,maxY+spinup_years,Cl)
+                print(' - plotting %s %s grid:%s %s' % (S,P,Cl,qaqc_tag) )
+                png_file = '%s/MP2023_%s_%s_C000_U00_V00_%s_O_%02d_%02d_V_vgtyp_%s.png' % (outdir,S,P,ecoregion,minY+spinup_years,maxY+spinup_years,qaqc_tag)
     
                 bars = []
                 legtxt = []
@@ -516,7 +540,9 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 #set axes and chart titles
                 x_txt = 'Year'
                 y_txt = 'Coverage Type'
-                title_txt = 'Coverage:  %s - %s - ICM-LAVegMod CellID: %s' % (S,P,Cl)
+                title_txt = 'Coverage:  %s - %s - %s'  % (S,P,qaqc_tag)
+                footnote = 'ICM-Hydro CompID: %s   -  ICM-LAVegMod CellID: %s' % (hydro_comp,Cl)
+
                 #print the number of unique coverages at the top of each bar
                 for r in range(0,maxY):
                     if r in range(0,maxY,2):    # stagger vertical offset of label every other year
@@ -529,6 +555,7 @@ for S in list(PSEHts[prj].keys()): #scenarios
                 plt.ylabel(y_txt)
                 plt.xlabel(x_txt)
                 plt.title(title_txt)
+                plt.figtext(0.9,0.1,footnote,fontsize='xx-small',horizontalalignment='right')
                 
                 plt.savefig(png_file, bbox_inches='tight') 
                 #plt.show()
