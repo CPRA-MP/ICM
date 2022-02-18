@@ -22,7 +22,8 @@ veg_dir = r'./%s/%s/veg' % (S,G)
 hydro_dir = r'./%s/%s/hydro' % (S,G)
 morph_dir = r'./%s/%s/geomorph' % (S,G)
 
-outdir = '%s/coverage_timeseries/ecoregion' % veg_dir
+#outdir = '%s/coverage_timeseries/ecoregion' % veg_dir
+outdir = '%s/coverage_timeseries' % veg_dir
 input_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_V_ecoregion_barplot_input.csv' % (veg_dir,S,G)
 spinup_years = 2
 
