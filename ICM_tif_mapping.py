@@ -25,12 +25,12 @@ footnote = ''
 ######################################
 ##      Setup file types to map     ##
 ######################################
-ftype_list          = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30','dem30','inun30','dz30']
-ftype_labels        = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)','Elevation (m NAVD88)','Annual mean inundation depth (m)','annual elevation change (m)']
+ftype_list          = ['lndtyp30', 'lndchg30',  'salav30', 'salmx30','inun30','dem30','dz30']
+ftype_labels        = ['Land type', 'Land change for year', 'Annual mean salinity (ppt)','Maximum 2-week mean salinity (ppt)','Annual mean inundation depth (m)','Elevation (m NAVD88)','annual elevation change (m)']
 ftype_dtypes        = ['int', 'int', 'flt', 'flt', 'flt','flt','flt']
 ftype_build_xyz     = [1,1,1,1,1,1,1] #[True, True, True, True, True,True]
 ftype_build_tif     = [1,1,1,1,1,1,1] #[True, True, True, True, True,True]
-ftype_mapPNG        = [1,1,1,1,0,0,0] #True, True, True, True, False,False]
+ftype_mapPNG        = [1,1,1,1,1,0,0] #True, True, True, True, False,False]
 
 
 #############################
@@ -81,10 +81,16 @@ cmap_sal = ListedColormap(newcolors)
 norm_sal = ''
 leg_lab_sal = ''
 
+# color map and legend used for Inundation rasters
+cmap_inun = ListedColormap(['white','saddlebrown','peru','darkorange','gold','yellow','greenyellow','lightgrey','lightskyblue','cornflowerblue','royalblue','blue','darkblue'])
+norm_inun = colors.BoundaryNorm([-9999.999, -2.0, -1.0, -0.75, -0.5, -0.25, -0.1, -0.05, 0.05, 0.25, 0.5, 0.75,1.0, 2.0],14)           # BoundaryNorm bins set to map integer values of -3, -2, -1, 0, & 1
+leg_lab_inun = {'white':'out of domain','saddlebrown':'more than 2.0 m above MWL','peru':' between 1.5 and 2.0 m above MWL','darkorange':'between 1.0 and 1.5 m above MWL','gold':'between 0.5 and 1.0 m above MWL','yellow':'between 0.25 and 0.5 m above MWL','greenyellow':'between 0.1 and 0.25 m above MWL','lightgrey':'within +/- 0.1 m of MWL','lightskyblue':'between 0.1 and 0.25 m below MWL','cornflowerblue':'between 0.25 and 0.5 m below MWL','royalblue':'between 0.5 and 1.0 m below MWL','blue':' between 1.5 and 2.0 m below MWL','darkblue':'more than 2.0 m below MWL'}
+
+
 # compile various colormaps in arrays the same length as each filetype being mapped
-cmap_list       = [cmap_lt,     cmap_lc,    cmap_sal,   cmap_sal]       # must be list the same size as ftype_list above
-norm_list       = [norm_lt,     norm_lc,    norm_sal,   norm_sal]       # must be list the same size as ftype_list above
-leg_lab_list    = [leg_lab_lt,  leg_lab_lc, leg_lab_sal, leg_lab_sal]   # must be list the same size as ftype_list above
+cmap_list       = [cmap_lt,     cmap_lc,    cmap_sal,   cmap_sal,       cmap_inun]       # must be list the same size as ftype_list above
+norm_list       = [norm_lt,     norm_lc,    norm_sal,   norm_sal,       norm_inun]       # must be list the same size as ftype_list above
+leg_lab_list    = [leg_lab_lt,  leg_lab_lc, leg_lab_sal, leg_lab_sal,   leg_lab_inun]   # must be list the same size as ftype_list above
 
 
 ##############################################
