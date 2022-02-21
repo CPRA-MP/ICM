@@ -187,7 +187,7 @@ for ftype in ftype_list:
             else:
                 tif_map = ax.imshow(tif,cmap=cmap,norm=norm,interpolation='none')
                 patches = [Patch(color=color,label=label) for color,label in legend_labels.items()]
-                ax.legend(handles=patches,bbox_to_anchor=[0,0],loc='lower left',frameon=False,facecolor=None,fontsize='small')
+                ax.legend(handles=patches,bbox_to_anchor=[0.5,0],loc='upper center',frameon=False,edgecolor='black',facecolor='white',fontsize='xx-small',ncol=6)
             
             # generic figure edits
             ax.set_axis_off()
