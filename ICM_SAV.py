@@ -62,7 +62,7 @@ print('--------------------------------------------------')
 print('\n CONFIGURING ICM MODEL FILES.')
 print('--------------------------------------------------')
 
-
+SAVyear = int(sys.argv[1])
 par_dir = os.getcwd()
 
 inputs = np.genfromtxt('ICM_SAV_control.csv',dtype=str,comments='#',delimiter=',')
@@ -180,7 +180,8 @@ asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncel
 ##              START YEARLY TIMESTEPPING              ##
 #########################################################
 
-for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
+#for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
+year = SAVyear
     print('\n--------------------------------------------------')
     print('  START OF MODEL TIMESTEPPING LOOP - YEAR %s' % year)
     print('--------------------------------------------------\n')
