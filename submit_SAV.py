@@ -41,7 +41,7 @@ sbatch_file = 'SAV_%04d.submit' % sav_yr
 
 os.chdir('S%02d/G%03d'  % (s,g))
 
-cmd = 'python ICM_SAV.py %s\n' % (sav_yr)
+cntrl_str = 'python ICM_SAV.py %s\n' % (sav_yr)
 tag8    = 'sa%01d%03d%02d' % (s,g,sav_yr-sy+1) 
 write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
 cmdstr = ['sbatch', '%s' % sbatch_file]
