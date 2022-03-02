@@ -32,16 +32,17 @@ import shutil
 s = int(sys.argv[1])
 g = int(sys.argv[2])
 sav_yr = int(sys.argv[3])
+sy = 2019
 
 perf    = 0                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
 account = 'bcs200002p'                                                          # XSEDE allocation account
 email   = 'eric.white@la.gov'                                                   # emails for notification on queue
 sbatch_file = 'SAV_%04d.submit' % sav_yr
 
-os.chdir('%s/%s'  % (s,g))
+os.chdir('S%02d/G%03d'  % (s,g))
 
 cmd = 'python ICM_SAV.py %s\n' % (sav_yr)
-tag8    = 'sa%01d%03d%02d' % (s,g,y-sy+1) 
+tag8    = 'sa%01d%03d%02d' % (s,g,sav_yr-sy+1) 
 write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
 cmdstr = ['sbatch', '%s' % sbatch_file]
 cmdout = subprocess.check_output(cmdstr).decode()
