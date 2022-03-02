@@ -62,7 +62,7 @@ SAVyear = int(sys.argv[1])
 
 
 print('--------------------------------------------------')
-print('\n CONFIGURING ICM-SAV MODEL FILES: %s' SAVyear)
+print('\n CONFIGURING ICM-SAV MODEL FILES: %s' % SAVyear)
 print('--------------------------------------------------')
 
 

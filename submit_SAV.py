@@ -38,8 +38,9 @@ account = 'bcs200002p'                                                          
 email   = 'eric.white@la.gov'                                                   # emails for notification on queue
 sbatch_file = 'SAV_%04d.submit' % sav_yr
 
+os.chdir('%s/%s'  % (s,g))
 
-cmd = 'python ICM_SAV.py %s %s %s\n' % (s, g, sav_yr)
+cmd = 'python ICM_SAV.py %s\n' % (sav_yr)
 tag8    = 'sa%01d%03d%02d' % (s,g,y-sy+1) 
 write_sbatch(sbatch_file,account,email,tag8,ctrl_str,perf)
 cmdstr = ['sbatch', '%s' % sbatch_file]
