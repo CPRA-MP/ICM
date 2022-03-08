@@ -295,6 +295,14 @@ if update_MC_direct_benefits == True:
 #sqlstr = 'select * from icm.land_veg;'
 #sqlstr = 'delete from icm.land_veg;'  # deletes all rows in table
 #cur.execute(sqlstr)
+
+# pass variables into a SQL string for exeuction witih psycopg2
+
+# sqlstr = 'SELECT * FROM icm.ecoregion_definition WHERE "ProjectID"=%s AND "Ecoregion"=%s'
+# data = (1390000,'WTE')
+# cur.execute(sqlstr,data)
+# output = cur.fetchall()
+
 #output = cur.fetchall()      # use if the query was a select query
 #conn.commit()
 #cur.close()
