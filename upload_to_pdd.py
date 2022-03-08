@@ -295,6 +295,7 @@ if update_MC_direct_benefits == True:
 #sqlstr = 'select * from icm.land_veg;'
 #sqlstr = 'delete from icm.land_veg;'  # deletes all rows in table
 #cur.execute(sqlstr)
+#output = cur.fetchall()      # use if the query was a select query
 #conn.commit()
 #cur.close()
 #conn.close()
