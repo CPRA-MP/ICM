@@ -142,10 +142,9 @@ if update_ecoregion_values == True:
         
 
         
-print('\nupdating PDD (via Pandas SQL functions) ')
-engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
+    print('\nupdating PDD (via Pandas SQL functions) ')
+    engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 
-if update_ecoregion_values == True:
     for S in scens2update:
         for G in groups2update:
             print('uploading S%02d G%03d...' % (S,G) )
