@@ -11,10 +11,11 @@ scens2update = []
 groups2update = []
 years2update = range(1,53)  #[]
 backup = True
-tables_to_backup = ['land_veg','mc']
-overwrite = False
+tables_to_backup = ['mc','land_veg'] #'ecoregion_definition']
+tables_to_delete = ['ecoregion_definition']
+delete_table = True
 update_ecoregion_values = False
-update_MC_direct_benefits = True
+update_MC_direct_benefits = False
 
 # connection info for PDD SQL engine
 host = 'vm007.bridges2.psc.edu'
@@ -49,45 +50,47 @@ if backup == True:
         with open(logfile,mode='a') as lf:
             lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
-if overwrite == True:
+if delete_table == True:
 #Running delete SQL queries using PSYCOPG2 instead of PANDAS
-    print('Deleting icm.land_veg from mp23_pdd')
-    datestr = dt.now()
-    conn = psycopg2.connect(connection_string)
-    cur = conn.cursor()
-#    sqlstr = "delete from icm.land_veg;"  # deletes all rows in table
-#    actionnote = 'deleted all rows in SQL server copy of icm.land_veg'
-    data2delete ='"ModelGroup"=606'            #'"Scenario"=7'
-    sqlstr = 'delete from icm.land_veg where land_veg.%s;' % data2delete
-    actionnote = 'deleted all %s data in SQL server copy of icm.land_veg' % data2delete
-    cur.execute(sqlstr)
-    conn.commit()
-    cur.close()
-    conn.close()
+    for dbtable in tables_to_delete:
+        print('Deleting icm.%s from mp23_pdd' % dbtable)
+        datestr = dt.now()
+        conn = psycopg2.connect(connection_string)
+        cur = conn.cursor()
+        sqlstr = "delete from icm.%s;" % dbtable  # deletes all rows in table
+        actionnote = 'deleted all rows in SQL server copy of icm.%s' % dbtable
+#        data2delete ='"ModelGroup"=606'            #'"Scenario"=7'
+#        sqlstr = 'delete from icm.land_veg where land_veg.%s;' % data2delete
+#        actionnote = 'deleted all S07 data in SQL server copy of icm.land_veg'
+        cur.execute(sqlstr)
+        conn.commit()
+        cur.close()
+        conn.close()
 
-    with open(logfile,mode='a') as lf:
-        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+        with open(logfile,mode='a') as lf:
+            lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
 
-codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
-eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
-eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
-eco3skip = ['ATB']
+if update_ecoregion_values == True:
+    codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
+    eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
+    eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
+    eco3skip = ['ATB']
 
-actionnote = 'uploaded ICM output for: '
+    actionnote = 'uploaded ICM output for: '
 
-d = {}
-for S in scens2update:
-    d[S] = {}
-    for G in groups2update:
-        d[S][G] = {}
-        actionnote = '%s S%02dG%03d' % (actionnote,S,G)
-        for Y in years2update:
-            d[S][G][Y] = {}
+    d = {}
+    for S in scens2update:
+        d[S] = {}
+        for G in groups2update:
+            d[S][G] = {}
+            actionnote = '%s S%02dG%03d' % (actionnote,S,G)
+            for Y in years2update:
+                d[S][G][Y] = {}
             for C in codes2update:
-                d[S][G][Y][C] = {}
-                for E in eco2update:
-                    d[S][G][Y][C][E] = 0
-             
+                    d[S][G][Y][C] = {}
+                    for E in eco2update:
+                        d[S][G][Y][C][E] = 0
+
 
 # land_veg columns [data format]:
 #       ModelGroup [%03d]
@@ -100,43 +103,42 @@ for S in scens2update:
 #       Year_FWOA [%d]
 #       Note [%s]
 
-
-for S in scens2update:
-    for G in groups2update:
-        if G == 0:
-            lvfile =  'MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_00_00_land_veg.csv' % (S,G)
-        else:
-            lvfile = './S%02d/G%03d/geomorph/output/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_land_veg.csv' % (S,G,S,G)
-        print('\nreading output data from: %s' % lvfile)
-        with open(lvfile,mode='r') as lvf:
-            badrows = []
-            nrb = 0
-            nr = 0
-            for r in lvf:   # 'prj_no', 'S', 'ICMyear', 'code', 'ecoregion', 'value'
-                nr += 1
-                try:
-                    #print (r)
-                    g = int(r.split(',')[0].strip()[1:4])
-                    s = int(r.split(',')[1].strip()[1:3])
-                    y = int(r.split(',')[2].strip())
-                    c = r.split(',')[3].strip()
-                    e = r.split(',')[4].strip()
-                    v = float(r.split(',')[5].strip())
-                    if e in eco2bi.keys():
-                        er = eco2bi[e]
-                    else:
-                        er = e
-                    if er in eco2update:
-                        if s == S:
-                            if g == G:
-                                if c in codes2update:
-                                    d[s][g][y][c][er] += v
-                except:
-                    nrb += 1
-                    badrows.append(nr)
-            if nrb > 0:
-                print(' Failed to parse %d rows in %s. Check lines:' % (nrb,lvfile))
-                print(badrows)
+    for S in scens2update:
+        for G in groups2update:
+            if G == 0:
+                lvfile =  'MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_00_00_land_veg.csv' % (S,G)
+            else:
+                lvfile = './S%02d/G%03d/geomorph/output/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_01_52_land_veg.csv' % (S,G,S,G)
+            print('\nreading output data from: %s' % lvfile)
+            with open(lvfile,mode='r') as lvf:
+                badrows = []
+                nrb = 0
+                nr = 0
+                for r in lvf:   # 'prj_no', 'S', 'ICMyear', 'code', 'ecoregion', 'value'
+                    nr += 1
+                    try:
+                        #print (r)
+                        g = int(r.split(',')[0].strip()[1:4])
+                        s = int(r.split(',')[1].strip()[1:3])
+                        y = int(r.split(',')[2].strip())
+                        c = r.split(',')[3].strip()
+                        e = r.split(',')[4].strip()
+                        v = float(r.split(',')[5].strip())
+                        if e in eco2bi.keys():
+                            er = eco2bi[e]
+                        else:
+                            er = e
+                        if er in eco2update:
+                            if s == S:
+                                if g == G:
+                                    if c in codes2update:
+                                        d[s][g][y][c][er] += v
+                    except:
+                        nrb += 1
+                        badrows.append(nr)
+                if nrb > 0:
+                    print(' Failed to parse %d rows in %s. Check lines:' % (nrb,lvfile))
+                    print(badrows)
         
 
         
