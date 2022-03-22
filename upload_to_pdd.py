@@ -9,12 +9,17 @@ datestr = dt.now()
 
 scens2update = []
 groups2update = []
+
 years2update = range(1,53)  #[]
-backup = True
+
+backup = False
 tables_to_backup = ['mc','land_veg'] #'ecoregion_definition']
-tables_to_delete = ['ecoregion_definition']
-delete_table = True
-update_ecoregion_values = False
+
+delete_table = False
+tables_to_delete = ['mc','land_veg'] #'ecoregion_definition']
+data2delete ='"ModelGroup"=646'            #'"Scenario"=7'
+
+update_ecoregion_values = True
 update_MC_direct_benefits = False
 
 # connection info for PDD SQL engine
@@ -53,15 +58,15 @@ if backup == True:
 if delete_table == True:
 #Running delete SQL queries using PSYCOPG2 instead of PANDAS
     for dbtable in tables_to_delete:
-        print('Deleting icm.%s from mp23_pdd' % dbtable)
+        print('Deleting data from icm.%s from mp23_pdd where %s' % (dbtable,data2delete) )
         datestr = dt.now()
         conn = psycopg2.connect(connection_string)
         cur = conn.cursor()
-        sqlstr = "delete from icm.%s;" % dbtable  # deletes all rows in table
-        actionnote = 'deleted all rows in SQL server copy of icm.%s' % dbtable
-#        data2delete ='"ModelGroup"=606'            #'"Scenario"=7'
-#        sqlstr = 'delete from icm.land_veg where land_veg.%s;' % data2delete
-#        actionnote = 'deleted all S07 data in SQL server copy of icm.land_veg'
+#        sqlstr = "delete from icm.%s;" % dbtable  # deletes all rows in table
+#        actionnote = 'deleted all rows in SQL server copy of icm.%s' % dbtable
+        sqlstr = 'delete from icm.%s where %s.%s;' % (dbtable,dbtable,data2delete)
+        actionnote = 'deleted %s from icm.%s' % (data2delete,dbtable)
+
         cur.execute(sqlstr)
         conn.commit()
         cur.close()
@@ -140,6 +145,12 @@ if update_ecoregion_values == True:
                     print(' Failed to parse %d rows in %s. Check lines:' % (nrb,lvfile))
                     print(badrows)
         
+
+#print('\nupdating PDD (via Pandas SQL functions) ')
+engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
+
+if update_ecoregion_values == True:
+
 
         
     print('\nupdating PDD (via Pandas SQL functions) ')
