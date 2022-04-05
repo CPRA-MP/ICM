@@ -139,7 +139,7 @@ cycle_end_elapsed = endyear_cycle - startyear + 1
 
 
 ## grid information for Veg ASCII grid files
-n500grid= int(inputs[37,1].lstrip().rstrip())
+n500grid = int(inputs[37,1].lstrip().rstrip())
 # n500gridveg = int(inputs[25,1].lstrip().rstrip()) #total number of grid cells in Veg model - including NoData cells
 n500rows = int(inputs[38,1].lstrip().rstrip())
 n500cols = int(inputs[39,1].lstrip().rstrip())
@@ -257,7 +257,7 @@ with open (wm_param_file, mode='w') as ip_csv:
     ip_csv.write("171284090, ndem - number of DEM pixels - will be an array dimension for all DEM-level data\n")
     ip_csv.write("2904131, ndem_bi - number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
     ip_csv.write("1778, ncomp - number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n")
-    ip_csv.write("173898, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n")
+    ip_csv.write("%d, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n" % n500grid)
     ip_csv.write("32, neco - number of ecoregions\n")
     ip_csv.write("5, nlt - number of landtype classifications\n")
     ip_csv.write("0.10, ht_above_mwl_est - elevation (meters) relative to annual mean water level at which point vegetation can establish\n")
@@ -362,19 +362,32 @@ morph_run = subprocess.call([SAV_exe_path, wm_param_file])
 
 print('\nMapping SAV outputs to ASC raster.')
 
-#sav_dict = {}
-#sav_csv_file = '%s.csv' % sav_file_no_ext 
-#sav_asc_file = '%s.asc' % sav_file_no_ext
+sav_ave_dict = {}   # dictionary where key will be ICM-LAVegMod GridID - value will be average probablity of SAV occurrence within the grid cell
+sav_all_dict = {}   # dictionary where key will be ICM-LAVegMod GridID - value will be a list of all SAV probability values from the 30-m SAV raster within each respective grid cell
+for g in range(1,n500grid+1):
+    sav_ave_dict[g] = 0.0
+    sav_all_dict[g] = []
+    
+sav_csv_file = '%s.csv' % sav_file_no_ext 
+sav_asc_file = '%s.asc' % sav_file_no_ext
 
-#with open(sav_csv_file,mode='r') as sav_data:
-#    nline = 0
-#    for line in sav_data:
-#        if nline > 0:
-#            gr = int(float(line.split(',')[0]))
-#            prsav = line.split(',')[2]          # probability of SAV presence is the third column in the SAV output file saved by MorphSAV
-#            sav_dict[gr] = prsav
-#        nline += 1
-#print(dict2asc_flt(sav_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
+with open(sav_csv_file,mode='r') as sav_data:
+    nline = 0
+    for line in sav_data:
+        if nline > 0:   # header: dem_x,dem_y,gridID,compID,spsal,sptss,dfl,ffibs,prob
+            gr    = int(float(line.split(',')[2]))
+            prsav = float(line.split(',')[8])
+            
+            sav_all_dict[gr].append(max(prsav,0.0)) # if probability of SAV is -9999 it is no data, reset to zero so that areas further than 2 km from land are included in data for HSIs
+            
+for g in sav_ave_dict.keys():
+    ng = len(sav_all_dict[g])
+    if ng > 0:
+        sav_ave_dict[g] = sum(sav_all_dict[g]) / ng
+    else:
+        sav_ave_dict[g] = 0.0
+           
+print(dict2asc_flt(sav_ave_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
 
 
 print('\n\n\n')
