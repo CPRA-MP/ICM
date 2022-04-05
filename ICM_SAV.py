@@ -238,8 +238,8 @@ comp_out_file = EH_comp_results_filepath
 griddata_file = move_EH_gridfile                                                                                                                #os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year) )
 new_grid_filepath =  os.path.normpath(r"%s/%s_end%s.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],year,str.split(EH_grid_file,'.')[1]))     #os.path.normpath(r'%s/grid_data_500m_end%s.csv' % (EHtemp_path,year) )
 bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
-sav_csv_file = 'geomorph/output/%s_W_SAV.csv' % file_oprefix
-sav_asc_file = 'geomorph/output/%s_W_SAV.asc' % file_oprefix
+sav_file_no_ext = 'geomorph/output/%s_W_SAV' % file_oprefix
+#sav_asc_file = '%s.asc' % sav_file_no_ext
     
 
 
@@ -352,16 +352,13 @@ with open (wm_param_file, mode='w') as ip_csv:
     ip_csv.write("'hsi/GWTealDepths_cm_%d.csv', grid_depth_file_GwT - file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % year)
     ip_csv.write("'hsi/MotDuckDepths_cm_%d.csv', grid_depth_file_MtD - file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % year)
     ip_csv.write("'hsi/%s_W_pedge.csv', grid_pct_edge_file - file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % file_prefix)
-    ip_csv.write("'%s', grid_sav_file - file name with relative path to csv output file for SAV presence\n" % sav_csv_file)
+    ip_csv.write("'%s', grid_sav_file - file name with relative path to output file - file extension will be added in MorphSAV\n" % sav_file_no_ext)
     ip_csv.write("'hydro/TempFiles/compelevs_end_%d.csv', comp_elev_file - file name with relative path to elevation summary compartment file used internally by ICM\n" % year)
     ip_csv.write("'hydro/TempFiles/PctWater_%d.csv', comp_wat_file - file name with relative path to percent water summary compartment file used internally by ICM\n" % year)
     ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
     ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
     ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
     ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
-
-    sav_csv_file = 'geomorph/output/%s_W_SAV.csv' % file_oprefix
-    sav_asc_file = 'geomorph/output/%s_W_SAV.asc' % file_oprefix
 
 
 
