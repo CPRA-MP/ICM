@@ -362,18 +362,19 @@ morph_run = subprocess.call([SAV_exe_path, wm_param_file])
 
 print('\nMapping SAV outputs to ASC raster.')
 
-sav_dict = {}
+#sav_dict = {}
 #sav_csv_file = '%s.csv' % sav_file_no_ext 
 #sav_asc_file = '%s.asc' % sav_file_no_ext
-with open(sav_csv_file,mode='r') as sav_data:
-    nline = 0
-    for line in sav_data:
-        if nline > 0:
-            gr = int(float(line.split(',')[0]))
-            prsav = line.split(',')[2]          # probability of SAV presence is the third column in the SAV output file saved by MorphSAV
-            sav_dict[gr] = prsav
-        nline += 1
-print(dict2asc_flt(sav_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
+
+#with open(sav_csv_file,mode='r') as sav_data:
+#    nline = 0
+#    for line in sav_data:
+#        if nline > 0:
+#            gr = int(float(line.split(',')[0]))
+#            prsav = line.split(',')[2]          # probability of SAV presence is the third column in the SAV output file saved by MorphSAV
+#            sav_dict[gr] = prsav
+#        nline += 1
+#print(dict2asc_flt(sav_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
 
 
 print('\n\n\n')
