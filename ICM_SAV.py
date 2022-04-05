@@ -239,8 +239,6 @@ griddata_file = move_EH_gridfile                                                
 new_grid_filepath =  os.path.normpath(r"%s/%s_end%s.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],year,str.split(EH_grid_file,'.')[1]))     #os.path.normpath(r'%s/grid_data_500m_end%s.csv' % (EHtemp_path,year) )
 bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
 sav_file_no_ext = 'geomorph/output/%s_W_SAV' % file_oprefix
-#sav_asc_file = '%s.asc' % sav_file_no_ext
-    
 
 
 #########################################################
@@ -360,15 +358,13 @@ with open (wm_param_file, mode='w') as ip_csv:
     ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
     ip_csv.write(" %s - file naming convention prefix\n" % file_o_01_end_prefix)
 
-
-
 morph_run = subprocess.call([SAV_exe_path, wm_param_file])
-
 
 print('\nMapping SAV outputs to ASC raster.')
 
 sav_dict = {}
-
+#sav_csv_file = '%s.csv' % sav_file_no_ext 
+#sav_asc_file = '%s.asc' % sav_file_no_ext
 with open(sav_csv_file,mode='r') as sav_data:
     nline = 0
     for line in sav_data:
