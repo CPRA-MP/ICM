@@ -379,7 +379,8 @@ with open(sav_csv_file,mode='r') as sav_data:
             prsav = float(line.split(',')[8])
             
             sav_all_dict[gr].append(max(prsav,0.0)) # if probability of SAV is -9999 it is no data, reset to zero so that areas further than 2 km from land are included in data for HSIs
-            
+        nline += 1
+        
 for g in sav_ave_dict.keys():
     ng = len(sav_all_dict[g])
     if ng > 0:
