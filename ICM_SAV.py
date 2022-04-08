@@ -368,10 +368,11 @@ for g in range(1,n500grid+1):
     sav_ave_dict[g] = 0.0
     sav_all_dict[g] = []
     
-sav_csv_file = '%s.csv' % sav_file_no_ext 
-sav_asc_file = '%s.asc' % sav_file_no_ext
+SAVcsv = '%s.csv' % sav_file_no_ext 
+SAVasc = '%s.asc' % sav_file_no_ext
+SAVxyz = '%s.xyz' % sav_file_no_ext
 
-with open(sav_csv_file,mode='r') as sav_data:
+with open(SAVcsv,mode='r') as sav_data:
     nline = 0
     for line in sav_data:
         if nline > 0:   # header: dem_x,dem_y,gridID,compID,spsal,sptss,dfl,ffibs,prob
@@ -387,8 +388,16 @@ for g in sav_ave_dict.keys():
         sav_ave_dict[g] = sum(sav_all_dict[g]) / ng
     else:
         sav_ave_dict[g] = 0.0
-           
-print(dict2asc_flt(sav_ave_dict,sav_asc_file,asc_grid_ids,asc_head,write_mode='w') )
+
+# build ASC raster of percent SAV 
+print(dict2asc_flt(sav_ave_dict,SAVasc,asc_grid_ids,asc_head,write_mode='w') )
+
+# zip up CSV and XYZ outputs - remove original (option -m) after testing for errors (option -T
+SAVxyz_zip = '%s.zip' % SAVxyz
+zipSAVxyz = subprocess.call(['zip','-mT', SAVxyz_zip,SAVxyz])
+
+SAVcsv_zip = '%s.zip' % (sav_csv_file)
+zipSAVcsv = subprocess.call(['zip','-mT', SAVcsv_zip,SAVcsv])
 
 
 print('\n\n\n')
