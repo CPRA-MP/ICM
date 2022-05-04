@@ -57,3 +57,23 @@ for line in grid_eoy:
 
 # VegetationCode
 # 
+
+S08 G605
+S08 G607
+S08 G613
+S08 G631
+S08 G632
+S08 G639
+S08 G640 48.8
+    
+
+S07 G634
+S07 G628 
+S08 G628
+S07 G642
+S08 G642 - need permissions
+S07 G622
+S08 G622 - need permissions
+
+
+S08,G608,13514,37.0,20220503 2144
