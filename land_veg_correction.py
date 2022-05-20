@@ -79,10 +79,12 @@ with open(g_c_y_mask_file,mode='r') as infile:
             if years_str == 'all':
                 for cy in range(cy00+1,cy52+1):
                     y = cy - cy00
-                    g_years[s][g].append(y)
+                    if y not in g_years[s][g]:
+                        g_years[s][g].append(y)
             else:
                 for y in years_str.split():
-                    g_years[s][g].append(y)
+                    if y not in g_years[s][g]:
+                        g_years[s][g].append(y)
         nl += 1
 
 # initialize dictionaries that are going to store the FWOA and FWA ICM-Hydro compartment-level yearly data
@@ -179,8 +181,8 @@ for s in Ss:
             for v in veg_codes:
                 correctors[s][g_fwa][y][v] = {}
 
-                for comp in g_c_mask[s][g]:
-                    e = comp_eco[comp]
+                for c in g_c_mask[s][g]:
+                    e = comp_eco[c]
                     
                     if e not in correctors[s][g_fwa][y][v].keys():
                         correctors[s][g_fwa][y][v][e] = {'FWOA':0.0,'FWA':0.0}
@@ -210,7 +212,7 @@ with open(corrector_outfile,mode='w') as cof:
                 
                 
                 for v in veg_codes:
-                    for e in ecoregs:
+                    for e in ecoregions:
                         writestring = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % (g_fwa,s,y,v,e,correctors[s][g_fwa][y][v][e]['FWOA'],correctors[s][g_fwa][y][v][e]['FWA'],datestr,FWOAY,Note)
                         cof.write(writestring)
                         
