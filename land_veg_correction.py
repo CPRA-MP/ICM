@@ -1,3 +1,4 @@
+print('setting things up.')
 import numpy as np
 import sys
 from datetime import datetime as dt
@@ -6,10 +7,15 @@ datestr = dt.now()
 # cy    : calendar year
 # y     : elapsed year of ICM simulation (ICM year 01:52)
 
-print('setting things up.')
+s_in = int(sys.argv[1])                 # s = '7'
+g_in = int(sys.argv[2])                 # g = '503'
+
+# output file
+corrector_outfile = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/PDD_bk/MP2023_S%02d_G%03d_PDD_FWA_land_veg_correctors.csv' % (s_in,g_in)
 
 veg_codes   = ['UPL', 'LND', 'WAT', 'FLT', 'FOR', 'FRM', 'INM', 'BRM', 'SAM', 'BRG']
-Ss          = [7,8]
+Ss          = [s_in]#[7,8]
+
 g_fwoa      = 500
 cy00        = 2018
 cy52        = 2070
@@ -32,8 +38,7 @@ for s in Ss:
 g_c_y_mask_file = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/PDD_bk/PDD_group_compartment_correctors.csv'      # header will be 'ModelGroup,ICM-Hydro_CompID,ICM_years_to_correct('all' or space delimited integers),Notes'
 comp_eco_file = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/S07/G500/geomorph/input/compartment_ecoregion.csv'
 
-# output file
-corrector_outfile = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/PDD_bk/PDD_FWA_land_veg_correctors_%s.csv' % datestr
+
 
 # remapping dictionary to use the PDD lumped ecoregions for barrier island ecoregions
 eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
@@ -134,11 +139,13 @@ for s in Ss:
                     sgcyva[s][g_fwa][c][y][v] = 0.0
 
 
+
 # read in ICM-LAVegMod grid-level output and sum over each  ICM-Hydro compartment - store in previously initialized dictionaries        
 print('read in gridded data and accumulate up to the ICM-Hydro comparment level:')
-g_all = [500,601]#[g_fwoa] + groups2correct
 
 for s in Ss:
+    g_all = [g_fwoa,g_in] #groups2correct[s]
+    
     for g in g_all:                 # only process model groups that are included in the input file (plus FWOA)
         for y in g_years[s][g]:        # only process the specific years that are assigned to each group in the input file
             cy = y + cy00
@@ -169,7 +176,7 @@ correctors = {}
 
 for s in Ss:
     correctors[s] = {}
-    for g_fwa in g_c_mask[s].keys():
+    for g_fwa in [g_in]:#g_c_mask[s].keys():
         correctors[s][g_fwa] = {}
         
         for y in g_years[s][g_fwa]:       # only process the specific years that are assigned to each group in the input file
@@ -193,28 +200,34 @@ for s in Ss:
 print('writing output to %s' % corrector_outfile)                    
                     
 with open(corrector_outfile,mode='w') as cof:
-    cof.write('ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,FWOA_Area_to_Use_m2,FWA_Area_to_Replace_m2,Date,Year_FWOA,Note\n')
+    cof.write('ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,Corrector_Area_to_add_to_raw_ICM_output_m2,FWOA_Area_to_Use_m2,FWA_Area_to_Replace_m2,Date,Year_FWOA,Note\n')
     for s in Ss:
-        for g_fwa in g_c_mask[s].keys():
-            for y in g_years[s][g_fwa]:
+        for g_fwa in correctors[s].keys():#g_c_mask[s].keys():
+            for y in correctors[s][g_fwa].keys():#g_years[s][g_fwa]:
                 if y == 1:
                     FWOAY = -2
-                    note = 'landscape at end of first ICM Spinup Year; compartment-level FWOA correctors used'
+                    note = 'landscape at end of first ICM Spinup Year; compartment-level FWOA corrector value to be used in PDD/PT'
                 elif y == 2:
                     FWOAY = -1
-                    note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year; compartment-level FWOA correctors used'
+                    note = 'FWOA Initial Conditions; landscape at end of second ICM Spinup Year; compartment-level FWOA corrector value to be used in PDD/PT'
                 elif y == 2018:
                     FWOAY = 2018
-                    note = 'existing conditions; landscape from 2018 USGS data; compartment-level FWOA correctors used; compartment-level FWOA correctors used'
+                    note = 'existing conditions; landscape from 2018 USGS data; compartment-level FWOA correctors used; compartment-level FWOA corrector value to be used in PDD/PT'
                 else:
                     FWOAY = y-2
-                    note = 'landscape at end of ICM year; compartment-level FWOA correctors used'
+                    note = 'landscape at end of ICM year; compartment-level FWOA corrector value to be used in PDD/PT'
                 
                 
-                for v in veg_codes:
-                    for e in ecoregions:
-                        writestring = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % (g_fwa,s,y,v,e,correctors[s][g_fwa][y][v][e]['FWOA'],correctors[s][g_fwa][y][v][e]['FWA'],datestr,FWOAY,Note)
+                for v in correctors[s][g_fwa][y].keys():#veg_codes:
+                    for e in correctors[s][g_fwa][y][v].keys():#ecoregions:
+                        cor     = correctors[s][g_fwa][y][v][e]['FWOA'] - correctors[s][g_fwa][y][v][e]['FWA']
+                        fwoa_t  = correctors[s][g_fwa][y][v][e]['FWOA']
+                        fwa_t   = correctors[s][g_fwa][y][v][e]['FWA']
+                        writestring = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % (g_fwa,s,y,v,e,cor,fwoa_t,fwa_t,datestr,FWOAY,note)
                         cof.write(writestring)
+
+
+#for g in {601..626}; do python land_veg_correction.py 7 $g&  done;
                         
 # ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,Area_m2,Date,Year_FWOA,Note
 
