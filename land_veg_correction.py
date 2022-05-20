@@ -11,12 +11,13 @@ print('setting things up.')
 veg_codes   = ['UPL', 'LND', 'WAT', 'FLT', 'FOR', 'FRM', 'INM', 'BRM', 'SAM', 'BRG']
 Ss          = [7,8]
 g_fwoa      = 500
-cy00         = 2018
-cy52         = 2070
-grArea       = 480*480       # grid area in sq meters
+cy00        = 2018
+cy52        = 2070
+grArea      = 480*480       # grid area in sq meters
+ncomp       = 1778          # number of ICM-Hydro compartments
 
-g_c_mask = {}       # dictionary of model groups to update - with values being  a list ICM-Hydro compIDs to be corrected 
-g_years  = {7:{},8:{}}       # dictionary of years (in  ICM year format, 01:52) that need to corrected for each respective model group
+g_c_mask = {7:{},8:{}}      # dictionary of model groups to update - with values being  a list ICM-Hydro compIDs to be corrected 
+g_years  = {7:{},8:{}}      # dictionary of years (in  ICM year format, 01:52) that need to corrected for each respective model group
 comp_eco = {}
 ecoregions = []
 
@@ -68,9 +69,9 @@ with open(g_c_y_mask_file,mode='r') as infile:
             years_str = line.split(',')[3]
             n = line.split(',')[4]
             
-            if g not in g_c_mask.keys():
-                g_c_mask[g] = []
-            g_c_mask[g].append(c)
+            if g not in g_c_mask[s].keys():
+                g_c_mask[s][g] = []
+            g_c_mask[s][g].append(c)
 
             if g not in g_years[s].keys():
                 g_years[s][g] = []
@@ -85,41 +86,55 @@ with open(g_c_y_mask_file,mode='r') as infile:
         nl += 1
 
 # initialize dictionaries that are going to store the FWOA and FWA ICM-Hydro compartment-level yearly data
-groups2correct  = list(g_c_mask.keys())
-comps2correct   = []
-for g in groups2correct:
-    for c in g_c_mask[g]:
-        if c not in comps2correct:
-            comps2correct.append(c)
-
-csgyva = {}
-for c in comps2correct:
-    csgyva[c] = {}
-
-    for s in Ss:
-        csgyva[c][s] = {}
-        csgyva[c][s][g_fwoa] = {}
+groups2correct = {}
+comps2correct = {7:{},8:{}}
+for s in Ss:
+    groups2correct[s] = list(g_c_mask[s].keys())
+    
+    comps2correct[s][g_fwoa] = []
+    for c in range(1,ncomp):
+        comps2correct[s][g_fwoa].append(c)
         
-        # initialize dictionary that will hold FWOA output data
+    for g in groups2correct[s]:
+        comps2correct[s][g]   = []
+        for c in g_c_mask[s][g]:
+            if c not in comps2correct[s][g]:
+                comps2correct[s][g].append(c)
+
+
+sgcyva = {}
+for s in Ss:
+    # initialize dictionary that will hold FWOA output data
+    sgcyva[s] = {}    
+    sgcyva[s][g_fwoa] = {}
+    
+    for c in comps2correct[s][g_fwoa]:
+        sgcyva[s][g_fwoa][c] = {}
+        
         for cy in range(cy00+1,cy52+1):
             y = cy - cy00
-            csgyva[c][s][g_fwoa][y] = {}
+            sgcyva[s][g_fwoa][c][y] = {}
             for v in veg_codes:
-                csgyva[c][s][g_fwoa][y][v] = 0.0
+                sgcyva[s][g_fwoa][c][y][v] = 0.0
         
-        # initialize dictionaries that will hold FWA output data
-        for g_fwa in groups2correct:
-            csgyva[c][s][g_fwa] = {}
+    # initialize dictionaries that will hold FWA output data
+    for g_fwa in groups2correct[s]:
+        sgcyva[s][g_fwa] = {}
+        
+        for c in comps2correct[s][g_fwa]:
+            sgcyva[s][g_fwa][c] = {}
+            
             for cy in range(cy00+1,cy52+1):
                 y = cy - cy00
-                csgyva[c][s][g_fwa][y] = {}
+                sgcyva[s][g_fwa][c][y] = {}
+                
                 for v in veg_codes:
-                    csgyva[c][s][g_fwa][y][v] = 0.0
+                    sgcyva[s][g_fwa][c][y][v] = 0.0
 
 
 # read in ICM-LAVegMod grid-level output and sum over each  ICM-Hydro compartment - store in previously initialized dictionaries        
 print('read in gridded data and accumulate up to the ICM-Hydro comparment level:')
-g_all = [g_fwoa] + groups2correct
+g_all = [500,601]#[g_fwoa] + groups2correct
 
 for s in Ss:
     for g in g_all:                 # only process model groups that are included in the input file (plus FWOA)
@@ -133,18 +148,17 @@ for s in Ss:
             
             for line in grid_eoy:
                 c   =    int(line[1]) # compID
-
-                if c in comps2correct:
-                    csgyva[c][s][g][y]['UPL'] += grArea*(float(line[13]) + float(line[14]))    # pct_land_upland_dry + pct_land_upland_wet
-                    csgyva[c][s][g][y]['LND'] += grArea*float(line[11])                        # pct_land_veg
-                    csgyva[c][s][g][y]['WAT'] += grArea*float(line[ 9])                        # pct_water
-                    csgyva[c][s][g][y]['FLT'] += grArea*float(line[10])                        # pct_flotant
-                    csgyva[c][s][g][y]['FOR'] += grArea*(float(line[15]) + float(line[16]))    # pct_vglnd_BLHF + pct_vglnd_SWF
-                    csgyva[c][s][g][y]['INM'] += grArea*float(line[18])                        # pct_vglnd_IM
-                    csgyva[c][s][g][y]['BRM'] += grArea*float(line[19])                        # pct_vglnd_BM
-                    csgyva[c][s][g][y]['FRM'] += grArea*float(line[17])                        # pct_vglnd_FM
-                    csgyva[c][s][g][y]['SAM'] += grArea*float(line[20])                        # pct_vglnd_SM
-                    csgyva[c][s][g][y]['BRG'] += grArea*float(line[12])                        # pct_land_bare
+                if c in comps2correct[s][g]:
+                    sgcyva[s][g][c][y]['UPL'] += grArea*(float(line[13]) + float(line[14]))    # pct_land_upland_dry + pct_land_upland_wet
+                    sgcyva[s][g][c][y]['LND'] += grArea*float(line[11])                        # pct_land_veg
+                    sgcyva[s][g][c][y]['WAT'] += grArea*float(line[ 9])                        # pct_water
+                    sgcyva[s][g][c][y]['FLT'] += grArea*float(line[10])                        # pct_flotant
+                    sgcyva[s][g][c][y]['FOR'] += grArea*(float(line[15]) + float(line[16]))    # pct_vglnd_BLHF + pct_vglnd_SWF
+                    sgcyva[s][g][c][y]['INM'] += grArea*float(line[18])                        # pct_vglnd_IM
+                    sgcyva[s][g][c][y]['BRM'] += grArea*float(line[19])                        # pct_vglnd_BM
+                    sgcyva[s][g][c][y]['FRM'] += grArea*float(line[17])                        # pct_vglnd_FM
+                    sgcyva[s][g][c][y]['SAM'] += grArea*float(line[20])                        # pct_vglnd_SM
+                    sgcyva[s][g][c][y]['BRG'] += grArea*float(line[12])                        # pct_land_bare
     
 # roll up compartment-level values to the ecoregion for applying correctors to PDD data
 # structure of dictionary will match the dictionary used by upload_to_pdd.py: d[scen][group][ICMyear][vegcode][ecoregion]
@@ -153,7 +167,7 @@ correctors = {}
 
 for s in Ss:
     correctors[s] = {}
-    for g_fwa in g_c_mask.keys():
+    for g_fwa in g_c_mask[s].keys():
         correctors[s][g_fwa] = {}
         
         for y in g_years[s][g_fwa]:       # only process the specific years that are assigned to each group in the input file
@@ -165,21 +179,21 @@ for s in Ss:
             for v in veg_codes:
                 correctors[s][g_fwa][y][v] = {}
 
-                for comp in p_c_mask[p]:
+                for comp in g_c_mask[s][g]:
                     e = comp_eco[comp]
                     
                     if e not in correctors[s][g_fwa][y][v].keys():
                         correctors[s][g_fwa][y][v][e] = {'FWOA':0.0,'FWA':0.0}
                     
-                    correctors[s][g_fwa][y][v][e]['FWOA'] += csgyva[c][s][g_fwoa][y][v]
-                    correctors[s][g_fwa][y][v][e]['FWA' ] += csgyva[c][s][g_fwa][y][v]
+                    correctors[s][g_fwa][y][v][e]['FWOA'] += sgcyva[s][g_fwoa][c][y][v]
+                    correctors[s][g_fwa][y][v][e]['FWA' ] += sgcyva[s][g_fwa][c][y][v]
                     
 print('writing output to %s' % corrector_outfile)                    
                     
 with open(corrector_outfile,mode='w') as cof:
     cof.write('ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,FWOA_Area_to_Use_m2,FWA_Area_to_Replace_m2,Date,Year_FWOA,Note\n')
     for s in Ss:
-        for g_fwa in g_c_mask.keys():
+        for g_fwa in g_c_mask[s].keys():
             for y in g_years[s][g_fwa]:
                 if y == 1:
                     FWOAY = -2
