@@ -83,6 +83,8 @@ if update_ecoregion_values == True:
 
     actionnote = 'uploaded ICM output for: '
 
+
+    # build dictionary structure that will hold ecoregion area values
     d = {}
     for S in scens2update:
         d[S] = {}
@@ -95,6 +97,21 @@ if update_ecoregion_values == True:
                     d[S][G][Y][C] = {}
                     for E in eco2update:
                         d[S][G][Y][C][E] = 0
+
+    # build dictionary structure that will hold ecoregion area correction factors
+    cor = {}
+    for S in scens2update:
+        cor[S] = {}
+        for G in groups2update:
+            cor[S][G] = {}
+            for Y in years2update:
+                cor[S][G][Y] = {}
+            for C in codes2update:
+                    cor[S][G][Y][C] = {}
+                    for E in eco2update:
+                        cor[S][G][Y][C][E] = 0
+
+
 
 
 # land_veg columns [data format]:
@@ -144,14 +161,35 @@ if update_ecoregion_values == True:
                 if nrb > 0:
                     print(' Failed to parse %d rows in %s. Check lines:' % (nrb,lvfile))
                     print(badrows)
+            
+            if use_land_veg_correctors == True:
+                corrector_outfile = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/PDD_bk/MP2023_S%02d_G%03d_PDD_FWA_land_veg_correctors.csv' % (S,G)
+                print('reading in land_veg correction factors from: %s' % corrector_outfile)
+                with open(corrector_outfile,mode='r') as corfile:
+                    ncr = 0
+                    for cr in corfile:
+                        if ncr > 0:
+                            g = int(cr.split(',')[0])
+                            s = int(cr.split(',')[1])
+                            y = int(cr.split(',')[2])
+                            c = cr.split(',')[3]
+                            e = cr.split(',')[4]
+                            cf = float(cr.split(',')[5])
+                            if e in eco2bi.keys():
+                                er = eco2bi[e]
+                            else:
+                                er = e
+                            if er in eco2update:
+                                if s == S:
+                                    if g == G:
+                                        if c in codes2update:
+                                            cor[s][g][y][c][er] = cf                            
         
 
 #print('\nupdating PDD (via Pandas SQL functions) ')
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 
 if update_ecoregion_values == True:
-
-
         
     print('\nupdating PDD (via Pandas SQL functions) ')
     engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
@@ -175,7 +213,9 @@ if update_ecoregion_values == True:
                     note = 'landscape at end of ICM year'
                 for C in codes2update:
                     for E in eco2update:
-                        val2write = d[S][G][Y][C][E]
+                        val2write = d[S][G][Y][C][E] + cor[S][G][Y][C][E]
+                        if cor[S][G][Y][C][E] != 0.0:
+                            note = '%s; correction factor used with this ecoregion' % note
                         try:
                             df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
                             df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
