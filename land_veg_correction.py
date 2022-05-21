@@ -87,7 +87,8 @@ with open(g_c_y_mask_file,mode='r') as infile:
                     if y not in g_years[s][g]:
                         g_years[s][g].append(y)
             else:
-                for y in years_str.split():
+                for yt in years_str.split(' '):
+                    y = int(yt)
                     if y not in g_years[s][g]:
                         g_years[s][g].append(y)
         nl += 1
