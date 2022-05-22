@@ -20,6 +20,7 @@ tables_to_delete = ['mc','land_veg'] #'ecoregion_definition']
 data2delete ='"ModelGroup"=646'            #'"Scenario"=7'
 
 update_ecoregion_values = True
+use_land_veg_correctors = True
 update_MC_direct_benefits = False
 
 # connection info for PDD SQL engine
@@ -93,7 +94,7 @@ if update_ecoregion_values == True:
             actionnote = '%s S%02dG%03d' % (actionnote,S,G)
             for Y in years2update:
                 d[S][G][Y] = {}
-            for C in codes2update:
+                for C in codes2update:
                     d[S][G][Y][C] = {}
                     for E in eco2update:
                         d[S][G][Y][C][E] = 0
@@ -106,7 +107,7 @@ if update_ecoregion_values == True:
             cor[S][G] = {}
             for Y in years2update:
                 cor[S][G][Y] = {}
-            for C in codes2update:
+                for C in codes2update:
                     cor[S][G][Y][C] = {}
                     for E in eco2update:
                         cor[S][G][Y][C][E] = 0
@@ -192,7 +193,7 @@ engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{
 if update_ecoregion_values == True:
         
     print('\nupdating PDD (via Pandas SQL functions) ')
-    engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
+        
 
     for S in scens2update:
         for G in groups2update:
@@ -215,7 +216,7 @@ if update_ecoregion_values == True:
                     for E in eco2update:
                         val2write = d[S][G][Y][C][E] + cor[S][G][Y][C][E]
                         if cor[S][G][Y][C][E] != 0.0:
-                            note = '%s; correction factor used with this ecoregion' % note
+                            note = '*%s' % note
                         try:
                             df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
                             df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
@@ -334,6 +335,20 @@ if update_MC_direct_benefits == True:
         
         
         
+# script to update icm.ecoregion_defintion
+#new = 'PDD_bk/ecoregion_definition_UPDATED_05212022.csv'
+#engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
+#datestr = dt.now()
+#with open(new,mode='r') as newfile:
+#    nf = 0
+#    for row in newfile:
+#            if nf > 0:
+#                    p = int(row.split(',')[0])
+#                    e = row.split(',')[1].strip()
+#                    df2up = pd.DataFrame({'ProjectID':p,'Ecoregion':e},index=[0])
+#                    df2up.to_sql('ecoregion_definition', engine, if_exists='append', schema='icm', index=False)
+#            nf += 1
+
 
 
 
