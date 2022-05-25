@@ -352,8 +352,6 @@ if update_MC_direct_benefits == True:
 
 
 
-
-
 #Running random SQL queries using PSYCOPG2 instead of PANDAS
 #connection_info = {'host': host,'dbname':db_name,'user':user,'password':password}
 #connection_string = ' '.join([f"{key}='{value}'" for key, value in connection_info.items()])
@@ -362,6 +360,13 @@ if update_MC_direct_benefits == True:
 #sqlstr = 'select * from icm.land_veg;'
 #sqlstr = 'delete from icm.land_veg;'  # deletes all rows in table
 #cur.execute(sqlstr)
+
+
+# sqlstr = 'SELECT * FROM icm.land_veg WHERE "ModelGroup"=%s AND "Scenario"=%s AND "Date"=%s;'
+# date2use = dt.strptime('2022-03-24 11:40:33.841920','%Y-%m-%d %H:%M:%S.%f')
+# data = (g,s,date2use,)
+# cur.execute(sqlstr,data)
+# output = cur.fetchall()
 
 # pass variables into a SQL string for exeuction witih psycopg2
 
