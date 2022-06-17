@@ -668,8 +668,8 @@ for d in range(0,ndays):
         if Qresidual < 200000:
             Qdiv = 0
         else:
-            Qdiv = 0.09375*Qresidual-18750      # 75,000 cfs Operations
-            #Qdiv = 0.3125*Qresidual-62500      # 250,000 cfs Operations
+            Qdiv = 0.09375*Qresidual-18750      # 75,000 cfs Operations - opening threshold @ 250k
+            #Qdiv = 0.3125*Qresidual-62500      # 250,000 cfs Operations - opening threshold @ 250k
 
     UBrD_cfs[d] = Qdiv  
     UBrD_cms[d] = Qdiv*(0.3048**3)
@@ -682,16 +682,16 @@ for d in range(0,ndays):
     ##########################################
     # river mile 69
     # 75k diversion: Diversion flow of rating curve 0.06667*Qresidual-8333 with a minimum of 5,000 cfs
-    # MP2023 FWOA using 55k diversion scenario: rating curve 0.04762*Qresidual-4524 with a minimum of 5,000 cfs
+    # MP2023 FWOA using 55k diversion scenario: rating curve 0.04762*Qresidual-4524 with a minimum of 5,000 cfs, opens at 250,000 cfs
         
     impl_yr = implementation['MBrD']
     
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:
-        Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations
-        #Qdiv = max(5000,0.06667*Qresidual-8333)     # 75,000 cfs Operations
-    
+        #Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations - opening threshold @ 250k
+        #Qdiv = max(5000,0.06667*Qresidual-8333)     # 75,000 cfs Operations - opening threshold @ 250k
+        Qdiv = max(5000,0.0625*Qresidual-23125)     # 55,000 cfs Operations - opening threshold @ 450k
     MBrD_cfs[d] = Qdiv
     MBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
@@ -719,12 +719,12 @@ for d in range(0,ndays):
     ###   Mid-Barataria Sediment Diversion    ###
     #############################################
     # river mile 61
-    # 4 different versions:
+    # 5 different versions:
         # 75k @ 1.0 m : Diversion flow of rating curve 0.09375*residual - 18750 at river flows above 200,000
         # 250k @ 1.0 m : Diversion flow of rating curve 0.3125*residual - 62500 at river flows above 200,000
         # 35k - 75k @ 1.0 m : Diversion flow of rating curve 0.04375*residual - 8750 at river flows above 200,000
-        # 75k @ 1.25 m , 5k min : Diversion flow of rating curve 0.06667*residual - 8333 with a minimum of 5,000 cfs
-
+        # 75k @ 1.25 m , 5k min : Diversion flow of rating curve 0.06667*residual - 8333 with a minimum of 5,000 cfs, opens at 250,000 cfs
+        # 75k @ 1.25 m , 5k min : Diversion flow of rating curve 0.08757*residual - 34375 with a minimum of 5,000 cfs, opens at 450,000 cfs
     impl_yr = implementation['MBaD']
 
     if yr <yr0 + impl_yr:
@@ -736,7 +736,8 @@ for d in range(0,ndays):
 #            Qdiv = 0.09375*Qresidual - 18750       # 75k @ 1.0 m 
 #            Qdiv = 0.3125*Qresidual-62500          # 250k @ 1.0 m 
 #            Qdiv = 0.04375*Qresidual-8750          # 35k - 75k @ 1.0 m 
-        Qdiv = max(5000, 0.06667*Qresidual-8333)    # 75k @ 1.25 m , 5k min
+#        Qdiv = max(5000, 0.06667*Qresidual-8333)   # 75k @ 1.25 m , 5k min, opening threshold @ 250k
+        Qdiv = max(5000, 0.0875*Qresidual-34375)    # 75k @ 1.25 m , 5k min, opening threshold @ 450k
         
     MBaD_cfs[d] = Qdiv
     MBaD_cms[d] = Qdiv*(0.3048**3)
