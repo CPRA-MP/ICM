@@ -1990,9 +1990,18 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
     comp_out_file = EH_comp_results_filepath
     griddata_file = move_EH_gridfile                                                                                                                #os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year) )
-    new_grid_filepath =  os.path.normpath(r"%s/%s_end%s.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],year,str.split(EH_grid_file,'.')[1]))     #os.path.normpath(r'%s/grid_data_500m_end%s.csv' % (EHtemp_path,year) )
     bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
-
+    new_grid_filepath   = 'hydro/TempFiles/grid_data_500m_end%d.csv' % (year)
+    comp_elev_file      = 'hydro/TempFiles/compelevs_end_%d.csv' % (year)
+    comp_wat_file       = 'hydro/TempFiles/PctWater_%d.csv' % (year)
+    comp_upl_file       = 'hydro/TempFiles/PctUpland_%d.csv' % ( year)
+    grid_pct_edge_file  = 'hsi/%s_W_pedge.csv' % (file_prefix)
+    grid_Gdw_dep_file   = 'hsi/GadwallDepths_cm_%d.csv' % (year)
+    grid_GwT_dep_file   = 'hsi/GWTealDepths_cm__%d.csv' % (year)
+    grid_MtD_dep_file   = 'hsi/MotDuckDepths_cm_%d.csv' % (year)
+   
+    dem_grid_data_outfile = 'geomorph/output/%s_W_dem_grid_data.csv' % file_prefix
+    
 
 
     ########################################################
@@ -2545,7 +2554,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
-
+    morph_zonal_stats = 0               # 1=zonal stats run in ICM-Morph; 0=zonal stats run in ICM
+    
     with open (wm_param_file, mode='w') as ip_csv:
         ip_csv.write("%d, start_year - first year of model run\n" % startyear)
         ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsedyear)
@@ -2633,6 +2643,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'%s', monthly_mean_sal_file - file name with relative path to compartment summary file with monthly mean salinity values\n" % monthly_file_avsal)
         ip_csv.write("'%s', monthly_mean_tss_file - file name with relative path to compartment summary file with monthly mean suspended sediment concentrations\n" % monthly_file_avtss)
         ip_csv.write("'%s', bi_dem_xyz_file - file name with relative path to XYZ DEM file for ICM-BI-DEM model domain - XY resolution must be snapped to XY resolution of main DEM\n" % bidem_xyz_file)
+        ip_csv.write("''geomorph/input/%s_W_dem30_channels.tif.xyz', dredge_dem_xyz_file - file name, with relative path, to XYZ DEM file for raster that will have elevations for all maintained/dredged channels/locations, these elevations will be maintained for every year regardless of calculated deposition/erosion rates\n" % exist_cond_tag)
         ip_csv.write("'geomorph/output/%s_W_edge30.xyz', edge_eoy_xyz_file - file name with relative path to XYZ raster output file for edge pixels\n" % file_prefix)
         ip_csv.write("'geomorph/output/%s_W_dem30.xyz', dem_eoy_xyz_file - file name with relative path to XYZ raster output file for topobathy DEM\n" % file_prefix)
         ip_csv.write("'geomorph/output/%s_W_dz30.xyz', dz_eoy_xyz_file - file name with relative path to XYZ raster output file for elevation change raster\n" % file_prefix)
@@ -2643,14 +2654,16 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/output/%s_W_inun30.xyz', inun_xyz_file - file name with relative path to XYZ raster output file for average inundation depth\n" % file_prefix)
         ip_csv.write("'geomorph/output/grid_summary_eoy_%d.csv', grid_summary_eoy_file - file name with relative path to summary grid file for end-of-year landscape\n" % year)
         ip_csv.write("'%s', grid_data_file - file name with relative path to summary grid data file used internally by ICM\n" % new_grid_filepath)
-        ip_csv.write("'hsi/GadwallDepths_cm_%d.csv', grid_depth_file_Gdw - file name with relative path to Gadwall depth grid data file used internally by ICM and HSI\n" % year)
-        ip_csv.write("'hsi/GWTealDepths_cm_%d.csv', grid_depth_file_GwT - file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % year)
-        ip_csv.write("'hsi/MotDuckDepths_cm_%d.csv', grid_depth_file_MtD - file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % year)
-        ip_csv.write("'hsi/%s_W_pedge.csv', grid_pct_edge_file - file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % file_prefix)
+        ip_csv.write("'%s', grid_depth_file_Gdw - file name with relative path to Gadwall depth grid data file used internally by ICM and HSI\n" % grid_Gdw_dep_file)
+        ip_csv.write("'%s', grid_depth_file_GwT - file name with relative path to Greenwing Teal depth grid data file used internally by ICM and HSI\n" % grid_GwT_dep_file)
+        ip_csv.write("'%s', grid_depth_file_MtD - file name with relative path to Mottled Duck depth grid data file used internally by ICM and HSI\n" % grid_MtD_dep_file)
+        ip_csv.write("'%s', grid_pct_edge_file - file name with relative path to percent edge grid data file used internally by ICM and HSI\n" % grid_pct_edge_file)
         ip_csv.write("'geomorph/output/%s_W_SAV.csv', grid_sav_file - file name with relative path to csv output file for SAV presence\n" % file_oprefix)
-        ip_csv.write("'hydro/TempFiles/compelevs_end_%d.csv', comp_elev_file - file name with relative path to elevation summary compartment file used internally by ICM\n" % year)
-        ip_csv.write("'hydro/TempFiles/PctWater_%d.csv', comp_wat_file - file name with relative path to percent water summary compartment file used internally by ICM\n" % year)
-        ip_csv.write("'hydro/TempFiles/PctUpland_%d.csv', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % year)
+        ip_csv.write("'%s', comp_elev_file - file name with relative path to elevation summary compartment file used internally by ICM\n" % comp_elev_file)
+        ip_csv.write("'%s', comp_wat_file - file name with relative path to percent water summary compartment file used internally by ICM\n" % comp_wat_file)
+        ip_csv.write("'%s', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % comp_upl_file)
+        ip_csv.write("%d, write_zonal_stats - integer flag to indicate whether zonal statistics are to be conducted in ICM-Morph (1) or whether a CSV file will be saved to do external zonal statistics(0)\n" % morph_zonal_stats)
+        ip_csv.write("'%s',dem_grid_out_summary_file - file name, with relative path, to CSV output file that will save DEM-resolution landscape data to be used in zonal statistics\n" % dem_grid_data_outfile)
         ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
         ip_csv.write(" %s, file naming convention prefix\n" % file_o_01_end_prefix)
@@ -2661,13 +2674,330 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'%s', project_list_RR_file - file name with relative path to list of ridge and levee raster XYZ files\n" % rr_project_list_yr)
         ip_csv.write(" %d, n_bs - number of bank stabilization projects built in current year OR PREVIOUS years\n" % n_sp_cumul)
         ip_csv.write("'%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % sp_project_list_cumul)
-       
-
+   
     morph_run = subprocess.call(morph_exe_path)
+    
+    ##############################################################
+    ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
+    ##############################################################
+    if morph_zonal_stats == 0: # 1=zonal stats run in ICM-Morph; 0=zonal stats run here in ICM
+        
+        print('\n--------------------------------------------------' )
+        print('  RUNNING ZONAL STATS ON ICM-MORPH OUTPUT- year %s' % year)
+        print('--------------------------------------------------\n')
+        Gdw_bin_n = 14    # number of water depth bins used by Gadwall HSI
+        GwT_bin_n = 9     # number of water depth bins used by Greenwing Teal HSI
+        MtD_bin_n = 9     # number of water depth bins used by Mottled Duck HSI
+        
+        print(' Reading in monthly stage data.')
+        comp_mon_stg = {}   
+        with open(monthly_file_avstg,mode='r') as comp_stg_data:
+            nline = 0
+            for line in comp_stg_data:  # comp,stage_m_01,stage_m_02,stage_m_03,stage_m_04,stage_m_05,stage_m_06,stage_m_07,stage_m_08,stage_m_09,stage_m_10,stage_m_11,stage_m_12
+                if nline > 0:
+                    c = int(line.split(',')[0])
+                    comp_mon_stg[c] = {}
+                    for n_mon in range(1,13):
+                        comp_mon_stg[c][n_mon] = int(line.split(',')[n_mon])
+                nline += 1
+    
+        # set up empty dictionaries and arrays that will hold zonal statistic values
+        grid_bed_z_all = {}
+        grid_bed_z = {} 
+        
+        grid_land_z_all = {}
+        grid_land_z = {}
+         
+        grid_pct_land_all = {}
+        grid_pct_land = {}
+        
+        grid_pct_land_wetl_all = {} 
+        grid_pct_land_wetl = {} 
+        
+        grid_pct_water_all = {} 
+        grid_pct_water = {} 
+        
+        grid_pct_edge_all = {}
+        grid_pct_edge = {}
+        
+        grid_Gdw_depths = {}
+        grid_GwT_depths = {}
+        grid_MtD_depths = {}
+        
+        comp_water_z_all = {}
+        comp_water_z = {}
+        
+        comp_wetland_z_all = {}
+        comp_wetland_z = {}
+        
+        comp_edge_area_all = {}
+        comp_edge_area = {}
+        
+        comp_pct_water_all = {}
+        comp_pct_water = {}
+        
+        comp_pct_upland_all = {}
+        comp_pct_upland = {}
+        
+        for g in range(1,n500grid+1):
+            grid_bed_z_all[g] = []         
+            grid_bed_z[g] = 0.0         
+            
+            grid_land_z_all[g] = []      
+            grid_land_z[g] = 0.0
+        
+            grid_pct_land_all[g] = []    
+            grid_pct_land[g] = 0.0
+            
+            grid_pct_land_wetl_all[g] = [] 
+            grid_pct_land_wetl[g] = 0.0
+            
+            grid_pct_water_all[g] = []
+            grid_pct_water[g] = 0.0     
+            
+            grid_pct_edge_all[g] = []      
+            grid_pct_edge[g] = 0.0
+        
+            grid_Gdw_depths[g] = []
+            for Gdw_bin in range(1,Gdw_bin_n + 1):
+                grid_Gdw_depths[g][Gdw_bin] = 0.0
+                
+            grid_GwT_depths[g] = []
+            for GwT_bin in range(1,GwT_bin_n + 1):
+                grid_GwT_depts[g][GwT_bin] = 0.0
+                
+            grid_MtD_depths[g] = []    
+            for MtD_bin in range(1,MtD_bin_n + 1):
+                grid_MtD_depths[g][MtD_bin] = 0.0
+            
+        for c in range(1,ncomp+1):                           
+            comp_water_z_all[c] = []       
+            comp_water_z[c] = 0.0
+                   
+            comp_wetland_z_all[c] = [] 
+            comp_wetland_z[c] = 0.0    
+            
+            comp_edge_area_all[c] = []    
+            comp_edge_area[c] = 0.0    
+            
+            comp_pct_water_all[c] = []    
+            comp_pct_water[c] = 0.0    
+            
+            comp_pct_upland_all[c] = []   
+            comp_pct_upland[c] = 0.0   
+        
+        print(' Reading in ICM-Morph output data at DEM resolution from %s' % dem_grid_data_outfile)
+        with open(dem_grid_data_outfile,mode='r') as grid_data:
+            nline = 0
+            for line in grid_data:
+                if nline > 0:   # header: ndem,ICM_LAVegMod_GridCell,ICM_Hydro_Compartment,landtype,edge,z_NAVD88_m
+                    g      = int(float(line.split(',')[1]))
+                    c      = int(float(line.split(',')[2]))
+                    lndtyp = int(float(line.split(',')[3]))
+                    edge   = int(float(line.split(',')[4]))
+                    elev   = float(line.split(',')[5])
+                    
+                    if c > 0:
+                        comp_edge_area_all[c].append(edge*dem_res*dem_res)
+                        if lndtyp == 2:
+                            comp_water_z_all[c].append(elev)
+                            comp_pct_water_all[c].append(1)
+                        else:
+                            if lndtyp != 4:     # check if upland/developed
+                                comp_wetland_z_all[c].append(elev)
+                            else:
+                                comp_pct_upland_all[c].append(1)
+                    
+                    if g > 0:
+                        grid_pct_edge_all[g].append(edge)
+                        if lndtyp == 2:
+                            grid_bed_z_all[g].append(elev)
+                            grid_pct_water_all[g].append(1)
+                        else:
+                            grid_land_z_all[g].append(elev)
+                            grid_pct_land_all[g].append(1)
+                            if lndtyp != 4:     # check if upland/developed
+                                grid_pct_land_wetl_all[g].append(1)
+                        
+                       
+                        if c > 0:
+                            if elev > -9999:
+                                dep_oct_apr = (comp_mon_stg[c][1]+comp_mon_stg[c][2]+comp_mon_stg[c][3]+comp_mon_stg[c][4]+comp_mon_stg[c][10]+comp_mon_stg[c][11]+comp_mon_stg[c][12])/7.0 - elev
+                                dep_sep_mar = (comp_mon_stg[c][1]+comp_mon_stg[c][2]+comp_mon_stg[c][3]+comp_mon_stg[c][9]+comp_mon_stg[c][10]+comp_mon_stg[c][11]+comp_mon_stg[c][12])/7.0 - elev 
+                                dep_ann     = (comp_mon_stg[c][1]+comp_mon_stg[c][2]+comp_mon_stg[c][3]+comp_mon_stg[c][4]+comp_mon_stg[c][5]+comp_mon_stg[c][6]+comp_mon_stg[c][7]+comp_mon_stg[c][8]+comp_mon_stg[c][9]+comp_mon_stg[c][10]+comp_mon_stg[c][11]+comp_mon_stg[c][12])/12.0 - elev
+                                
+                                # tabulate area of grid cell within each Gadwall depth bin; depth thresholds (in m) are: [0,0.04,0.08,0.12,0.18,0.22,0.28,0.32,0.36,0.40,0.44,0.78,1.50]     
+                                if dep_oct_apr <= 0.0:
+                                    grid_Gdw_depths[g][1]  = grid_Gdw_depths[g][1] + dem_res**2
+                                elif dep_oct_apr <= 0.04:
+                                    grid_Gdw_depths[g][2]  = grid_Gdw_depths[g][2] + dem_res**2
+                                elif dep_oct_apr <= 0.08:
+                                    grid_Gdw_depths[g][3]  = grid_Gdw_depths[g][3] + dem_res**2
+                                elif dep_oct_apr <= 0.12:
+                                    grid_Gdw_depths[g][4]  = grid_Gdw_depths[g][4] + dem_res**2
+                                elif dep_oct_apr <= 0.18:
+                                    grid_Gdw_depths[g][5]  = grid_Gdw_depths[g][5] + dem_res**2
+                                elif dep_oct_apr <= 0.22:
+                                    grid_Gdw_depths[g][6]  = grid_Gdw_depths[g][6] + dem_res**2
+                                elif dep_oct_apr <= 0.28:
+                                    grid_Gdw_depths[g][7]  = grid_Gdw_depths[g][7] + dem_res**2
+                                elif dep_oct_apr <= 0.32:
+                                    grid_Gdw_depths[g][8]  = grid_Gdw_depths[g][8] + dem_res**2
+                                elif dep_oct_apr <= 0.36:
+                                    grid_Gdw_depths[g][9]  = grid_Gdw_depths[g][9] + dem_res**2
+                                elif dep_oct_apr <= 0.40:
+                                    grid_Gdw_depths[g][10] = grid_Gdw_depths[g][10] + dem_res**2
+                                elif dep_oct_apr <= 0.44:
+                                    grid_Gdw_depths[g][11] = grid_Gdw_depths[g][11] + dem_res**2
+                                elif dep_oct_apr <= 0.78:
+                                    grid_Gdw_depths[g][12] = grid_Gdw_depths[g][12] + dem_res**2
+                                elif dep_oct_apr <= 1.50:
+                                    grid_Gdw_depths[g][13] = grid_Gdw_depths[g][13] + dem_res**2
+                                else
+                                    grid_Gdw_depths[g][14] = grid_Gdw_depths[g][14] + dem_res**2
+                                
+                                # tabulate area of grid cell within each Greenwing Teal depth bin; depth thresholds (in m) are: [0,0.06,0.18,0.22,0.26,0.30,0.34,1.0]
+                                if dep_sep_mar <= 0.0:
+                                    grid_GwT_depths[g][1] = grid_GwT_depths[g][1] + dem_res**2
+                                elif dep_sep_mar <= 0.06:
+                                    grid_GwT_depths[g][2] = grid_GwT_depths[g][2] + dem_res**2
+                                elif dep_sep_mar <= 0.18:
+                                    grid_GwT_depths[g][3] = grid_GwT_depths[g][3] + dem_res**2
+                                elif dep_sep_mar <= 0.22:
+                                    grid_GwT_depths[g][4] = grid_GwT_depths[g][4] + dem_res**2
+                                elif dep_sep_mar <= 0.26:
+                                    grid_GwT_depths[g][5] = grid_GwT_depths[g][5] + dem_res**2
+                                elif dep_sep_mar <= 0.30:
+                                    grid_GwT_depths[g][6] = grid_GwT_depths[g][6] + dem_res**2
+                                elif dep_sep_mar <= 0.34:
+                                    grid_GwT_depths[g][7] = grid_GwT_depths[g][7] + dem_res**2
+                                elif dep_sep_mar <= 1.0:
+                                    grid_GwT_depths[g][8] = grid_GwT_depths[g][8] + dem_res**2
+                                else
+                                    grid_GwT_depths[g][9] = grid_GwT_depths[g][9] + dem_res**2
+                                
+                                # tabulate area of grid cell within each Mottled Duck depth bin; depth thresholds (in m) are: [0,0.08,0.30,0.36,0.42,0.46,0.50,0.56]
+                                if dep_ann <= 0.0:        
+                                    grid_MtD_depths[g][1] = grid_MtD_depths[g][1] + dem_res**2
+                                elif dep_ann <= 0.08:            
+                                    grid_MtD_depths[g][2] = grid_MtD_depths[g][2] + dem_res**2
+                                elif dep_ann <= 0.30:            
+                                    grid_MtD_depths[g][3] = grid_MtD_depths[g][3] + dem_res**2
+                                elif dep_ann <= 0.36:            
+                                    grid_MtD_depths[g][4] = grid_MtD_depths[g][4] + dem_res**2
+                                elif dep_ann <= 0.42:            
+                                    grid_MtD_depths[g][5] = grid_MtD_depths[g][5] + dem_res**2
+                                elif dep_ann <= 0.46:            
+                                    grid_MtD_depths[g][6] = grid_MtD_depths[g][6] + dem_res**2
+                                elif dep_ann <= 0.50] then            
+                                    grid_MtD_depths[g][7] = grid_MtD_depths[g][7] + dem_res**2
+                                elif dep_ann <= 0.56:            
+                                    grid_MtD_depths[g][8] = grid_MtD_depths[g][8] + dem_res**2
+                                else
+                                    grid_MtD_depths[g][9] = grid_MtD_depths[g][9] + dem_res**2
+        
+                nline += 1
+        
+        # determine zonal averages over each ICM-LAVegMod grid cell
+        for g in range(1,n500grid+1):
+            ng = len(grid_bed_z_all[g]) + len(grid_land_z_all[g])
+            
+            if ng > 0:
+                grid_bed_z[g]          = sum(grid_bed_z_all[g]) / ng
+                grid_land_z[g]         = sum(grid_land_z_all[g]) / ng
+                grid_pct_land[g]       = 100.0*sum(grid_pct_land_all[g]) / ng
+                grid_pct_land_wetl[g]  = 100.0*sum(grid_pct_land_wetl_all[g]) / ng
+                grid_pct_water[g]      = 100.0*sum(grid_pct_water_all[g]) / ng
+                grid_pct_edge[g]       = 100.0*sum(grid_pct_edge_all[g]) / ng
+            else:
+                grid_bed_z[g]          = 0.0
+                grid_land_z[g]         = 0.0
+                grid_pct_land[g]       = 0.0
+                grid_pct_land_wetl[g]  = 0.0
+                grid_pct_water[g]      = 0.0
+                grid_pct_edge[g]       = 0.0
+                
+        
+        # determine zonal averages over each ICM-Hydro compartment
+        for c in range(1,ncomp+1):    
+            nc = len(comp_water_z_all[c]) + len(comp_wetland_z_all[c]) + len(comp_pct_upland_all[c])
+        
+            if nc > 0:
+                comp_pct_upland[c] = sum(comp_pct_upland_all[c]) / nc
+                comp_water_z[c]    = sum(comp_water_z_all[c]   ) / nc
+                comp_wetland_z[c]  = sum(comp_wetland_z_all[c] ) / nc
+                comp_pct_water[c]  = sum(comp_pct_water_all[c] ) / nc
+                comp_edge_area[c]  = sum(comp_edge_area_all[c] )
+            else:
+                comp_pct_upland[c] = 0.0
+                comp_water_z[c]    = 0.0
+                comp_wetland_z[c]  = 0.0
+                comp_pct_water[c]  = 0.0
+                comp_edge_area[c]  = 0.0        
+        
+        print(' Writing zonal statistics output files:')
+        with open(grid_data_file,mode='w') as gdaf:  
+            print('     - %s' % grid_data_file)
+            gdaf.write('GRID,MEAN_BED_ELEV,MEAN_LAND_ELEV,PERCENT_LAND_0-100,PERCENT_WETLAND_0-100,PERCENT_WATER_0-100\n')
+            for g in grid_bed_z.keys():
+                gdaf.write('%d,%0.4f,%0.4f,%0.2f,%0.2f,%0.2f\n' % (g,grid_bed_z[g],grid_land_z[g],grid_pct_land[g],grid_pct_land_wetl[g],grid_pct_water[g]) )
+            
+        with open(grid_pct_edge_file,mode='w') as gdef:  
+            print('     - %s' % grid_pct_edge_file)
+            gdef.write('GRID,PERCENT_EDGE_0-100\n')
+            for g in grid_pct_edge.keys():
+                gdef.write('%d,%0.4f' % (g,grid_pct_edge[g]) )
+              
+        with open(comp_elev_file,mode='w') as cef:
+            print('     - %s' % comp_elev_file)
+            cef.write('ICM_ID,MEAN_BED_ELEV,MEAN_MARSH_ELEV,MARSH_EDGE_AREA\n')
+            for c in comp_water_z.keys():
+                cef.write('%d,%0.4f,%0.4f,%d\n' % (c,comp_water_z[c],comp_wetland_z[c],comp_edge_area[c]) )
+        
+        with open(comp_wat_file, mode='w') as cwf:
+            print('     - %s' % comp_wat_file)
+            for c in comp_pct_water.keys():
+                cwf.write( '%d,%0.4f\n' % (c,comp_pct_water[c]) )
+        
+        with open(comp_upl_file, mode='w') as cuf:
+            print('     - %s' % comp_upl_file)
+            for c in comp_pct_upland.keys():
+                cuf.write( '%d,%0.4f\n' % (c,comp_pct_upland[c]) )
+        
+        with open(grid_Gdw_dep_file, mode='w') as Gdw:    
+            print('     - %s' % grid_Gdw_dep_file)
+            Gdw.write('GRID_ID,VALUE_0,VALUE_4,VALUE_8,VALUE_12,VALUE_18,VALUE_22,VALUE_28,VALUE_32,VALUE_36,VALUE_40,VALUE_44,VALUE_78,VALUE_150,VALUE_151\n')
+            for g in grid_Gdw_depths.keys():
+                linewrite = '%d' % g
+                for Gdw_bin in range(1,Gdw_bin_n + 1):
+                    linewrite = '%s,%d' % (linewrite,grid_Gdw_depths[g][Gdw_bin])
+                Gdw.write('%s\n' % linewrite)
+        
+        with open(grid_GwT_dep_file, mode='w') as GwT:
+            print('     - %s' % grid_GwT_dep_file)
+            GwT.write('GRID_ID,VALUE_0,VALUE_6,VALUE_18,VALUE_22,VALUE_26,VALUE_30,VALUE_34,VALUE_100,VALUE_101\n')
+            for g in grid_GwT_depths.keys():
+                linewrite = '%d' % g
+                for GwT_bin in range(1,GwT_bin_n + 1):
+                    linewrite = '%s,%d' % (linewrite,grid_GwT_depths[g][GwT_bin])
+                GwT.write('%s\n' % linewrite)
+        
+        with open(grid_MtD_dep_file, mode='w') as MtD:
+            print('     - %s' % grid_MtD_dep_file)
+            MtD.write('GRID_ID,VALUE_0,VALUE_8,VALUE_30,VALUE_36,VALUE_42,VALUE_46,VALUE_50,VALUE_56,VALUE_57\n')
+            for g in grid_MtD_depths.keys():
+                linewrite = '%d' % g
+                for MtD_bin in range(1,MtD_bin_n + 1):
+                    linewrite = '%s,%d' % (linewrite,grid_MtD_depths[g][MtD_bin])
+                MtD.write('%s\n' % linewrite)
+        
+                
+        print(' Deleting output file: %s' % dem_grid_data_outfile)
+        os.remove(dem_grid_data_outfile)
 
 
-
-
+        
+        
 print('\n\n\n')
 print('-----------------------------------------' )
 print(' ICM Model run complete!')
