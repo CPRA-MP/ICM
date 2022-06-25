@@ -34,12 +34,14 @@ g = int(sys.argv[2])
 sav_yr = int(sys.argv[3])
 sy = 2019
 
+pd = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM'
+
 perf    = 0                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
 account = 'bcs200002p'                                                          # XSEDE allocation account
 email   = 'eric.white@la.gov'                                                   # emails for notification on queue
 sbatch_file = 'SAV_%04d.submit' % sav_yr
 
-os.chdir('S%02d/G%03d'  % (s,g))
+os.chdir('%s/S%02d/G%03d'  % (pd,s,g))
 
 cntrl_str = 'python ICM_SAV.py %s\n' % (sav_yr)
 tag8    = 'sa%01d%03d%02d' % (s,g,sav_yr-sy+1) 

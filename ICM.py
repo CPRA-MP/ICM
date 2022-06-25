@@ -698,6 +698,7 @@ ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
 hydro_exe_path = inputs[7,1].lstrip().rstrip() # path to hydro executable - ** path is relative to the S##/G###/hydro        ** - use './' if running copy of executable that is saved in /hydro directory 
 bidem_exe_path = inputs[8,1].lstrip().rstrip() # path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** - use './' if running copy of executable that is saved in /bidem/REGION directory
 morph_exe_path = inputs[9,1].lstrip().rstrip() # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
+sav_submit_exe_path = '/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py'
 
 # Configuration files used by various ICM components
 VegConfigFile = inputs[10,1].lstrip().rstrip()
@@ -2680,6 +2681,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
     ##############################################################
+    
     if morph_zonal_stats == 0: # 1=zonal stats run in ICM-Morph; 0=zonal stats run here in ICM
         
         print('\n--------------------------------------------------' )
@@ -2994,8 +2996,12 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 
         print(' Deleting output file: %s' % dem_grid_data_outfile)
         os.remove(dem_grid_data_outfile)
-
-
+    
+    if run_sav == 1:
+        snum = int(sterm[1:])
+        gnum = int(gterm[1:])
+        cmdstr = ['python',sav_submit_exe_path,snum,gnum,year] 
+        subprocess.call(cmdstr)
         
         
 print('\n\n\n')
