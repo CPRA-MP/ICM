@@ -652,7 +652,13 @@ comps_to_change_elev = []
 comp_elevs = []
 # Years (calendar year) when compartments will have new elevations updated
 comp_years = []
- 
+
+# Active deltaic compartment file names that are used by ICM-Morph (all files must be saved in S##/G###/geomorph/input directory)
+act_del_files = []
+# Years (calendar year) to implement each respective active deltaic compartment file listed above
+act_del_years = []
+
+
 # check that project implementation variables are of the correct lengths
 InputErrorFlag = 0
 InputErrorMsg = ''
@@ -671,7 +677,11 @@ if len(sp_years) != len(sp_projectIDs):
 if len(rr_years) != len(rr_projectIDs):
     InputErrorFlag = 1
     InputErrorMsg = '%sLevee & Ridge Project Implementation variables are not of equal length!\n' % InputErrorMsg
+if len(act_del_years) != len(act_del_files):
+    InputErrorFlag = 1
+    InputErrorMsg = '%sActive Deltaic Compartment project variables are not of equal length!\n' % InputErrorMsg
 
+    
 if InputErrorFlag == 1:
     print(' ***********Error with Project Implementation variables! Fix and re-run!\n')
     sys.exit(InputErrorMsg)
@@ -2549,6 +2559,20 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         rmcmd = subprocess.call(rmcmd)
 
 
+    
+    ############################################################################
+    ##    IMPLEMENT ACTIVE DELTAIC COMPARTMENT FILES FOR DIVERSION PROJECT    ##
+    ############################################################################
+    # set default active deltaic compartment file
+    act_del_file_2use = 'compartment_active_delta.csv'
+    # loop through all past and present model years - look to see if any previous (or current) year had an updated active delta file
+    # if so, the year closest (but prior) to the current model year's active deltaic file will be used
+    for ady in range(startyear,year+1):
+        if ady in act_del_years:
+            act_del_file_2use = act_del_files[act_del_years.index(ady)]
+   
+        
+        
     #########################################################
     ##          RUN MORPH MODEL FOR CURRENT YEAR           ##
     #########################################################
@@ -2623,7 +2647,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/input/%s_W_dpsub30.xyz', dsub_file - file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file - file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
         ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)\n" % shallow_subsidence_column)
-        ip_csv.write("'geomorph/input/compartment_active_delta.csv', act_del_file - file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n")
+        ip_csv.write("'geomorph/input/%s', act_del_file - file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n" % act_del_file_2use)
         ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file - file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
         ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file - file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
         ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name with relative path to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n")
