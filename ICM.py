@@ -1501,7 +1501,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     ## run various steps that update Ecohydro input files with new values
     ## skip if this is first year of ICM run
-    if year != startyear+elapsed_hotstart:
+    if year != startyear:#+elapsed_hotstart:
         print(' Importing updated landscape attributes from Morphology output files - Year %s' % year)
         ## set output hotstart file generated from last model timestep to be new input hotstart file
         os.rename('hotstart_out.dat', 'hotstart_in.dat')
