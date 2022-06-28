@@ -2879,7 +2879,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                                     grid_Gdw_depths[g][12] = grid_Gdw_depths[g][12] + dem_res**2
                                 elif dep_oct_apr <= 1.50:
                                     grid_Gdw_depths[g][13] = grid_Gdw_depths[g][13] + dem_res**2
-                                else
+                                else:
                                     grid_Gdw_depths[g][14] = grid_Gdw_depths[g][14] + dem_res**2
                                 
                                 # tabulate area of grid cell within each Greenwing Teal depth bin; depth thresholds (in m) are: [0,0.06,0.18,0.22,0.26,0.30,0.34,1.0]
@@ -2899,7 +2899,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                                     grid_GwT_depths[g][7] = grid_GwT_depths[g][7] + dem_res**2
                                 elif dep_sep_mar <= 1.0:
                                     grid_GwT_depths[g][8] = grid_GwT_depths[g][8] + dem_res**2
-                                else
+                                else:
                                     grid_GwT_depths[g][9] = grid_GwT_depths[g][9] + dem_res**2
                                 
                                 # tabulate area of grid cell within each Mottled Duck depth bin; depth thresholds (in m) are: [0,0.08,0.30,0.36,0.42,0.46,0.50,0.56]
@@ -2915,11 +2915,11 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                                     grid_MtD_depths[g][5] = grid_MtD_depths[g][5] + dem_res**2
                                 elif dep_ann <= 0.46:            
                                     grid_MtD_depths[g][6] = grid_MtD_depths[g][6] + dem_res**2
-                                elif dep_ann <= 0.50] then            
+                                elif dep_ann <= 0.50:            
                                     grid_MtD_depths[g][7] = grid_MtD_depths[g][7] + dem_res**2
                                 elif dep_ann <= 0.56:            
                                     grid_MtD_depths[g][8] = grid_MtD_depths[g][8] + dem_res**2
-                                else
+                                else:
                                     grid_MtD_depths[g][9] = grid_MtD_depths[g][9] + dem_res**2
         
                 nline += 1
