@@ -2962,7 +2962,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 comp_edge_area[c]  = 0.0        
         
         print(' Writing zonal statistics output files:')
-        with open(grid_data_file,mode='w') as gdaf:  
+        with open(griddata_file,mode='w') as gdaf:  
             print('     - %s' % grid_data_file)
             gdaf.write('GRID,MEAN_BED_ELEV,MEAN_LAND_ELEV,PERCENT_LAND_0-100,PERCENT_WETLAND_0-100,PERCENT_WATER_0-100\n')
             for g in grid_bed_z.keys():
