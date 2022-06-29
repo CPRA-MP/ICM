@@ -2724,7 +2724,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                     c = int(line.split(',')[0])
                     comp_mon_stg[c] = {}
                     for n_mon in range(1,13):
-                        comp_mon_stg[c][n_mon] = int(line.split(',')[n_mon])
+                        comp_mon_stg[c][n_mon] = float(line.split(',')[n_mon])
                 nline += 1
     
         # set up empty dictionaries and arrays that will hold zonal statistic values
@@ -2784,15 +2784,15 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             grid_pct_edge_all[g] = []      
             grid_pct_edge[g] = 0.0
         
-            grid_Gdw_depths[g] = []
+            grid_Gdw_depths[g] = {}
             for Gdw_bin in range(1,Gdw_bin_n + 1):
                 grid_Gdw_depths[g][Gdw_bin] = 0.0
                 
-            grid_GwT_depths[g] = []
+            grid_GwT_depths[g] = {}
             for GwT_bin in range(1,GwT_bin_n + 1):
-                grid_GwT_depts[g][GwT_bin] = 0.0
+                grid_GwT_depths[g][GwT_bin] = 0.0
                 
-            grid_MtD_depths[g] = []    
+            grid_MtD_depths[g] = {}   
             for MtD_bin in range(1,MtD_bin_n + 1):
                 grid_MtD_depths[g][MtD_bin] = 0.0
             
