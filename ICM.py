@@ -2580,11 +2580,12 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
     morph_zonal_stats = 0               # 1=zonal stats run in ICM-Morph; 0=zonal stats run in ICM
+    dem_res = 30.0
     
     with open (wm_param_file, mode='w') as ip_csv:
         ip_csv.write("%d, start_year - first year of model run\n" % startyear)
         ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsedyear)
-        ip_csv.write("30, dem_res - XY resolution of DEM (meters)\n")
+        ip_csv.write("%d, dem_res - XY resolution of DEM (meters)\n" % dem_res)
         ip_csv.write("-9999, dem_NoDataVal - value representing nodata in input rasters and XYZ files\n")
         ip_csv.write("171284090, ndem - number of DEM pixels - will be an array dimension for all DEM-level data\n")
         ip_csv.write("2904131, ndem_bi - number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
