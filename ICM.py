@@ -709,6 +709,7 @@ hydro_exe_path = inputs[7,1].lstrip().rstrip() # path to hydro executable - ** p
 bidem_exe_path = inputs[8,1].lstrip().rstrip() # path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** - use './' if running copy of executable that is saved in /bidem/REGION directory
 morph_exe_path = inputs[9,1].lstrip().rstrip() # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
 sav_submit_exe_path = '/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py'
+run_sav = 1         # 1 to submit SAV simulations to queue at end of year; 0 to not run SAV
 
 # Configuration files used by various ICM components
 VegConfigFile = inputs[10,1].lstrip().rstrip()
