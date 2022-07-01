@@ -2974,7 +2974,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             print('     - %s' % grid_pct_edge_file)
             gdef.write('GRID,PERCENT_EDGE_0-100\n')
             for g in grid_pct_edge.keys():
-                gdef.write('%d,%0.4f' % (g,grid_pct_edge[g]) )
+                gdef.write('%d,%0.4f\n' % (g,grid_pct_edge[g]) )
               
         with open(comp_elev_file,mode='w') as cef:
             print('     - %s' % comp_elev_file)
