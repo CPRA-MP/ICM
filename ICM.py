@@ -3024,10 +3024,13 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         os.remove(dem_grid_data_outfile)
     
     if run_sav == 1:
-        snum = int(sterm[1:])
-        gnum = int(gterm[1:])
-        cmdstr = ['python',sav_submit_exe_path,snum,gnum,year] 
-        subprocess.call(cmdstr)
+        try:
+            snum = '%s' % int(sterm[1:])
+            gnum = '%s' % int(gterm[1:])
+            cmdstr = ['python',sav_submit_exe_path,snum,gnum,'%s' % year] 
+            subprocess.call(cmdstr)
+        except:
+            print(' !! Failed to submit SAV for %s' % year)
         
         
 print('\n\n\n')
