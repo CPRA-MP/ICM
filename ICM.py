@@ -2000,8 +2000,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     monthly_file_sdowt = os.path.normpath(r'%s/compartment_monthly_sed_dep_wat_%4d.csv'      % (EHtemp_path,year) )
     monthly_file_sdint = os.path.normpath(r'%s/compartment_monthly_sed_dep_interior_%4d.csv' % (EHtemp_path,year) )
     monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
-    comp_out_file = EH_comp_results_filepath
-    griddata_file = move_EH_gridfile                                                                                                                #os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year) )
     bidem_xyz_file = os.path.normpath(r'%s/%s_W_dem30_bi.xyz' % (bimode_dir,file_prefix) )
     new_grid_filepath   = 'hydro/TempFiles/grid_data_500m_end%d.csv' % (year)
     comp_elev_file      = 'hydro/TempFiles/compelevs_end_%d.csv' % (year)
@@ -2014,7 +2012,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
    
     dem_grid_data_outfile = 'geomorph/output/%s_W_dem_grid_data.csv' % file_prefix
     
-
+    comp_out_file = EH_comp_results_filepath
+    griddata_file = new_grid_filepath                   #os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year) )
 
     ########################################################
     ##  Format ICM-Hydro output data for use in ICM-Morph ##
