@@ -1897,7 +1897,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # append year and move grid cell elevation files
     move_EH_gridfile = os.path.normpath(r"%s/%s_%s.%s" % (EHtemp_path,str.split(EH_grid_file,'.')[0],year,str.split(EH_grid_file,'.')[1]))
     os.rename(EH_grid_filepath,move_EH_gridfile)
-
+    old_grid_filepath = move_EH_gridfile
+    
     # read in compartment output from hydro model to generate input file for BIMODE
     EH_comp_results_file = os.path.normpath('%s/%s') % (ecohydro_dir,compartment_output_file)
     EH_comp_out = np.genfromtxt(EH_comp_results_file,dtype='float',delimiter=',',names=True)
@@ -2013,7 +2014,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     dem_grid_data_outfile = 'geomorph/output/%s_W_dem_grid_data.csv' % file_prefix
     
     comp_out_file = EH_comp_results_filepath
-    griddata_file = new_grid_filepath                   #os.path.normpath(r'%s/grid_data_500m_%04d.csv' % (EHtemp_path,year) )
 
     ########################################################
     ##  Format ICM-Hydro output data for use in ICM-Morph ##
@@ -2175,7 +2175,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     print('   - updating percent water grid file for ICM-LAVegMod')
     pwatr_dict = {}
-    with open(griddata_file,mode='r') as grid_data:
+    with open(old_grid_filepath,mode='r') as grid_data:
         nline = 0
         for line in grid_data:
             if nline > 0:
@@ -2963,8 +2963,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 comp_edge_area[c]  = 0.0        
         
         print(' Writing zonal statistics output files:')
-        with open(griddata_file,mode='w') as gdaf:  
-            print('     - %s' % griddata_file)
+        with open(new_grid_filepath,mode='w') as gdaf:  
+            print('     - %s' % new_grid_filepath)
             gdaf.write('GRID,MEAN_BED_ELEV,MEAN_LAND_ELEV,PERCENT_LAND_0-100,PERCENT_WETLAND_0-100,PERCENT_WATER_0-100\n')
             for g in grid_bed_z.keys():
                 gdaf.write('%d,%0.4f,%0.4f,%0.2f,%0.2f,%0.2f\n' % (g,grid_bed_z[g],grid_land_z[g],grid_pct_land[g],grid_pct_land_wetl[g],grid_pct_water[g]) )
