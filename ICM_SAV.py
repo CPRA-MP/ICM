@@ -370,7 +370,7 @@ for g in range(1,n500grid+1):
     
 SAVcsv = '%s.csv' % sav_file_no_ext 
 SAVasc = '%s.asc' % sav_file_no_ext
-SAVxyz = '%s.xyz' % sav_file_no_ext
+SAVxyz = '%s_prob.xyz' % sav_file_no_ext
 
 with open(SAVcsv,mode='r') as sav_data:
     nline = 0
@@ -396,7 +396,7 @@ print(dict2asc_flt(sav_ave_dict,SAVasc,asc_grid_ids,asc_head,write_mode='w') )
 SAVxyz_zip = '%s.zip' % SAVxyz
 zipSAVxyz = subprocess.call(['zip','-mT', SAVxyz_zip,SAVxyz])
 
-SAVcsv_zip = '%s.zip' % (sav_csv_file)
+SAVcsv_zip = '%s.zip' % SAVcsv
 zipSAVcsv = subprocess.call(['zip','-mT', SAVcsv_zip,SAVcsv])
 
 
