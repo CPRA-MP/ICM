@@ -61,7 +61,8 @@ else:
 print('\nsetting up folders')
 out_fol0 = 'S%02d/G%03d/hsi' % (s,g0)
 out_fol1 = 'S%02d/G%03d/hsi' % (s,g1)
-asc_fol  = '%s/asc' % out_fol1
+asc_fol0  = '%s/asc' % out_fol0
+asc_fol1  = '%s/asc' % out_fol1
 png_fol  = '%s/png' % out_fol1
 veg_fol  = 'S%02d/G%03d/veg' % (s,g1)
 
@@ -79,7 +80,7 @@ if g1 == g0:
 else:
     png_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s_diff.png' % (png_fol,s,g1,u,yr1,yr0,spec)
 
-asc1_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.asc' % (asc_fol,s,g1,u,yr1,yr1,spec)
+asc1_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.asc' % (asc_fol1,s,g1,u,yr1,yr1,spec)
 
 if os.path.isfile(asc1_path) == False:
     print('need to build ASCI grid file')
@@ -113,7 +114,7 @@ if g1 == g0:
         cbmin = 0
         png_title = 'S%02d G%03d year %02d - HSI: %s'  % (s,g1,FWOAyr1,spec)
     else:
-        asc0_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.asc' % (asc_fol,s,g0,u,yr0,yr0,spec)
+        asc0_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.asc' % (asc_fol0,s,g0,u,yr0,yr0,spec)
         hsi0 = np.genfromtxt(asc0_path,delimiter=' ',dtype=float,skip_header=6)
         hsi0 = np.ma.masked_where(hsi0<0,hsi0,copy=True)   # mask out NoData -9999 values
         hsi = hsi1 - hsi0
