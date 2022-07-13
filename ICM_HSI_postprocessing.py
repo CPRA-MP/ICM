@@ -8,7 +8,8 @@ g1  = int(sys.argv[2])
 g0  = int(sys.argv[3])
 yr1 = int(sys.argv[4])
 yr0 = int(sys.argv[5])
-spec =    sys.argv[6]
+u   = int(sys.argv[6])
+spec =    sys.argv[7]
 spinup = 2
 
 print('\nsetting up folders')
