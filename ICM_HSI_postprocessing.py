@@ -82,7 +82,7 @@ if os.path.isfile(asc1_path) == False:
         for line in grid_data:
             if nline > 0:
                 gr = int(float(line.split(',')[0]))
-                hsi_val = line.split(',')[0]          # in HSI csv files, 1st column is grid cell ID; 2nd column is HSI value
+                hsi_val = line.split(',')[1]          # in HSI csv files, 1st column is grid cell ID; 2nd column is HSI value
                 hsi_dict[gr] = hsi_val
             nline += 1
     
