@@ -123,6 +123,7 @@ plt.colorbar(asc_map)
 # generic figure edits
 ax.set_axis_off()
 ax.set_title(png_title,fontsize='small')
+footnote = ''
 plt.figtext(0.99,0.01,footnote,horizontalalignment='right',fontsize='xx-small')
 
 # save as image
