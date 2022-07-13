@@ -91,7 +91,7 @@ if os.path.isfile(asc1_path) == False:
 
 
 hsi1 = np.genfromtxt(asc1_path,delimiter=' ',dtype=float,skip_header=6)
-hsi1 = np.ma.masked_where(hsi1<0,hsi0,copy=True)   # mask out NoData -9999 values
+hsi1 = np.ma.masked_where(hsi1<0,hsi1,copy=True)   # mask out NoData -9999 values
 
 if g1 == g0:
     if yr1 == yr0:
