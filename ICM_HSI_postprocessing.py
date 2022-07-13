@@ -71,9 +71,9 @@ for fol in [asc_fol1,png_fol]:
         if os.path.isdir(fol) == False:
             os.mkdir(fol)
         else:
-            print('%s already exists' % fol)
+            print(' - %s already exists' % fol)
     except:
-        print('could not build %s' % fol)
+        print(' - could not build %s' % fol)
 
 if g1 == g0:
     png_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.png' % (png_fol,s,g1,u,yr1,yr0,spec)
