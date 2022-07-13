@@ -122,7 +122,7 @@ if g1 == g0:
         png_title = 'S%02d G%03d year %02d compared to year %02d - HSI: %s'  % (s,g1,FWOAyr1,FWOAyr0,spec)
         
 else:
-    asc0_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.asc' % (asc_fol,s,g0,u,yr0,yr0,spec)
+    asc0_path = '%s/MP2023_S%02d_G%03d_C000_U%02d_V00_SLA_O_%02d_%02d_X_%s.asc' % (asc_fol0,s,g0,u,yr0,yr0,spec)
     hsi0 = np.genfromtxt(asc0_path,delimiter=' ',dtype=float,skip_header=6)
     hsi0 = np.ma.masked_where(hsi0<0,hsi0,copy=True)   # mask out NoData -9999 values
     hsi = hsi1 - hsi0
