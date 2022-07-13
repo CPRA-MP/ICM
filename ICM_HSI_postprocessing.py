@@ -66,7 +66,7 @@ asc_fol1  = '%s/asc' % out_fol1
 png_fol  = '%s/png' % out_fol1
 veg_fol  = 'S%02d/G%03d/veg' % (s,g1)
 
-for fol in [asc_fol,png_fol]:
+for fol in [asc_fol1,png_fol]:
     try:
         if os.path.isdir(fol) == False:
             os.mkdir(fol)
