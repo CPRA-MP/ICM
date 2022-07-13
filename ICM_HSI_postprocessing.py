@@ -127,6 +127,6 @@ footnote = ''
 plt.figtext(0.99,0.01,footnote,horizontalalignment='right',fontsize='xx-small')
 
 # save as image
-plt.savefig(png_pth,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
+plt.savefig(png_path,dpi=1800)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
             
     
