@@ -74,16 +74,25 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
     except:
         a = 0
     try:
-        os.rename('hydro/TempFiles/grid_data_500m_%04d.csv' % cyc_s,'hydro/grid_data_500m.csv')
+        # if year is appended to grid_data_file in TempFiles, then Hydro had already successfully finished - rename to original filename
+        if os.path.isfile('hydro/TempFiles/grid_data_500m_%04d.csv' % (cyc_s) ):
+            os.rename('hydro/TempFiles/grid_data_500m_%04d.csv' % (cyc_s),'hydro/TempFiles/grid_data_500m_end%04d.csv' % (cyc_s-1) )
+        # if file with year does not exist, then Hydro crashed, rename current grid file to original name
+        else:
+            os.rename('hydro/grid_data_500m.csv','hydro/TempFiles/grid_data_500m_end%04d.csv' % (cyc_s-1) )
     except:
         a = 0
-    try:
-#        os.rename('hydro/TempFiles/hotstart_in_%04d.dat' % cyc_s,'hydro/TempFiles/hotstart_in_%04d.dat.bk' % cyc_s)
-#        os.rename('hydro/TempFiles/hotstart_in_2035.dat','hydro/hotstartin_in.dat')
-        os.rename('hydro/TempFiles/hotstart_in_%04d.dat' % cyc_s,'hydro/hotstart_in.dat')
+    try:    
+        # if year is appended to hotstart_in in TempFiles, then Hydro had already successfully finished - copy that original hotstart file back into hydro dir as the hotstart_out so that ICM.py can rename the file
+        if os.path.isfile('hydro/TempFiles/hotstart_in_%04d.dat' % (cyc_s) )
+            os.rename('hydro/TempFiles/hotstart_in_%04d.dat' % cyc_s,'hydro/hotstart_out.dat')
+        # if file with year does not exist, then Hydro crashed - keep using current hotstart file
+        else:
+            os.rename('hydro/hotstart_in.dat','hydro/hotstart_out.dat')
     except:
+        
         a = 0
-    try:
+    try: 
         os.rename('hydro/TempFiles/RuncontrolR_%04d.dat' % cyc_s,'hydro/RuncontrolR.dat')
     except:
         a = 0
