@@ -1,23 +1,15 @@
-# Python plotting script that is set up to plot land area/benefit curves directly from tables exported from the Project Development Database (PDD)
-# PDD tables that are used are:
-#   - icm.land_veg
-#   - icm.ecoregion_definition
-# a third table, mp23_group_project_list.csv, is also used (this is uploaded in this Git repo)
-#
-# 
-
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime as dt
 
-ilvf = 'E:/ICM/PDD/mp23_pdd_icm.land_veg_2022.05.27.13.18.16.csv'
-perf = 'E:/ICM/PDD/mp23_pdd_icm.ecoregion_definition_2022.05.27.13.18.31.csv'
+ilvf = 'E:/ICM/PDD/mp23_pdd_icm.land_veg_2022.07.21.14.52.17.csv'
+perf = 'E:/ICM/PDD/mp23_pdd_icm.ecoregion_definition_2022.07.21.15.38.38.csv'
 gpf  = 'E:/ICM/PDD/mp23_group_project_list.csv'
 
 od  = 'E:/ICM/PDD/benefits'
 
 g_fwoa = 500
-g2p = range(601,654)#[651]
+g2p = [607,608,654]#range(601,654)#[651]
 s2p = [7,8]
 g2pa = [g_fwoa]
 for g in g2p:
@@ -145,28 +137,60 @@ for g in g2p:
                     ben[g][s][v]['SLA'][y] += ben[g][s][v][e][y]
                     d2p[g][s][v]['SLA'][y] += d2p[g][s][v][e][y]
                     d2p[g_fwoa][s][v]['SLA'][y] += d2p[g_fwoa][s][v][e][y]
+
+
+years_all     = {}
+fwoa_land_all = {}
+fwa_land_all  = {}
+benefit_all   = {}
+
+for s in s2p:
+    years_all[s]        = {}
+    fwoa_land_all[s]    = {}
+    fwa_land_all[s]     = {}
+    benefit_all[s]      = {}
+
+for g in g2p:
+    for s in d2p[g].keys():
+        years_all[s][g]     = {}
+        fwoa_land_all[s][g] = {}
+        fwa_land_all[s][g]  = {}
+        benefit_all[s][g]   = {}
+        
+        for e in group_proj[g]:
+            years_all[s][g][e]       = []
+            fwoa_land_all[s][g][e]   = []
+            fwa_land_all[s][g][e]    = []
+            benefit_all[s][g][e]     = []
                     
 
 for g in g2p:
     for s in d2p[g].keys():
-        print('Plotting ecoregion benefit curves for S%02d G%03d' % (s,g) )
+        print('Prepping ecoregion benefit curves for plotting: S%02d G%03d' % (s,g) )
         minyr = min( d2p[g][s]['LND']['MRP'].keys() )
         maxyr = max( d2p[g][s]['LND']['MRP'].keys() )
         #for e in d2p[g][s]['LND'].keys():   # if looping over ecoregions, this will include project and coastwide cumulative benefit values
         for e in group_proj[g]:             # if only plotting cumulative project benefits, loop over projects instead of ecoregions
-            years       = []
-            fwoa_land   = []
-            fwa_land    = []
-            benefit     = []
             for y in range(minyr,maxyr+1):
-                years.append(y-2)
-                fwoa_land.append( unit_conv*(d2p[g_fwoa][s]['LND'][e][y] + d2p[g_fwoa][s]['BRG'][e][y] + d2p[g_fwoa][s]['FLT'][e][y] ) )
-                fwa_land.append( unit_conv*(d2p[g][s]['LND'][e][y] + d2p[g][s]['BRG'][e][y] + d2p[g][s]['FLT'][e][y] ) )
-                benefit.append( unit_conv*(ben[g][s]['LND'][e][y] + ben[g][s]['BRG'][e][y] + ben[g][s]['FLT'][e][y] ) )
-        
-        # plot FWA and FWOA on same graph
-            png_pth = '%s/MP2023_S%02d_G%03d_land_area_%s.png' % (od,s,g,e)
+                years_all[s][g][e].append(y-2)
+                fwoa_land_all[s][g][e].append( unit_conv*(d2p[g_fwoa][s]['LND'][e][y] + d2p[g_fwoa][s]['BRG'][e][y] + d2p[g_fwoa][s]['FLT'][e][y] ) )
+                fwa_land_all[s][g][e].append( unit_conv*(d2p[g][s]['LND'][e][y] + d2p[g][s]['BRG'][e][y] + d2p[g][s]['FLT'][e][y] ) )
+                benefit_all[s][g][e].append( unit_conv*(ben[g][s]['LND'][e][y] + ben[g][s]['BRG'][e][y] + ben[g][s]['FLT'][e][y] ) )
+
+
+# plot land area curves for each project - FWA and FWOA on same graph
+for g in g2p:
+    for s in d2p[g].keys():
+        for e in group_proj[g]:             # if only plotting cumulative project benefits, loop over projects 
+            print('Plotting land area curves: S%02d G%03d - %s' % (s,g,e) )
+            years     = years_all[s][g][e]
+            fwoa_land = fwoa_land_all[s][g][e]
+            fwa_land  = fwa_land_all[s][g][e]
+            png_pth   = '%s/MP2023_S%02d_G%03d_land_area_%s.png' % (od,s,g,e)
             png_title = 'Land Area - Draft 2023 MP ICM Simulations - S%02d - G%03d - %s' % (s,g,e)
+            png_foot = 'Ecoregions in project footprint:'
+            for ec in proj_eco[e]:
+                png_foot = '%s %s' % (png_foot,ec)
             try:
                 png_title = '%s\n%s' % (png_title,proj_name[e])
             except:
@@ -176,30 +200,46 @@ for g in g2p:
             _a = ax.plot(years,fwa_land,marker='o',markersize=0,linestyle='solid',linewidth=1,color='red',label='FWA - G%03d' % g)
             _a = ax.tick_params(axis='both', which='major', labelsize='x-small')
             _a = ax.set_xlabel('FWOA Year',fontsize='small')    
-            _a = ax.set_ylabel('Land area in ecoregion, acres',fontsize='x-small')
-            _a = ax.legend(loc='upper right',edgecolor='none',facecolor='none')
+            _a = ax.set_ylabel('Land area, acres',fontsize='x-small')
+            _a = ax.legend(loc='upper right',edgecolor='none',facecolor='none',fontsize='x-small')
             _a = ax.grid(True,which='both',axis='both',color='silver',linewidth=0.25) 
-            _a = ax.set_title(png_title,fontsize='small')              
+            _a = ax.set_title(png_title,fontsize='small')
+            _a = plt.text(0.05,0.05,png_foot,fontsize=6,transform=plt.gcf().transFigure)
+            _a = plt.tight_layout()
             _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
             _a = plt.close()
+
+# plot benefits curve for each project - both scenarios on same graph
+col = {7:'black',8:'red'}
+for g in g2p:
+    for e in group_proj[g]:             # if only plotting cumulative project benefits, loop over projects 
+        fig,ax = plt.subplots(figsize=(6,4))
+        png_pth = '%s/MP2023_G%03d_project_benefits_%s.png' % (od,g,e)
+        png_title = 'Project Benefits (FWA-FWOA) - Draft 2023 MP ICM Simulations - G%03d - %s' % (g,e)
+        try:
+            png_title = '%s\n%s' % (png_title,proj_name[e])
+        except:
+            _b = 'not plotting a project - no name to use'
+        png_foot = 'Ecoregions in project footprint:'
+        for ec in proj_eco[e]:
+            png_foot = '%s %s' % (png_foot,ec)
             
-        # plot benefits curve    
-            png_pth = '%s/MP2023_S%02d_G%03d_project_benefits_%s.png' % (od,s,g,e)
-            png_title = 'Project Benefits - Draft 2023 MP ICM Simulations - S%02d - G%03d - %s' % (s,g,e)
-            try:
-                png_title = '%s\n%s' % (png_title,proj_name[e])
-            except:
-                _b = 'not plotting a project - no name to use'
-            fig,ax = plt.subplots(figsize=(6,4))
-            _a = ax.plot(years,benefit,marker='o',markersize=0,linestyle='solid',linewidth=1,color='red',label='FWA - FWOA (benefit)')
-            _a = ax.tick_params(axis='both', which='major', labelsize='x-small')
-            _a = ax.set_xlabel('FWOA Year',fontsize='x-small')
-            _a = ax.set_ylabel('Project Benefit (FWA - FWOA), acres',fontsize='x-small')
-            #ax.legend(loc='upper right',edgecolor='none',facecolor='none')
-            _a = ax.grid(True,which='both',axis='both',color='silver',linewidth=0.25) 
-            _a = ax.set_title(png_title,fontsize='small')              
-            _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
-            _a = plt.close()
+        for s in d2p[g].keys():
+            print('Plotting benefit curves: S%02d G%03d - %s' % (s,g,e) )
+            years   = years_all[s][g][e]
+            benefit = benefit_all[s][g][e]
+            _a      = ax.plot(years,benefit,marker='o',markersize=0,linestyle='solid',linewidth=1,color=col[s],label='S%02d' % s)
+        
+        _a = ax.tick_params(axis='both', which='major', labelsize='x-small')
+        _a = ax.set_xlabel('FWOA Year',fontsize='x-small')
+        _a = ax.set_ylabel('Project Benefit (FWA - FWOA), acres',fontsize='x-small')
+        ax.legend(loc='upper left',edgecolor='none',facecolor='none',fontsize='x-small')
+        _a = ax.grid(True,which='both',axis='both',color='silver',linewidth=0.25) 
+        _a = ax.set_title(png_title,fontsize='small')
+        _a = plt.text(0.05,0.05,png_foot,fontsize=6,transform=plt.gcf().transFigure)
+        _a = plt.tight_layout()        
+        _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
+        _a = plt.close()
             
                             
 # ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,Area_m2,Date,Year_FWOA,Note
