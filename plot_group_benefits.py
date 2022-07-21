@@ -204,7 +204,7 @@ for g in g2p:
             _a = ax.legend(loc='upper right',edgecolor='none',facecolor='none',fontsize='x-small')
             _a = ax.grid(True,which='both',axis='both',color='silver',linewidth=0.25) 
             _a = ax.set_title(png_title,fontsize='small')
-            _a = plt.text(0.05,0.05,png_foot,fontsize=6,transform=plt.gcf().transFigure)
+            _a = plt.text(0.05,0.02,png_foot,fontsize=6,transform=plt.gcf().transFigure)
             _a = plt.tight_layout()
             _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
             _a = plt.close()
@@ -236,7 +236,7 @@ for g in g2p:
         ax.legend(loc='upper left',edgecolor='none',facecolor='none',fontsize='x-small')
         _a = ax.grid(True,which='both',axis='both',color='silver',linewidth=0.25) 
         _a = ax.set_title(png_title,fontsize='small')
-        _a = plt.text(0.05,0.05,png_foot,fontsize=6,transform=plt.gcf().transFigure)
+        _a = plt.text(0.05,0.02,png_foot,fontsize=6,transform=plt.gcf().transFigure)
         _a = plt.tight_layout()        
         _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
         _a = plt.close()
