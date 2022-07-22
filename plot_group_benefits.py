@@ -240,6 +240,22 @@ for g in g2p:
         _a = plt.tight_layout()        
         _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
         _a = plt.close()
-            
-                            
-# ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,Area_m2,Date,Year_FWOA,Note
+
+        
+###############################################################################################
+##########          Sample code to get color names from Hex code                     ##########
+###############################################################################################
+#hex2use = '#FF0000'
+#for named_color in matplotlib.colors.get_named_colors_mapping().keys():
+#	hex = matplotlib.colors.get_named_colors_mapping()[named_color]
+#    if hex == hex2use:
+#		color2use = named_color
+#
+## get RGB values as tuple from named hex
+#matplotlib.colors.hex2color(hex2use) 
+#        
+## get RGBA values as tuple from named color
+#matplotlib.colors.to_rgba(color2use)
+#
+## get RGBA values as an array from named color
+#matplotlib.colors.to_rgba_array(color2use)
