@@ -9,7 +9,7 @@ def write_sbatch(sbatch_file,account,email,tag,tag8,ctrl_str,ICMpy,perfflag=1):
         out = sbat.write('#SBATCH -p RM-shared\n')                              # use RM-shared partition
         out = sbat.write('#SBATCH -t 48:00:00\n')                               # set max simulation limit to 48 hours
         out = sbat.write('#SBATCH -N 1\n')                                      # use only one node
-        out = sbat.write('#SBATCH --ntasks-per-node 16\n')                      # use only 32 cores of one node
+        out = sbat.write('#SBATCH --ntasks-per-node 24\n')                      # use only 48 cores of one node
         out = sbat.write('#SBATCH -J %s\n' % tag8)                              # assign Job Name
         out = sbat.write('#SBATCH -o _%s.log\n' % tag)                          # set name for log file
         out = sbat.write('#SBATCH --mail-user=%s\n' % email)                    # set email address for notifications
@@ -84,7 +84,7 @@ def hotstart(s,g,cyc_s,cyc0_s=2019):
         a = 0
     try:    
         # if year is appended to hotstart_in in TempFiles, then Hydro had already successfully finished - copy that original hotstart file back into hydro dir as the hotstart_out so that ICM.py can rename the file
-        if os.path.isfile('hydro/TempFiles/hotstart_in_%04d.dat' % (cyc_s) )
+        if os.path.isfile('hydro/TempFiles/hotstart_in_%04d.dat' % (cyc_s) ):
             os.rename('hydro/TempFiles/hotstart_in_%04d.dat' % cyc_s,'hydro/hotstart_out.dat')
         # if file with year does not exist, then Hydro crashed - keep using current hotstart file
         else:
