@@ -59,6 +59,9 @@ SAVcsv = '%s.csv' % sav_file_no_ext
 SAVasc = '%s.asc' % sav_file_no_ext
 SAVxyz = '%s_prob.xyz' % sav_file_no_ext
 
+SAVxyz_zip = '%s.zip' % SAVxyz
+SAVcsv_zip = '%s.zip' % SAVcsv
+
 ctrl_str = 'zip -mT %s %s \nzip -mT %s %s \n' % (SAVxyz_zip,SAVxyz,SAVcsv_zip,SAVcsv)
 
 tag8    = 'zi%01d%03d%02d' % (s,g,elapsedyear) 
