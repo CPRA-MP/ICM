@@ -342,7 +342,7 @@ if update_HSI_values == True:
             actionnote = '%s S%02dG%03d' % (actionnote,S,G)
             for E in HSIeco2update:
                 try:
-                    HSI_tabulated_file = = 'S%02d/G%03d/hsi/MP2023_S%02d_G%03d_C000_U00_V00_%s_O_01_52_X_hsi.csv' % (S,G,S,G,E) 
+                    HSI_tabulated_file = 'S%02d/G%03d/hsi/MP2023_S%02d_G%03d_C000_U00_V00_%s_O_01_52_X_hsi.csv' % (S,G,S,G,E) 
                     with open(HSI_tabulated_file,mode='r') as hsifile:
                         nl = 1
                         for line in hsifile:
