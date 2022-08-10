@@ -359,10 +359,17 @@ if update_HSI_values == True:
                                     
                                     for ns in range(0,len(HSI_species_codes)):
                                         spec = HSI_species_codes[ns]
-                                        cumulHSI = float(linesplit[4+ns])
-                                        note = ''
-                                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
-                                        df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
+                                        if spec[0:5] != 'CRAYF':
+                                            cumulHSI = float(linesplit[4+ns])
+                                            note = ''
+                                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
+                                            df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
+                                        elif spec == 'CRAYF_sep2dec':
+                                            spec = 'CRAYF'
+                                            cumulHSI = float(linesplit[4+ns])
+                                            note = ''
+                                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
+                                            df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
                             nl += 1
                 
                 except Exception as error:
