@@ -13,17 +13,17 @@ groups2update = []
 
 years2update = range(1,53)  #[]
 
-backup = False
-tables_to_backup = ['mc','land_veg'] #'ecoregion_definition']
+backup = True
+tables_to_backup = ['hsi']#'mc','land_veg'] #'ecoregion_definition']
 
 delete_table = False
-tables_to_delete = ['mc','land_veg'] #'ecoregion_definition']
-data2delete ='"ModelGroup"=646'            #'"Scenario"=7'
+tables_to_delete = ['hsi']#mc','land_veg'] #'ecoregion_definition']
+data2delete ='"ModelGroup"=601'            #'"Scenario"=7'
 
 update_ecoregion_values = False
 use_land_veg_correctors = False
 update_MC_direct_benefits = False
-update_HSI_values = True
+update_HSI_values = False
 
 # connection info for PDD SQL engine
 host = 'vm007.bridges2.psc.edu'
@@ -333,7 +333,7 @@ if update_MC_direct_benefits == True:
                      
 
 if update_HSI_values == True:
-    HSIeco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
+    HSIeco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE']
     print('\nupdating icm.hsi (via Pandas SQL functions) ')
     actionnote = 'Uploaded cumulative HSI values per ecoregion for:'
     for S in scens2update:
@@ -346,30 +346,31 @@ if update_HSI_values == True:
                     with open(HSI_tabulated_file,mode='r') as hsifile:
                         nl = 1
                         for line in hsifile:
+                            print(HSI_tabulated_file,'line:%d'%nl)
                             if nl == 1:
                                 HSI_species_codes = line.split(',')[4:]
                                 HSI_species_codes[-1] = HSI_species_codes[-1].strip()
                             else:
                                 linesplit = line.split(',')
-                                for ncol in range(0,len(linesplit)):
-                                    G       = int(linesplit[0])
-                                    S       = int(linesplit[1])
-                                    FWOAY   = int(linesplit[2])
-                                    Y       = int(linesplit[3])
+                                G       = int(linesplit[0])
+                                S       = int(linesplit[1])
+                                FWOAY   = int(linesplit[2])
+                                Y       = int(linesplit[3])
                                     
-                                    for ns in range(0,len(HSI_species_codes)):
-                                        spec = HSI_species_codes[ns]
-                                        if spec[0:5] != 'CRAYF':
-                                            cumulHSI = float(linesplit[4+ns])
-                                            note = ''
-                                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
-                                            df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
-                                        elif spec == 'CRAYF_sep2dec':
-                                            spec = 'CRAYF'
-                                            cumulHSI = float(linesplit[4+ns])
-                                            note = ''
-                                            df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
-                                            df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
+                                for ns in range(0,len(HSI_species_codes)):
+                                    spec = HSI_species_codes[ns]
+                                    if spec[0:5] != 'CRAYF':
+                                        cumulHSI = float(linesplit[4+ns])
+                                        note = ''
+                                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
+                                        df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
+
+                                    elif spec == 'CRAYF_sep2dec':
+                                        spec = 'CRAYF'
+                                        cumulHSI = float(linesplit[4+ns])
+                                        note = ''
+                                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'HabitatCode':spec,'Ecoregion':E,'HabitatSuitability':cumulHSI,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
+                                        df2up.to_sql('hsi', engine, if_exists='append', schema='icm', index=False)  
                             nl += 1
                 
                 except Exception as error:
