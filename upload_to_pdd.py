@@ -419,11 +419,11 @@ if update_NAV_values == True:
                         E = eco
                     nav_land[E] += grid_land[grid]
 
-                print('Uploading land area data adjacent to navigation channelsto PDD ')
+                print('Uploading land area data adjacent to navigation channels to PDD ')
                 if calyr == 2020:
                     Y = 2
                     FWOAY = -1
-                    note = 'FWOA Initial Conditions; land area adjacent to federal navigation channels at end of second ICM Spinup Year'
+                    note = 'FWOA Initial Conditions; land area adjacent to federal nav channels at end of second ICM Spinup Year'
                 elif calyr == 2070:
                     Y = 52
                     FWOAY = 50
