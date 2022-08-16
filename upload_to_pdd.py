@@ -411,7 +411,7 @@ if update_NAV_values == True:
                 for E in eco2update:
                     nav_land[E] = 0.0
                 
-                for grid in grid_eco.keys:
+                for grid in grid_eco.keys():
                     eco = grid_eco[grid]
                     if eco in eco2bi:
                         E = eco2bi[eco]
@@ -424,7 +424,7 @@ if update_NAV_values == True:
                     Y = 2
                     FWOAY = -1
                     note = 'FWOA Initial Conditions; land area adjacent to federal navigation channels at end of second ICM Spinup Year'
-                elif caly == 2070:
+                elif calyr == 2070:
                     Y = 52
                     FWOAY = 50
                     note = 'land area adjacent to federal navigation channels at end of ICM simulation'
