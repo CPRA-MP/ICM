@@ -13,7 +13,7 @@ groups2update = []
 
 years2update = range(1,53)  #[]
 
-backup = True
+backup = False
 tables_to_backup = ['hsi']#'mc','land_veg'] #'ecoregion_definition']
 
 delete_table = False
@@ -24,6 +24,7 @@ update_ecoregion_values = False
 use_land_veg_correctors = False
 update_MC_direct_benefits = False
 update_HSI_values = False
+update_NAV_values = True
 
 # connection info for PDD SQL engine
 host = 'vm007.bridges2.psc.edu'
@@ -357,6 +358,91 @@ if update_HSI_values == True:
                     
     with open(logfile,mode='a') as lf:
         lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
+        
+     
+if update_NAV_values == True:
+    actionnote = 'Uploaded land area adjacent to navigation channels per ecoregion for:'
+    for S in scens2update:
+        for G in groups2update:
+            print('uploading S%02d G%03d...' % (S,G) )
+            actionnote = '%s S%02dG%03d' % (actionnote,S,G)
+    
+            nav_channel_grid_file = 'MP2023_S00_G000_C000_U00_V00_FNC_I_00_00_W_grid480.csv'
+            eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
+            eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
+            
+            # read in grid-to-ecoregion-to-navigation channel data table
+            print('\n Reading in grid lookup for navigation channels')
+            grid_eco = {}
+            nl = 0
+            with open(nav_channel_grid_file,mode='r') as ncgf:
+                for line in ncgf:
+                    if nl > 0:
+                        grid = int(line.split(',')[0])
+                        eco  = line.split(',')[2]
+                        grid_eco[grid] = eco
+                    nl += 1
+
+            # read in gridded land area data
+            print('Reading in gridded land area and tabulating for nav channels in each ecoregion.')
+            
+            # if FWOA or FWIP1, need both starting and ending land - otherwise only need ending land area
+            if G in [500,510,512]:
+                nav_years =  [2020,2070]
+            else:
+                nav_years = [2070]
+            
+            for calyr in nav_years:
+                grid_data_file = 'S%02d/G%03d/hydro/TempFiles/grid_data_500m_%04d.csv' % (S,G,calyr)
+                grid_res = 480
+                grid_land = {}
+            
+                nl = 0
+                with open(grid_data_file,mode='r') as gdf:
+                    for line in gdf:
+                        if nl > 0:
+                            grid     = int(line.split(',')[0])
+                            pctLand  = float(line.split(',')[3])
+                            areaLand = pctLand*grid_res*grid_res/100.0
+                            grid_land[grid] = areaLand
+                        nl += 1
+                
+                nav_land = {}
+                for E in eco2update:
+                    nav_land[E] = 0.0
+                
+                for grid in grid_eco.keys:
+                    eco = grid_eco[grid]
+                    if eco in eco2bi:
+                        E = eco2bi[eco]
+                    else:
+                        E = eco
+                    try:
+                        nav_land[E] += grid_land[grid]
+
+                print('Uploading land area data adjacent to navigation channelsto PDD ')
+                if calyr == 2020:
+                    Y = 2
+                    FWOAY = -1
+                    note = 'FWOA Initial Conditions; land area adjacent to federal navigation channels at end of second ICM Spinup Year'
+                elif caly == 2070
+                    Y = 52
+                    FWOAY = 50
+                    note = 'land area adjacent to federal navigation channels at end of ICM simulation'
+                
+                C = 'NAVFC'
+                for in eco2update:
+                    val2write = nav_land[E]
+                    try:
+                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
+                        df2up.to_sql('land_veg', engine, if_exists='append', schema='icm', index=False)
+                    except:
+                        print('  failed to upload to PDD for : S%02d G%03d %s %s - yr %s ' % (S,G,C,E,Y))    
+    
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))       
+
+        
         
         
         
