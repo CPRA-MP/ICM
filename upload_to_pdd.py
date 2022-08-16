@@ -417,21 +417,20 @@ if update_NAV_values == True:
                         E = eco2bi[eco]
                     else:
                         E = eco
-                    try:
-                        nav_land[E] += grid_land[grid]
+                    nav_land[E] += grid_land[grid]
 
                 print('Uploading land area data adjacent to navigation channelsto PDD ')
                 if calyr == 2020:
                     Y = 2
                     FWOAY = -1
                     note = 'FWOA Initial Conditions; land area adjacent to federal navigation channels at end of second ICM Spinup Year'
-                elif caly == 2070
+                elif caly == 2070:
                     Y = 52
                     FWOAY = 50
                     note = 'land area adjacent to federal navigation channels at end of ICM simulation'
                 
                 C = 'NAVFC'
-                for in eco2update:
+                for E in eco2update:
                     val2write = nav_land[E]
                     try:
                         df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'VegetationCode':C,'Ecoregion':E,'Area_m2':val2write,'Date':datestr,'Year_FWOA':FWOAY,'Note':note},index=[0])
