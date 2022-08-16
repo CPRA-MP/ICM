@@ -42,6 +42,7 @@ if os.path.isfile(logfile) == False:
 
 connection_info = {'host': host,'dbname':db_name,'user':user,'password':password}
 connection_string = ' '.join([f"{key}='{value}'" for key, value in connection_info.items()])
+engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 
 if backup == True:
     for dbtable in tables_to_backup:
@@ -77,7 +78,7 @@ if delete_table == True:
 
         with open(logfile,mode='a') as lf:
             lf.write('%s,%s,%s\n' % (datestr,user,actionnote))
-
+        
 if update_ecoregion_values == True:
     codes2update = ['LND','WAT','FLT','FOR','FRM','INM','BRM','SAM','BRG','UPL']
     eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
@@ -85,7 +86,6 @@ if update_ecoregion_values == True:
     eco3skip = ['ATB']
 
     actionnote = 'uploaded ICM output for: '
-
 
     # build dictionary structure that will hold ecoregion area values
     d = {}
@@ -113,21 +113,8 @@ if update_ecoregion_values == True:
                     cor[S][G][Y][C] = {}
                     for E in eco2update:
                         cor[S][G][Y][C][E] = 0
-
-
-
-
-# land_veg columns [data format]:
-#       ModelGroup [%03d]
-#       Scenario [%02d]
-#       Year_ICM [%d]
-#       VegetationCode [%s - max length of 3]
-#       Ecoregion [%s]
-#       Area_m2 [%d or %f]
-#       Date [%s (MM-DD-YYYY )]
-#       Year_FWOA [%d]
-#       Note [%s]
-
+  
+    # tabulate ecoregion data to dictionary
     for S in scens2update:
         for G in groups2update:
             if G == 0:
@@ -143,7 +130,7 @@ if update_ecoregion_values == True:
                     nr += 1
                     try:
                         #print (r)
-                        g = int(r.split(',')[0].strip()[1:4])
+                        g = int(r.split(',')[0].strip()[1:4])               
                         s = int(r.split(',')[1].strip()[1:3])
                         y = int(r.split(',')[2].strip())
                         c = r.split(',')[3].strip()
@@ -187,16 +174,8 @@ if update_ecoregion_values == True:
                                     if g == G:
                                         if c in codes2update:
                                             cor[s][g][y][c][er] = cf                            
-        
 
-#print('\nupdating PDD (via Pandas SQL functions) ')
-engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
-
-if update_ecoregion_values == True:
-        
-    print('\nupdating PDD (via Pandas SQL functions) ')
-        
-
+    print('\nuploading ecoregion land area table to PDD')
     for S in scens2update:
         for G in groups2update:
             print('uploading S%02d G%03d...' % (S,G) )
