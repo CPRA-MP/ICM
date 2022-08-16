@@ -361,30 +361,33 @@ if update_HSI_values == True:
         
      
 if update_NAV_values == True:
+    print('\n Uploading land area adjacent to navigation channels')
     actionnote = 'Uploaded land area adjacent to navigation channels per ecoregion for:'
+    
+    eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
+    eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
+    
+    # read in grid-to-ecoregion-to-navigation channel data table
+    print('  -reading in grid lookup for navigation channels')
+    nav_channel_grid_file = 'MP2023_S00_G000_C000_U00_V00_FNC_I_00_00_W_grid480.csv'
+    grid_eco = {}
+    nl = 0
+    with open(nav_channel_grid_file,mode='r') as ncgf:
+        for line in ncgf:
+            if nl > 0:
+                grid = int(line.split(',')[0])
+                eco  = line.split(',')[2]
+                grid_eco[grid] = eco
+            nl += 1
+    
+    
     for S in scens2update:
         for G in groups2update:
             print('uploading S%02d G%03d...' % (S,G) )
             actionnote = '%s S%02dG%03d' % (actionnote,S,G)
-    
-            nav_channel_grid_file = 'MP2023_S00_G000_C000_U00_V00_FNC_I_00_00_W_grid480.csv'
-            eco2update = ['ATD','BFD','CAL','CHR','CHS','ETB','LBAne','LBAnw','LBAse','LBAsw','LBO','LBR','LPO','MBA','MEL','MRP','PEN','SAB','TVB','UBA','UBR','UVR','VRT','WTE','EBbi','WBbi','TEbi']
-            eco2bi ={ 'CHSbi':'EBbi','LBRbi':'EBbi', 'LBAnebi':'WBbi','LBAsebi':'WBbi','LBAswbi':'WBbi','ETBbi':'TEbi','WTEbi':'TEbi' }
-            
-            # read in grid-to-ecoregion-to-navigation channel data table
-            print('\n Reading in grid lookup for navigation channels')
-            grid_eco = {}
-            nl = 0
-            with open(nav_channel_grid_file,mode='r') as ncgf:
-                for line in ncgf:
-                    if nl > 0:
-                        grid = int(line.split(',')[0])
-                        eco  = line.split(',')[2]
-                        grid_eco[grid] = eco
-                    nl += 1
 
             # read in gridded land area data
-            print('Reading in gridded land area and tabulating for nav channels in each ecoregion.')
+            print('  -reading in gridded land area and tabulating for nav channels in each ecoregion.')
             
             # if FWOA or FWIP1, need both starting and ending land - otherwise only need ending land area
             if G in [500,510,512]:
