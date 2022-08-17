@@ -37,14 +37,15 @@ u = 0
 v = 0
 r = 'SLA'
 
-sy = 2019
+sy = 2019       # start year of model simulations
+syp = 2019      # year to start the postprocessing scripts
 ny = 2070
 ey_ic = 2       # elapsed year of initial conditions landscape
 map_interval = 1
 
 # build list of years that will have outputs mapped
-years = [sy]
-for yr in range(2020,ny+1,map_interval):
+years = [syp]
+for yr in range(syp+1,ny+1,map_interval):
     years.append(yr)
 
 rename_hydro    = True
