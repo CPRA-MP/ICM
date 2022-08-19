@@ -2,14 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime as dt
 
-ilvf = 'E:/ICM/PDD/mp23_pdd_icm.land_veg_2022.07.21.14.52.17.csv'
-perf = 'E:/ICM/PDD/mp23_pdd_icm.ecoregion_definition_2022.07.21.15.38.38.csv'
+ilvf = 'E:/ICM/PDD/mp23_pdd_icm.land_veg_2022.07.21.14.52.17.csv'#.08.19.17.49.02.csv'
+perf = 'E:/ICM/PDD/mp23_pdd_icm.ecoregion_definition_2022.08.19.UPDATED_FOR_CAT.csv'
 gpf  = 'E:/ICM/PDD/mp23_group_project_list.csv'
 
 od  = 'E:/ICM/PDD/benefits'
 
-g_fwoa = 500
-g2p = [607,608,654]#range(601,654)#[651]
+g_fwoa = 500 #512
+fwoa_label = 'FWOA' #'FWIP1'
+
+g2p = [609,616,620,625,627,633,634,637]#[658,669,670,685]#range(601,654)#[651]
+g_in_IP2 = []#658,669,670,685]
+IP2_start = 22
 s2p = [7,8]
 g2pa = [g_fwoa]
 for g in g2p:
@@ -90,6 +94,19 @@ with open(ilvf,mode='r') as ilv:
                                 d2p[g][s][v][e][y] = a
         nl += 1
 
+
+print('Resetting data for IP1 years to FWIP1 values for all IP2 projects.')
+for g in g_in_IP2:
+    for s in d2p[g].keys():
+        print( 'Setting IP1 data to FWOA values for S%02d G%03d' % (s,g) )
+        for v in d2p[g][s].keys():
+            for e in d2p[g][s][v].keys():
+                for y in d2p[g][s][v][e].keys():
+                    if y <= IP2_start:
+                        d2p[g][s][v][e][y] = d2p[g_fwoa][s][v][e][y]
+
+
+            
 ben = {}
 for g in g2p:
     ben[g] = {}
@@ -196,7 +213,7 @@ for g in g2p:
             except:
                 _b = 'not plotting a project - no name to use'
             fig,ax = plt.subplots(figsize=(6,4))
-            _a = ax.plot(years,fwoa_land,marker='o',markersize=0,linestyle='solid',linewidth=1,color='black',label='FWOA - G%03d' % g_fwoa)
+            _a = ax.plot(years,fwoa_land,marker='o',markersize=0,linestyle='solid',linewidth=1,color='black',label='%s - G%03d' % (fwoa_label,g_fwoa) )
             _a = ax.plot(years,fwa_land,marker='o',markersize=0,linestyle='solid',linewidth=1,color='red',label='FWA - G%03d' % g)
             _a = ax.tick_params(axis='both', which='major', labelsize='x-small')
             _a = ax.set_xlabel('FWOA Year',fontsize='small')    
@@ -215,7 +232,7 @@ for g in g2p:
     for e in group_proj[g]:             # if only plotting cumulative project benefits, loop over projects 
         fig,ax = plt.subplots(figsize=(6,4))
         png_pth = '%s/MP2023_G%03d_project_benefits_%s.png' % (od,g,e)
-        png_title = 'Project Benefits (FWA-FWOA) - Draft 2023 MP ICM Simulations - G%03d - %s' % (g,e)
+        png_title = 'Project Benefits (FWA-%s) - Draft 2023 MP ICM Simulations - G%03d - %s' % (fwoa_label,g,e)
         try:
             png_title = '%s\n%s' % (png_title,proj_name[e])
         except:
@@ -232,7 +249,7 @@ for g in g2p:
         
         _a = ax.tick_params(axis='both', which='major', labelsize='x-small')
         _a = ax.set_xlabel('FWOA Year',fontsize='x-small')
-        _a = ax.set_ylabel('Project Benefit (FWA - FWOA), acres',fontsize='x-small')
+        _a = ax.set_ylabel('Project Benefit (FWA - %s), acres' % fwoa_label, fontsize='x-small' )
         ax.legend(loc='upper left',edgecolor='none',facecolor='none',fontsize='x-small')
         _a = ax.grid(True,which='both',axis='both',color='silver',linewidth=0.25) 
         _a = ax.set_title(png_title,fontsize='small')
@@ -240,22 +257,7 @@ for g in g2p:
         _a = plt.tight_layout()        
         _a = plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
         _a = plt.close()
+            
+                            
+# ModelGroup,Scenario,Year_ICM,VegetationCode,Ecoregion,Area_m2,Date,Year_FWOA,Note
 
-        
-###############################################################################################
-##########          Sample code to get color names from Hex code                     ##########
-###############################################################################################
-#hex2use = '#FF0000'
-#for named_color in matplotlib.colors.get_named_colors_mapping().keys():
-#	hex = matplotlib.colors.get_named_colors_mapping()[named_color]
-#    if hex == hex2use:
-#		color2use = named_color
-#
-## get RGB values as tuple from named hex
-#matplotlib.colors.hex2color(hex2use) 
-#        
-## get RGBA values as tuple from named color
-#matplotlib.colors.to_rgba(color2use)
-#
-## get RGBA values as an array from named color
-#matplotlib.colors.to_rgba_array(color2use)
