@@ -20,11 +20,13 @@ delete_table = False
 tables_to_delete = ['hsi']#mc','land_veg'] #'ecoregion_definition']
 data2delete ='"ModelGroup"=601'            #'"Scenario"=7'
 
-update_ecoregion_values = False
-use_land_veg_correctors = False
-update_MC_direct_benefits = False
-update_HSI_values = False
-update_NAV_values = True
+update_ecoregion_values     = False
+use_land_veg_correctors     = False
+update_MC_direct_benefits   = False
+update_HSI_values           = False
+update_NAV_values           = True
+update_AG_values            = False
+
 
 # connection info for PDD SQL engine
 host = 'vm007.bridges2.psc.edu'
@@ -444,8 +446,101 @@ if update_NAV_values == True:
     with open(logfile,mode='a') as lf:
         lf.write('%s,%s,%s\n' % (datestr,user,actionnote))       
 
+if update_AG_values == True:
+    print('\nupdating icm.ag_salinity table')
+    actionnote = 'Uploaded ag salinity metrics per community for:'
+    
+    # set salinity thresholds for crops
+    sal_max = {'Rice':3.0,'Sugarcane':3.0,'Soybeans':3.0,'Pasture':6.0}
+    sal_min = {'Rice':0.5,'Sugarcane':1.0,'Soybeans':1.5,'Pasture':1.5}
+    
+    # read in community-compartment-ag cover lookup table
+    print(' - reading in community-compartment lookup table')
+    
+    comm_comp_file = 'community_compartment_ag_lookup.csv'
+    comm_comps = {}
+    with open(comm_comp_file,mode='r' as lookup:
+        nl = 0
+        for row in lookup:
+            if nl > 0:
+                comm = row.split(',')[1]
+                comp = int(row.split(',')[6])
+                if comm not in comm_comps.keys():
+                    comm_comps[comm] = []
+                comm_comps[comm].append(comp)
+    
+    
+    for S in scens2update:
+        print(' - reading in FWOA salinity values for S%02d' % S)
+        sal_fwoa_52_file = 'S%02d/G%03d/hydro/TempFiles/compartment_out_2070.csv' % (S,G_fwoa)
+        with open(sal_fwoa_52_file,mode='r') as sal_out:
+            n = 0
+            for row in sal_out:
+                if n > 0:
+                    comp = int(row.split(',')[0])
+                    salmx = float(row.split(',')[7])
+                    sal_fwoa[comp] = salmx
+                n += 1
         
-        
+        for G in groups2update:
+            print(' - calculating ag salinity metrics for S%02d G%03d' % (S,G) )
+            actionnote = '%s S%02dG%03d' % (actionnote,S,G)
+            sal_fwa_52_file  = 'S%02d/G%03d/hydro/TempFiles/compartment_out_2070.csv' % (S,G)
+            with open(sal_fwa_52_file,mode='r') as sal_out:
+                n = 0
+                for row in sal_out:
+                    if n > 0:
+                        comp = int(row.split(',')[0])
+                        salmx = float(row.split(',')[7])
+                        sal_fwa[comp] = salmx
+                    n += 1
+    
+    
+            for Comm in comm_comps.keys():
+                for Crop in sal_max.keys():
+                    # initialize denominators for each community that will be used to average SI values for communities that overlap more than one community (e.g. use the spatially averaged SI for each community)
+                    denom_fwoa = 0.0
+                    denom_fwa = 0.0
+                    n = 0
+                    
+                    for comp in comm_comps[Comm]:
+                    
+                        sal_fwoa = sal_fwoa_52[comp]
+                        sal_fwa  = sal_fwa_52[comp]
+                    
+                        if sal_fwoa < sal_min[Crop]:
+                            SIfwoa = 1
+                        elif sal_fwoa > sal_max[Crop]:
+                            SI_fwoa = 0
+                        else:
+                            SI_fwoa = 1 - (sal_fwoa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
+                            
+                        if sal_fwa < sal_min[Crop]:
+                            SI_fwa = 1
+                        elif sal_fwa > sal_max[Crop]:
+                            SI_fwa = 0
+                        else:
+                            SI_fwa = 1 - (sal_fwa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
+                            
+                        denom_fwoa += SI_fwoa
+                        numer_fwoa += SI_fwa
+                        n += 1
+                    
+                    SalIndex_FWOA_ave = denom_fwoa/n
+                    SalIndex_FWA_ave  = denom_fwa/n
+                    SalIndex = 1 - (SalIndex_FWOA_ave / SalIndex_FWA_ave)
+                    
+                    
+                    Y = 52
+                    FWOAY = 50
+    
+                    note = 'SI_fwoa_ave=%0.4f; SI_fwa_ave=%04.f; n_comps=%d' % (SalIndex_FWOA_ave,SalIndex_FWA_ave,n)
+                    
+                    df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'Year_FWOA':FWOAY,'CommunityName':Comm,'CropType':Crop,'SalinityIndex':SalIndex,'Date':datestr,'Note':note},index=[0])
+                    df2up.to_sql('ag_salinity', engine, if_exists='append', schema='icm', index=False)           
+    
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))        
         
         
 # script to update icm.ecoregion_defintion
