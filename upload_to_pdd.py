@@ -27,6 +27,7 @@ update_HSI_values           = False
 update_NAV_values           = True
 update_AG_values            = False
 
+G_fwoa = 500
 
 # connection info for PDD SQL engine
 host = 'vm007.bridges2.psc.edu'
