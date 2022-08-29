@@ -502,8 +502,8 @@ if update_AG_values == True:
             for Comm in comm_comps.keys():
                 for Crop in sal_max.keys():
                     # initialize denominators for each community that will be used to average SI values for communities that overlap more than one community (e.g. use the spatially averaged SI for each community)
-                    denom_fwoa = 0.0
-                    denom_fwa = 0.0
+                    numer_fwoa = 0.0
+                    numer_fwa = 0.0
                     n = 0
                     
                     for comp in comm_comps[Comm]:
@@ -525,12 +525,12 @@ if update_AG_values == True:
                         else:
                             SI_fwa = 1 - (sal_fwa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
                             
-                        denom_fwoa += SI_fwoa
-                        numer_fwoa += SI_fwa
+                        numer_fwoa += SI_fwoa
+                        numer_fwa += SI_fwa
                         n += 1
                     
-                    SalIndex_FWOA_ave = denom_fwoa/n
-                    SalIndex_FWA_ave  = denom_fwa/n
+                    SalIndex_FWOA_ave = numer_fwoa/n
+                    SalIndex_FWA_ave  = numer_fwa/n
                     SalIndex = 1 - (SalIndex_FWOA_ave / SalIndex_FWA_ave)
                     
                     
