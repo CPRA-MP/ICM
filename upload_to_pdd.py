@@ -459,7 +459,7 @@ if update_AG_values == True:
     
     comm_comp_file = 'community_compartment_ag_lookup.csv'
     comm_comps = {}
-    with open(comm_comp_file,mode='r' as lookup:
+    with open(comm_comp_file,mode='r') as lookup:
         nl = 0
         for row in lookup:
             if nl > 0:
