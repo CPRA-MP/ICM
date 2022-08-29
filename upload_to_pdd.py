@@ -474,26 +474,28 @@ if update_AG_values == True:
     for S in scens2update:
         print(' - reading in FWOA salinity values for S%02d' % S)
         sal_fwoa_52_file = 'S%02d/G%03d/hydro/TempFiles/compartment_out_2070.csv' % (S,G_fwoa)
+        sal_fwoa_52 = {}
         with open(sal_fwoa_52_file,mode='r') as sal_out:
             n = 0
             for row in sal_out:
                 if n > 0:
-                    comp = int(row.split(',')[0])
+                    comp = int(float((row.split(',')[0]))
                     salmx = float(row.split(',')[7])
-                    sal_fwoa[comp] = salmx
+                    sal_fwoa_52[comp] = salmx
                 n += 1
         
         for G in groups2update:
             print(' - calculating ag salinity metrics for S%02d G%03d' % (S,G) )
             actionnote = '%s S%02dG%03d' % (actionnote,S,G)
             sal_fwa_52_file  = 'S%02d/G%03d/hydro/TempFiles/compartment_out_2070.csv' % (S,G)
+            sal_fwa_52 = {}
             with open(sal_fwa_52_file,mode='r') as sal_out:
                 n = 0
                 for row in sal_out:
                     if n > 0:
-                        comp = int(row.split(',')[0])
+                        comp = int(float(row.split(',')[0]))
                         salmx = float(row.split(',')[7])
-                        sal_fwa[comp] = salmx
+                        sal_fwa_52[comp] = salmx
                     n += 1
     
     
