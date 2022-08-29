@@ -531,7 +531,14 @@ if update_AG_values == True:
                     
                     SalIndex_FWOA_ave = numer_fwoa/n
                     SalIndex_FWA_ave  = numer_fwa/n
-                    SalIndex = 1 - (SalIndex_FWOA_ave / SalIndex_FWA_ave)
+                    
+                    if SalIndex_FWA_ave == 0:
+                        if SalIndex_FWOA_ave == 0:      # if both FWOA and FWA are 0, set whole metric to 0 indicating salinity metric is unchanged between FWOA and FWA
+                            SalIndex = 0
+                        else:
+                            SalIndex = -1000            # if only FWA is zero, metric should be very negative, since FWOA is 'good' salinity and FWA is 'bad', but can't calculate due to div-by-zero
+                    else:                               
+                        SalIndex = 1 - (SalIndex_FWOA_ave / SalIndex_FWA_ave)
                     
                     
                     Y = 52
