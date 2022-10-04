@@ -17,17 +17,17 @@ for root, dirs, files in os.walk(simdir, topdown=True):
             # check for *.out timeseries and do not zip UNLESS they are saved in TempFiles
             if '.out' in of:
                 if 'TempFiles' in of:
-                    zipcmd = 1#subprocess.call(['zip','-mT', zf, of])
+                    zipcmd = subprocess.call(['zip','-mT', zf, of])
 
             # check if file is located in specific directories that should not be zipped
             if 'TempFiles/compartment_out' in of:
-                _a = 'skip'
+                _ = 'skip'
             elif 'geomorph/output_qaqc' not in of:
                 _ = 'skip'
             elif 'geomorph/output/png' not in of:
                 _ = 'skip'
             elif 'veg/coverage_timeseries' not in of:
-                zipcmd = 2#subprocess.call(['zip','-mT', zf, of])
+                zipcmd = subprocess.call(['zip','-mT', zf, of])
 
         except:
             print('  - failed to zip %s.' % of)
