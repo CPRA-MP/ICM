@@ -140,7 +140,6 @@ for y in years:
     
     if plot_IC_FWOA_diff == True:
         print('   - mapping Morph Difference from both Initial Conditions & FWOA at same year outputs as TIFs')
-        rastype = diffrastypes[difftype]
         cmd5 = 'python ICM_morph_differencing_3ras.py %s %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwoa, g_fwoa, ey, ey_ic, 'lndtyp30', 'lndtypdiff')
 
         ctrl_str = ctrl_str + cmd5
