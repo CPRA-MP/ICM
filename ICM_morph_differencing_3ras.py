@@ -80,9 +80,9 @@ if yr0 == 0:
 else:
     ras0_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol0,s,g0,yr0,yr0,rastype)
 
-ras2_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g2,yr1,yr1,rastype)    
+ras2_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol2,s,g2,yr1,yr1,rastype)    
 ras1_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g1,yr1,yr1,rastype)
-ras012_bin_pth  = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g2,yr0,yr1,difftype)
+ras012_bin_pth  = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol2,s,g2,yr0,yr1,difftype)
 x_bin_pth       = '%s/raster_x_coord.b' % out_fol1
 y_bin_pth       = '%s/raster_y_coord.b' % out_fol1
 xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,s,g1,yr0,yr1,difftype)
