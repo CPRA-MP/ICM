@@ -567,7 +567,7 @@ for d in range(0,ndays):
             Qdiv = 0
         else:
             Qdiv = 0.3125*Qresidual-62500
-        
+    
     UBrD_cfs[d] = Qdiv 
     UBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
@@ -603,7 +603,18 @@ for d in range(0,ndays):
     else:
         #Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations - opening threshold @ 250k
         #Qdiv = max(5000,0.06667*Qresidual-8333)     # 75,000 cfs Operations - opening threshold @ 250k
-        Qdiv = max(5000,0.0625*Qresidual-23125)     # 55,000 cfs Operations - opening threshold @ 450k
+        Qdiv = max(5000,0.0625*Qresidual-23125)     # 45,000 cfs Operations - opening threshold @ 450k
+    
+    # alternative operations to maximize land building after year 20
+    # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
+    if yr in [2041,2042]:
+        Qdiv = 5000
+    # alternate ops with Mid Barataria - even years Mid-Breton will flow, odd years, Mid-Barataria will flow
+    if yr > 2042:
+        if yr in range(2044,2072,2):
+            Qdiv = 5000
+    
+    
     MBrD_cfs[d] = Qdiv
     MBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
@@ -649,6 +660,15 @@ for d in range(0,ndays):
 #            Qdiv = 0.04375*Qresidual-8750          # 35k - 75k @ 1.0 m 
 #        Qdiv = max(5000, 0.06667*Qresidual-8333)   # 75k @ 1.25 m , 5k min, opening threshold @ 250k
         Qdiv = max(5000, 0.0875*Qresidual-34375)    # 75k @ 1.25 m , 5k min, opening threshold @ 450k
+    
+    # alternative operations to maximize land building after year 20
+    # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
+    if yr in [2041,2042]:
+        Qdiv = 5000
+    # alternate ops with Mid Barataria - even years Mid-Breton will flow, odd years, Mid-Barataria will flow
+    if yr > 2042:
+        if yr in range(2043,2071,2):
+            Qdiv = 5000
         
     MBaD_cfs[d] = Qdiv
     MBaD_cms[d] = Qdiv*(0.3048**3)
