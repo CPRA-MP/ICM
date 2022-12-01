@@ -228,7 +228,7 @@ for g in g2p:
 
 
         legend_font = font_manager.FontProperties(family='Franklin Gothic Book', size=6)
-        ax.legend(loc='bottom left',edgecolor='none',facecolor='none',ncol=2,prop=legend_font)
+        ax.legend(loc='lower left',edgecolor='none',facecolor='none',ncol=2,prop=legend_font)
 
         # format axes
         #a = gca()
