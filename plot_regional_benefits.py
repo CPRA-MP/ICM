@@ -187,74 +187,74 @@ s_g_lty[7] = {514:'dotted',516:'solid'}
 s_g_lty[8] = {514:'dotted',516:'solid'}
 
 s_g_lab = {}
-s_g_lab[7] = {514:'Lower\nScenario',516:'Lower\nScenario'}
-s_g_lab[8] = {514:'Higher\nScenario',516:'Higher\nScenario'}
+s_g_lab[7] = {514:'FWOA Lower\nScenario',516:'FWMP Lower\nScenario'}
+s_g_lab[8] = {514:'FWOA Higher\nScenario',516:'FWMP Higher\nScenario'}
 
 
 
 
 # plot land area curves for each project - FWA and FWOA on same graph
 for g in g2p:
-    for s in d2p[g].keys():
-        for e in regions.keys():             # if only plotting cumulative project benefits, loop over projects 
-            print('Plotting land area curves: S%02d G%03d - %s' % (s,g,e) )
+    for e in regions.keys():             # if only plotting cumulative project benefits, loop over projects 
+        print('Plotting land area curves: S%02d G%03d - %s' % (s,g,e) )
+        
+        plt.figure(figsize=(3.27,1.8))
+        ax = plt.subplot(111)
+        # add horizontal grid - with thick line at y=0
+        # this needs to be before ax.plot() so that the horizontal grid at y=0 is below data
+        ax.grid(True,which='major',axis='y',color='#e0e0db',linewidth=0.15)
+        ax.axhline(y=0,color='#e0e0db',linewidth=0.5)
+    
 
+        png_pth   = '%s/MP2023_G%03d_land_area_%s.png' % (od,g,e)
+        png_title = 'LAND AREA - %s' % (e)
+
+        png_foot = 'Ecoregions in region:'
+        for ec in regions[e]:
+            png_foot = '%s %s' % (png_foot,ec)
+        try:
+            png_title = '%s\n%s' % (png_title,proj_name[e])
+        except:
+            _b = 'not plotting a project - no name to use'
+
+        for s in d2p[g].keys():
             years     = years_all[s][g][e]
             fwoa_land = fwoa_land_all[s][g][e]
             fwa_land  = fwa_land_all[s][g][e]
-
-            plt.figure(figsize=(3.27,1.8))
-            ax = plt.subplot(111)
-            # add horizontal grid - with thick line at y=0
-            # this needs to be before ax.plot() so that the horizontal grid at y=0 is below data
-            ax.grid(True,which='major',axis='y',color='#e0e0db',linewidth=0.15)
-            ax.axhline(y=0,color='#e0e0db',linewidth=0.5)
-        
-
-            png_pth   = '%s/MP2023_S%02d_G%03d_land_area_%s.png' % (od,s,g,e)
-            png_title = 'LAND AREA - %s' % (e)
-
-            png_foot = 'Ecoregions in region:'
-            for ec in regions[e]:
-                png_foot = '%s %s' % (png_foot,ec)
-            try:
-                png_title = '%s\n%s' % (png_title,proj_name[e])
-            except:
-                _b = 'not plotting a project - no name to use'
 
 
             ax.plot(years,fwoa_land,marker='o',markersize=0,linestyle=s_g_lty[s][g_fwoa],linewidth=1,color=s_g_col[s][g_fwoa],label=s_g_lab[s][g_fwoa] )
             ax.plot(years,fwa_land,marker='o',markersize=0,linestyle=s_g_lty[s][g],linewidth=1,color=s_g_col[s][g],label=s_g_lab[s][g] )
 
 
-            legend_font = font_manager.FontProperties(family='Franklin Gothic Book', size=6)
-            ax.legend(loc='upper left',edgecolor='none',facecolor='none',ncol=2,prop=legend_font)
+        legend_font = font_manager.FontProperties(family='Franklin Gothic Book', size=6)
+        ax.legend(loc='bottom left',edgecolor='none',facecolor='none',ncol=2,prop=legend_font)
 
-            # format axes
-            #a = gca()
-            ax.tick_params(axis='both', which='major',length=0,labelsize=6)
+        # format axes
+        #a = gca()
+        ax.tick_params(axis='both', which='major',length=0,labelsize=6)
 
-            # vertical axis
-            gca().set_yticklabels(gca().get_yticks(),fontname='Franklin Gothic Book',fontsize=6,color='#8e8e8e')
-            ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
-            ax.set_ylabel('LAND AREA, %s' % units, fontname='Franklin Gothic Demi', fontsize=6, color='#000000')
-            ax.spines['left'].set_color('#e0e0db')
+        # vertical axis
+        gca().set_yticklabels(gca().get_yticks(),fontname='Franklin Gothic Book',fontsize=6,color='#8e8e8e')
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        ax.set_ylabel('LAND AREA, %s' % units, fontname='Franklin Gothic Demi', fontsize=6, color='#000000')
+        ax.spines['left'].set_color('#e0e0db')
 
-            # horizontal axis
-            gca().set_xticklabels(gca().get_yticks(),fontname='Franklin Gothic Book',fontsize=6,color='#8e8e8e')
-            ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
-            ax.set_xlabel('FWOA YEAR',fontname='Franklin Gothic Demi',fontsize=6,color='#000000')
-            ax.spines['bottom'].set_color('#e0e0db')
-        
-            # remove top and right axes
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
+        # horizontal axis
+        gca().set_xticklabels(gca().get_yticks(),fontname='Franklin Gothic Book',fontsize=6,color='#8e8e8e')
+        ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+        ax.set_xlabel('FWOA YEAR',fontname='Franklin Gothic Demi',fontsize=6,color='#000000')
+        ax.spines['bottom'].set_color('#e0e0db')
+    
+        # remove top and right axes
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
 
-            ax.set_title(png_title,fontname='Franklin Gothic Demi',fontsize=10,loc='left')
-            #_a = plt.text(0.05,0.0,png_foot,fontname='Franklin Gothic Demi',fontsize=6,transform=plt.gcf().transFigure)
-            plt.tight_layout()        
-            plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
-            plt.close()
+        ax.set_title(png_title,fontname='Franklin Gothic Demi',fontsize=10,loc='left')
+        #_a = plt.text(0.05,0.0,png_foot,fontname='Franklin Gothic Demi',fontsize=6,transform=plt.gcf().transFigure)
+        plt.tight_layout()        
+        plt.savefig(png_pth,dpi=600)                       # 1800 dpi is hi-res but does not quite show each 30-m pixel. Anything higher requires more RAM than default allocations on PSC's RM-shared and RM-small partitions
+        plt.close()
             
 
 
