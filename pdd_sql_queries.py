@@ -12,11 +12,9 @@ engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{
 
 conn = psycopg2.connect(connection_string)
 
-outpath = '<ENTER PROJECT DIRECTORY>\clara.nsrisk.EAD50_all_asset.csv'
 
-if os.path.isfile(outpath):
-    print('%s already exists.\nRename (or delete) output file and rerun.' % outpath)
-    sys.exit()
+outpath = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/PDD_bk/clara.nsrisk.EAD50_all_asset.csv'
+
 table = 'clara.nsrisk'
 q = []
 q.append('SELECT "CommunityID" ')
@@ -48,12 +46,12 @@ asset_types[5] = 'Non-structural Assets(crops; vehicles; roads)'
 
 cic = {}                        # critical infrastructure categories
 cic['Schools and Daycares']    = ['Daycare_2021_ESRI_CoastalLouisiana','PublicSchools']
-cic['Hospitals']               = ['Hospitals','Veterans_Health_Administration_Medical_Facilities']
+cic['Hospitals']               = ['Hospitals']#,'Veterans_Health_Administration_Medical_Facilities']
 cic['Nursing Homes']           = ['Nursing_Residential_Care_Facilities','NursingHomes']
 cic['Emergency Services']      = ['Emergency_Medical_Service_EMS_Stations','Fire_Stations','Local_Emergency_Operations_Centers','Local_Law_Enforcement']
 cic['Water Supply']            = ['DrinkingWaterSources','DrinkingWaterTreatmentPlants']
 cic['Gas Stations']            = ['GasStations_2021_ESRI_CoastalLouisiana']
-cic['Electrical Substations and Power Plants'] = ['Electric_Substations','Power_Plants']
+cic['Electrical Substations and Power Plants'] = ['Electric_Substations']#,'Power_Plants']
 
 
 communities = [186]
@@ -65,7 +63,6 @@ for cid in communities:             ## cid : CommunityID
         #########################
         g = 500
         y = 1
-
         sql = 'SELECT * from clara.risk WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d ;' % (cid,s,g,pmid,frid,y)
         fwoa_ic = pd.read_sql_query(sql,conn)
         
@@ -256,17 +253,115 @@ for cid in communities:             ## cid : CommunityID
         #########################
         # TABLE : Exposure      #
         #########################
+        sql = 'SELECT * from clara.asset_count WHERE "CommunityID"=%d;' % cid
+        count = pd.read_sql_query(sql,conn)
+        count = count.set_index("AssetType",drop=True)
+        
+        sql = 'SELECT * from clara.asset_count_historic_properties WHERE "CommunityID"=%d;' % cid
+        count_hp = pd.read_sql_query(sql,conn)
+
+        sql = 'SELECT * from clara.asset_count_critical_infrastructure WHERE "CommunityID"=%d;' % cid
+        count_ci = pd.read_sql_query(sql,conn)
+        count_ci = count_ci.set_index("SourceDataset",drop=True)
+        
         for aep in [0.1, 0.02, 0.01, 0.002]:
             g = 500
             y = 1
-        
-            sql = 'SELECT * from clara.exposure WHERE "CommunityID"=%d AND =%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            sql = 'SELECT * from clara.exposure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
             fwoa_exp_ic = pd.read_sql_query(sql,conn)
             fwoa_exp_ic = fwoa_exp_ic.set_index("AssetType",drop=True)
+           # fields = "ExposureCount","ModerateExposure" "SevereExposure"
+            
+            sql = 'SELECT * from clara.exposure_historic_properties WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_hp_ic = pd.read_sql_query(sql,conn)
+            # fields = "ModerateExposure" "SevereExposure"
+            
+            sql = 'SELECT * from clara.exposure_critical_infrastructure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_ci_ic = pd.read_sql_query(sql,conn)
+            fwoa_exp_ci_ic = fwoa_exp_ci_ic.set_index("SourceDataset",drop=True)
+            # fields = "SourceDataset" "ModerateExposure" "SevereExposure"
     
-     "AssetType" "ExposureCount" "ModerateExposure" "SevereExposure" "AEP"
+            y = 20
+            sql = 'SELECT * from clara.exposure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_20 = pd.read_sql_query(sql,conn)
+            fwoa_exp_20 = fwoa_exp_20.set_index("AssetType",drop=True)
+            
+            sql = 'SELECT * from clara.exposure_historic_properties WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_hp_20 = pd.read_sql_query(sql,conn)
+            
+            sql = 'SELECT * from clara.exposure_critical_infrastructure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_ci_20 = pd.read_sql_query(sql,conn)
+            fwoa_exp_ci_20 = fwoa_exp_ci_20.set_index("SourceDataset",drop=True)
+            
+            y = 50
+            sql = 'SELECT * from clara.exposure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_50 = pd.read_sql_query(sql,conn)
+            fwoa_exp_50 = fwoa_exp_50.set_index("AssetType",drop=True)
+            
+            sql = 'SELECT * from clara.exposure_historic_properties WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_hp_50 = pd.read_sql_query(sql,conn)
+            
+            sql = 'SELECT * from clara.exposure_critical_infrastructure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwoa_exp_ci_50 = pd.read_sql_query(sql,conn)
+            fwoa_exp_ci_50 = fwoa_exp_ci_50.set_index("SourceDataset",drop=True)
+            
+            g = 515
+            y = 20
+            sql = 'SELECT * from clara.exposure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwmp_exp_20 = pd.read_sql_query(sql,conn)
+            fwmp_exp_20 = fwmp_exp_20.set_index("AssetType",drop=True)
+                        
+            sql = 'SELECT * from clara.exposure_historic_properties WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwmp_exp_hp_20 = pd.read_sql_query(sql,conn)
+            
+            sql = 'SELECT * from clara.exposure_critical_infrastructure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwmp_exp_ci_20 = pd.read_sql_query(sql,conn)
+            fwmp_exp_ci_20 = fwmp_exp_ci_20.set_index("SourceDataset",drop=True)
+            
+            g = 516
+            y = 50
+            sql = 'SELECT * from clara.exposure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwmp_exp_50 = pd.read_sql_query(sql,conn)
+            fwmp_exp_50 = fwmp_exp_50.set_index("AssetType",drop=True)
+            
+            sql = 'SELECT * from clara.exposure_historic_properties WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwmp_exp_hp_50 = pd.read_sql_query(sql,conn)
+            
+            sql = 'SELECT * from clara.exposure_critical_infrastructure WHERE "CommunityID"=%d AND "Scenario"=%d AND "ModelGroup"=%d AND "PumpingID"=%s AND "FragilityScenario"=%d AND "Year_FWOA"=%d AND "AEP"=%f;' % (cid,s,g,pmid,frid,y,aep)
+            fwmp_exp_ci_50 = pd.read_sql_query(sql,conn)
+            fwmp_exp_ci_50 = fwmp_exp_ci_50.set_index("SourceDataset",drop=True)
+    
+            
+            # Severe Exposure
+            exp_type = "SevereExposure"     # fields = "AssetType" "ExposureCount" "ModerateExposure" "SevereExposure"
+            sev_exp_table = ['Asset Type','Total Count of Assets','Assets with Severe Flood Exposure at %s AEP Initial Conditions' % aep,'Assets with Severe Flood Exposure at %s AEP under FWOA Year 20' % aep,'Assets with Severe Flood Exposure at %s AEP under FWMP Year 20' % aep,'Assets with Severe Flood Exposure at %s AEP under FWOA Year 50' % aep,'Assets with Severe Flood Exposure at %s AEP under FWMP Year 50' % aep]
+            for ast_type in asset_types.keys():
+                ast_type_txt = asset_types[ast_type]
+                if ast_type != 5:
+                    new_row = [ast_type_txt,count.loc[ast_type,"StructureCount"],fwoa_exp_ic.loc[ast_type,exp_type],fwoa_exp_20.loc[ast_type,exp_type],fwmp_exp_20.loc[ast_type,exp_type],fwoa_exp_50.loc[ast_type,exp_type],fwmp_exp_50.loc[ast_type,exp_type]]
+                    sev_exp_table = np.vstack([sev_exp_table,new_row])
+            
+            new_row = ['Historic Properties',count_hp.loc[:,"StructureCount"],fwoa_exp_hp_ic.loc[:,exp_type],fwoa_exp_hp_20.loc[:,exp_type],fwmp_exp_hp_20.loc[:,exp_type],fwoa_exp_hp_50.loc[:,exp_type],fwmp_exp_hp_50.loc[:,exp_type]]
+            #sev_exp_table = np.vstack([sev_exp_table,new_row])
+            for ci_cat in cic.keys():
+                count_val = 0
+                fwoa_ic_val = 0
+                fwoa_20_val = 0
+                fwoa_50_val = 0
+                fwmp_20_val = 0
+                fwmp_50_val = 0
+            
+                for ds_cat in cic[ci_cat]:
+                    count_val   += count_ci.loc[ds_cat,"StructureCount"]
+                    fwoa_ic_val += fwoa_exp_ci_ic.loc[ds_cat,exp_type]
+                    fwoa_20_val += fwoa_exp_ci_20.loc[ds_cat,exp_type]
+                    fwoa_50_val += fwoa_exp_ci_50.loc[ds_cat,exp_type]
+                    fwmp_20_val += fwmp_exp_ci_20.loc[ds_cat,exp_type]
+                    fwmp_50_val += fwmp_exp_ci_50.loc[ds_cat,exp_type]
+            
+                new_row = [ci_cat,count_val,fwoa_ic_val,fwoa_20_val,fwoa_50_val,fwmp_20_val,fwmp_50_val]
+                sev_exp_table = np.vstack([sev_exp_table,new_row])
 
+            np.savetxt('severe_exposure_table_%d_S%02d_%saep.csv'%(cid,s,aep),sev_exp_table,delimiter=',',fmt='%s')
 
 conn.close()
-
-
