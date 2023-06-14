@@ -37,28 +37,33 @@ u = 0
 v = 0
 r = 'SLA'
 
-sy = 2019       # start year of model simulations
-syp = 2019      # year to start the postprocessing scripts
-ny = 2070
+sy = 2019   # start year of model run
+syp = 2019  # start year for postprocessing script
+ny = 2059
 ey_ic = 2       # elapsed year of initial conditions landscape
 map_interval = 1
 
 # build list of years that will have outputs mapped
-years = [syp]
-for yr in range(syp+1,ny+1,map_interval):
+years = []
+for yr in range(syp,ny+1,map_interval):
     years.append(yr)
 
-rename_hydro    = True
+#years = range(2060,2071)
+
+backup_old_file = False
+rename_hydro    = False
 plot_TIFs       = True
 plot_FFIBS      = True
 plot_IC_change  = True
 plot_FWOA_diff  = True
+plot_IC_FWOA_diff  = True
 plot_hydro_ts   = False
-plot_veg_ts     = True
+plot_veg_ts     = False
 
 perf    = 0                                                                     # turn on (1) or off (0) the verbose 'time' function to report out CPU and memory stats for run
 account = 'bcs200002p'                                                          # XSEDE allocation account
 email   = 'eric.white@la.gov'                                                   # emails for notification on queue
+#email   = 'khanegan@moffattnichol.com'
 sbatch_file = 'postprocess.submit'
 
 # set raster and difference raster types for FWOA diff function call
@@ -68,7 +73,20 @@ diffrastypes['salavdiff']   = 'salav30'
 diffrastypes['salmxdiff']   = 'salmx30'
 diffrastypes['inundiff']    = 'inun30'
 diffrastypes['elevdiff']    = 'dem30'
-    
+
+if backup_old_file == True:
+    out_fol         = 'S%02d/G%03d/geomorph/output' % (s,g_fwa)
+    xyz_fol         = '%s/xyz' % out_fol
+    tif_fol         = '%s/tif' % out_fol
+    png_fol         = '%s/png' % out_fol
+
+    for fol in [xyz_fol,tif_fol,png_fol]:
+        try:
+            if os.path.isdir(fol) == False:
+                os.mv(fol,'%s_old' % fol)
+        except:
+            print('could not build %s_old' % fol)
+
 if rename_hydro == True:
     out_fol = 'S%02d/G%03d/hydro' % (s,g_fwa)
     print('renaming Hydro *.out files in: %s' % out_fol)
@@ -81,26 +99,27 @@ if rename_hydro == True:
             else:
                 os.rename(out1,out2)
 
+
 for y in years:
     # this script will batch submit ICM_tif_mapping, ICM_FFIBS_mapping and ICM_morph_differencing for one year in the same job to the queue
     # all data types in ICM_tif_mappingwill be looped over BEFORE the job moves on to ICM_FFIBS and ICM_morph_differencing
     print('submitting post-processing jobs for: S%02d G%03d - yr %s' % (s,g_fwa,y) )
-    
+
     # calculate elaped years used by ICM_morph_differencing
     ey =  y-sy+1
-    
+
     if plot_TIFs == True:
         print('   - mapping Morph outputs as TIFs/PNGs')
-        cmd1 = 'python ICM_tif_mapping.py %s %s %s %s\n' % (s,g_fwa,y,sy) 
+        cmd1 = 'python ICM_tif_mapping.py %s %s %s %s\n' % (s,g_fwa,y,sy)
     else:
         cmd1 = ''
-        
+
     if plot_FFIBS == True:
         print('   - mapping LAVegMod FFIBS outputs as TIFs/PNGs')
-        cmd2 = 'python ICM_FFIBS_mapping.py %s %s %s %s\n' % (s,g_fwa,y,sy) 
+        cmd2 = 'python ICM_FFIBS_mapping.py %s %s %s %s\n' % (s,g_fwa,y,sy)
     else:
         cmd2 = ''
-    
+
     if plot_IC_change == True:
         if ey > ey_ic:
             cmd3 = 'python ICM_morph_differencing.py %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwa, ey, ey_ic, 'lndtyp30', 'lndchg')
@@ -108,27 +127,32 @@ for y in years:
             cmd3 = ''
     else:
         cmd3 = ''
-    
+
     ctrl_str = cmd1 + cmd2 + cmd3
-    
+
     if plot_FWOA_diff == True:
         print('   - mapping Morph Difference from FWOA outputs as TIFs/PNGs')
         for difftype in diffrastypes.keys():
-            rastype = diffrastypes[difftype]        
+            rastype = diffrastypes[difftype]
             cmd4 = 'python ICM_morph_differencing.py %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwoa, ey, ey, rastype, difftype)
-        
+
             ctrl_str = ctrl_str + cmd4
     
-    
+    if plot_IC_FWOA_diff == True:
+        print('   - mapping Morph Difference from both Initial Conditions & FWOA at same year outputs as TIFs')
+        cmd5 = 'python ICM_morph_differencing_3ras.py %s %s %s %s %s %s %s %s\n' % (s, g_fwa, g_fwoa, g_fwoa, ey, ey_ic, 'lndtyp30', 'lndtypdiff')
+
+        ctrl_str = ctrl_str + cmd5
+
     # write sbatch file with final list of function calls saved to ctrol_str
-    tag8    = 'pp%01d%03d%02d' % (s,g_fwa,y-sy+1) 
+    tag8    = 'pp%01d%03d%02d' % (s,g_fwa,y-sy+1)
     sbatch_file_unique = 'S%02d.G%03d.%04d.%s' % (s,g_fwa,y,sbatch_file)
     write_sbatch(sbatch_file_unique,account,email,tag8,ctrl_str,perf)
-    
+
     cmdstr = ['sbatch', '%s' % sbatch_file_unique]
     cmdout = subprocess.check_output(cmdstr).decode()
 
-    
+
 if plot_hydro_ts == True:
     print('plotting ICM-Hydro timeseries: S%02d G%03d' % (s,g_fwa) )
     tag8 = 'hyts%01d%03d' % (s,g_fwa)
@@ -137,17 +161,19 @@ if plot_hydro_ts == True:
     write_sbatch(sbatch_file_uniqueH,account,email,tag8,ctrl_str,perf)
     cmdstr = ['sbatch', '%s' % sbatch_file_uniqueH]
     cmdout = subprocess.check_output(cmdstr).decode()
-    
+
 if plot_veg_ts == True:
     print('plotting ICM-LAVegMod timeseries: S%02d G%03d' % (s,g_fwa) )
     last_year = 2070
     tag8 = 'vgts%01d%03d' % (s,g_fwa)
-    
+
     cmd1 = 'python ICM-Veg_timeseries_plotting.py %s %s %s\n' % (s,g_fwa,last_year)
     cmd2 = 'python ICM-Veg_ecoregion_timeseries_plotting.py %s %s %s\n' % (s,g_fwa,last_year)
     ctrl_str = cmd1 + cmd2
-    
-    sbatch_file_uniqueV = 'S%02d.G%03d.%04d.vegTS.%s' % (s,g_fwa,y,sbatch_file)
+
+    sbatch_file_uniqueV = 'S%02d.G%03d.2070.vegTS.%s' % (s,g_fwa,sbatch_file)
     write_sbatch(sbatch_file_uniqueV,account,email,tag8,ctrl_str,perf)
     cmdstr = ['sbatch', '%s' % sbatch_file_uniqueV]
     cmdout = subprocess.check_output(cmdstr).decode()
+                                                                                         
+            

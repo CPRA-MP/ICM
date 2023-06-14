@@ -446,7 +446,6 @@ if update_NAV_values == True:
     
     with open(logfile,mode='a') as lf:
         lf.write('%s,%s,%s\n' % (datestr,user,actionnote))       
-
 if update_AG_values == True:
     print('\nupdating icm.ag_salinity table')
     actionnote = 'Uploaded ag salinity metrics per community for:'
@@ -469,89 +468,90 @@ if update_AG_values == True:
                 if comm not in comm_comps.keys():
                     comm_comps[comm] = []
                 comm_comps[comm].append(comp)
+            nl += 1
     
+    for Y in [22,52]:
+        FWOAY = Y - 2
+        CALY = 2020 + FWOAY
     
-    for S in scens2update:
-        print(' - reading in FWOA salinity values for S%02d' % S)
-        sal_fwoa_52_file = 'S%02d/G%03d/hydro/TempFiles/compartment_out_2070.csv' % (S,G_fwoa)
-        sal_fwoa_52 = {}
-        with open(sal_fwoa_52_file,mode='r') as sal_out:
-            n = 0
-            for row in sal_out:
-                if n > 0:
-                    comp = int(float((row.split(',')[0]))
-                    salmx = float(row.split(',')[7])
-                    sal_fwoa_52[comp] = salmx
-                n += 1
-        
-        for G in groups2update:
-            print(' - calculating ag salinity metrics for S%02d G%03d' % (S,G) )
-            actionnote = '%s S%02dG%03d' % (actionnote,S,G)
-            sal_fwa_52_file  = 'S%02d/G%03d/hydro/TempFiles/compartment_out_2070.csv' % (S,G)
-            sal_fwa_52 = {}
-            with open(sal_fwa_52_file,mode='r') as sal_out:
+        for S in scens2update:
+            print(' - reading in FWOA salinity values for S%02d, %04d' % (S,CALY) )
+            sal_fwoa_52_file = 'S%02d/G%03d/hydro/TempFiles/compartment_out_%04d.csv' % (S,G_fwoa,CALY)
+            sal_fwoa_52 = {}
+            with open(sal_fwoa_52_file,mode='r') as sal_out:
                 n = 0
                 for row in sal_out:
                     if n > 0:
                         comp = int(float(row.split(',')[0]))
                         salmx = float(row.split(',')[7])
-                        sal_fwa_52[comp] = salmx
+                        sal_fwoa_52[comp] = salmx
                     n += 1
-    
-    
-            for Comm in comm_comps.keys():
-                for Crop in sal_max.keys():
-                    # initialize denominators for each community that will be used to average SI values for communities that overlap more than one community (e.g. use the spatially averaged SI for each community)
-                    numer_fwoa = 0.0
-                    numer_fwa = 0.0
+            
+            for G in groups2update:
+                print(' - calculating ag salinity metrics for S%02d G%03d, %04d' % (S,G,CALY) )
+                actionnote = '%s S%02dG%03d-%04d' % (actionnote,S,G,CALY)
+                sal_fwa_52_file  = 'S%02d/G%03d/hydro/TempFiles/compartment_out_%04d.csv' % (S,G,CALY)
+                sal_fwa_52 = {}
+                with open(sal_fwa_52_file,mode='r') as sal_out:
                     n = 0
-                    
-                    for comp in comm_comps[Comm]:
-                    
-                        sal_fwoa = sal_fwoa_52[comp]
-                        sal_fwa  = sal_fwa_52[comp]
-                    
-                        if sal_fwoa < sal_min[Crop]:
-                            SIfwoa = 1
-                        elif sal_fwoa > sal_max[Crop]:
-                            SI_fwoa = 0
-                        else:
-                            SI_fwoa = 1 - (sal_fwoa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
-                            
-                        if sal_fwa < sal_min[Crop]:
-                            SI_fwa = 1
-                        elif sal_fwa > sal_max[Crop]:
-                            SI_fwa = 0
-                        else:
-                            SI_fwa = 1 - (sal_fwa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
-                            
-                        numer_fwoa += SI_fwoa
-                        numer_fwa += SI_fwa
+                    for row in sal_out:
+                        if n > 0:
+                            comp = int(float(row.split(',')[0]))
+                            salmx = float(row.split(',')[7])
+                            sal_fwa_52[comp] = salmx
                         n += 1
-                    
-                    SalIndex_FWOA_ave = numer_fwoa/n
-                    SalIndex_FWA_ave  = numer_fwa/n
-                    
-                    if SalIndex_FWA_ave == 0:
-                        if SalIndex_FWOA_ave == 0:      # if both FWOA and FWA are 0, set whole metric to 0 indicating salinity metric is unchanged between FWOA and FWA
-                            SalIndex = 0
-                        else:
-                            SalIndex = -1000            # if only FWA is zero, metric should be very negative, since FWOA is 'good' salinity and FWA is 'bad', but can't calculate due to div-by-zero
-                    else:                               
-                        SalIndex = 1 - (SalIndex_FWOA_ave / SalIndex_FWA_ave)
-                    
-                    
-                    Y = 52
-                    FWOAY = 50
-    
-                    note = 'SI_fwoa_ave=%0.4f; SI_fwa_ave=%04.f; n_comps=%d' % (SalIndex_FWOA_ave,SalIndex_FWA_ave,n)
-                    
-                    df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'Year_FWOA':FWOAY,'CommunityName':Comm,'CropType':Crop,'SalinityIndex':SalIndex,'Date':datestr,'Note':note},index=[0])
-                    df2up.to_sql('ag_salinity', engine, if_exists='append', schema='icm', index=False)           
-    
-    with open(logfile,mode='a') as lf:
-        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))        
         
+        
+                for Comm in comm_comps.keys():
+                    for Crop in sal_max.keys():
+                        # initialize denominators for each community that will be used to average SI values for communities that overlap more than one community (e.g. use the spatially averaged SI for each community)
+                        numer_fwoa = 0.0
+                        numer_fwa = 0.0
+                        n = 0.0
+                        
+                        for comp in comm_comps[Comm]:
+                        
+                            sal_fwoa = sal_fwoa_52[comp]
+                            sal_fwa  = sal_fwa_52[comp]
+                            
+                            if sal_fwoa < sal_min[Crop]:
+                                SIfwoa = 1
+                            elif sal_fwoa > sal_max[Crop]:
+                                SI_fwoa = 0
+                            else:
+                                SI_fwoa = 1 - (sal_fwoa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
+                                
+                            if sal_fwa < sal_min[Crop]:
+                                SI_fwa = 1
+                            elif sal_fwa > sal_max[Crop]:
+                                SI_fwa = 0
+                            else:
+                                SI_fwa = 1 - (sal_fwa - sal_min[Crop]) / (sal_max[Crop] - sal_min[Crop])
+                                
+                            numer_fwoa += SI_fwoa
+                            numer_fwa  += SI_fwa
+                        
+                            n += 1.0
+                            #print('        %d  - %0.4f - %04.f' % (comp,sal_fwoa,sal_fwa) )
+                        SalIndex_FWOA_ave = numer_fwoa/n
+                        SalIndex_FWA_ave  = numer_fwa/n
+                        
+                        if SalIndex_FWA_ave == 0:
+                            if SalIndex_FWOA_ave == 0:      # if both FWOA and FWA are 0, set whole metric to 0 indicating salinity metric is unchanged between FWOA and FWA
+                                SalIndex = 0
+                            else:
+                                SalIndex = -1000            # if only FWA is zero, metric should be very negative, since FWOA is 'good' salinity and FWA is 'bad', but can't calculate due to div-by-zero
+                        else:                               
+                            SalIndex = 1 - (SalIndex_FWOA_ave / SalIndex_FWA_ave)
+                    
+    
+                        note = 'SI_fwoa_ave=%0.4f; SI_fwa_ave=%0.4f; n_comps=%d' % (SalIndex_FWOA_ave,SalIndex_FWA_ave,n)
+                        #print('%s - %s - %s: %s' % (Comm,Crop,SalIndex,note))
+                        df2up = pd.DataFrame({ 'ModelGroup':G,'Scenario':S,'Year_ICM':Y,'Year_FWOA':FWOAY,'CommunityName':Comm,'Crop':Crop,'SalinityIndex':SalIndex,'Date':datestr,'Note':note},index=[0])
+                        df2up.to_sql('ag_salinity', engine, if_exists='append', schema='icm', index=False)           
+        
+    with open(logfile,mode='a') as lf:
+        lf.write('%s,%s,%s\n' % (datestr,user,actionnote))           
         
 # script to update icm.ecoregion_defintion
 #new = 'PDD_bk/ecoregion_definition_UPDATED_05212022.csv'

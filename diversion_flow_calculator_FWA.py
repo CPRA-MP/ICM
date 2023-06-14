@@ -226,23 +226,31 @@ for d in range(0,ndays):
     # rating curve needs to be a function of Atchafalaya River @ Simmesport since it is calculated here from the flows directly downstream of Old River Control Structure
     # MP2023: project 139
     #    Dredging of the Gulf Intracoastal Waterway (GIWW) and construction of a bypass structure at the Bayou Boeuf Lock from the Atchafalaya River 
-    #    to Terrebonne marshes allowing peak flows of approximately 20,000 cfs 
+    #    to Terrebonne marshes.
     #
-    # Rating curve for TE-110 30% design used a stage rating curve at Morgan City
-    # Converting the stage curve to a discharge rating curve resulted in:
+    #    Rating curve for TE-110 30% design used a stage rating curve at Morgan City:
+    #    Converting that stage curve to a discharge rating curve resulted in:
     #       diversion (cfs) = 0.14*Q_MorganCity(cfs) - 1,880
+    #    
+    #    ORIGINAL OPERATIONAL THRESHOLDS (Project 139):
+    #    The diversion is deactivated during the spring flood, which corresponds to a flow threshold of 250,000 cfs at Morgan City (417,000 cfs at Simmesport)
+    #    The diversion is capped to no allow any diverted flows greater than 30,000 cfs.
     #
-    # the diversion is deactivated during the spring flood,
-    # which corresponds to a flow threshold of 250,000 cfs at Morgan City (417,000 cfs at Simmesport)
-
+    #    INUNDATION TESTS AND ALTERNATE OPERATIONAL THRESHOLDS (Project 139b):
+    #    During MP2023 project simulations, the original operational rules resulted in too much inundation in Verret basin. Therefore, the operational rules were updated to:
+    #    The diversion is deactivated during the spring flood, as defined by a flow threshold of 200,000 cfs at Morgan City.
+    #    The diversion is capped to not allow any diverted flows greater than 25,000 cfs.
+    
     impl_yr = implementation['IAFT']
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:   
-        if Q_Atch_MorganCity >= 250000:
+        #if Q_Atch_MorganCity >= 250000:  #project 139
+        if Q_Atch_MorganCity >= 200000:   #project 139b
             Qdiv = 0
         else:
-            Qdiv = max(0,min(0.14*Q_Atch_MorganCity-1880.0, 30000))
+            #Qdiv = max(0,min(0.14*Q_Atch_MorganCity-1880.0, 30000))  #project 139
+            Qdiv = max(0,min(0.14*Q_Atch_MorganCity-1880.0, 25000))   #project 139b
             
     IAFT_cfs[d] = Qdiv
     IAFT_cms[d] = Qdiv*(0.3048**3)
@@ -692,6 +700,16 @@ for d in range(0,ndays):
         #Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations - opening threshold @ 250k
         #Qdiv = max(5000,0.06667*Qresidual-8333)     # 75,000 cfs Operations - opening threshold @ 250k
         Qdiv = max(5000,0.0625*Qresidual-23125)     # 55,000 cfs Operations - opening threshold @ 450k
+        
+    # alternative operations to maximize land building after year 20
+    # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
+    if yr in [2041,2042]:
+        Qdiv = 5000
+    # alternate ops with Mid Barataria - even years Mid-Breton will flow, odd years, Mid-Barataria will flow
+    if yr > 2042:
+        if yr in range(2044,2072,2):
+            Qdiv = 5000
+        
     MBrD_cfs[d] = Qdiv
     MBrD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
@@ -738,7 +756,16 @@ for d in range(0,ndays):
 #            Qdiv = 0.04375*Qresidual-8750          # 35k - 75k @ 1.0 m 
 #        Qdiv = max(5000, 0.06667*Qresidual-8333)   # 75k @ 1.25 m , 5k min, opening threshold @ 250k
         Qdiv = max(5000, 0.0875*Qresidual-34375)    # 75k @ 1.25 m , 5k min, opening threshold @ 450k
-        
+    
+    # alternative operations to maximize land building after year 20
+    # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
+    if yr in [2041,2042]:
+        Qdiv = 5000
+    # alternate ops with Mid Barataria - even years Mid-Breton will flow, odd years, Mid-Barataria will flow
+    if yr > 2042:
+        if yr in range(2043,2071,2):
+            Qdiv = 5000
+  
     MBaD_cfs[d] = Qdiv
     MBaD_cms[d] = Qdiv*(0.3048**3)
     Qresidual -= Qdiv
