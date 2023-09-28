@@ -301,10 +301,9 @@ for nt in range(0,len(types)):
                     RMSE = 'na'
                     RMSEnorm = 'na'
                     stats_text = 'Bias = NA\nRMSE = NA\nR-sq = NA\nNSE  = NA'
-                    _ = outfile.write('%d,%s,NA,NA,NA,NA\n'
-                                stats_text_prop = dict(boxstyle='round', facecolor='white')
-
+                    _ = outfile.write('%d,%s,NA,NA,NA,NA\n')
                 
+                stats_text_prop = dict(boxstyle='round', facecolor='white')               
                 
             fig = plt.figure()
             ax = fig.add_subplot(111,facecolor='whitesmoke')
