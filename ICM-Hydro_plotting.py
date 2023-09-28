@@ -272,27 +272,38 @@ for nt in range(0,len(types)):
                     # calculate summation used in root mean squared error (RMSE)
                     RMSEd += oi
                 
-                # Pearson Correlation Cofficient (r) (0 - 1)
-                r = PRn / (PRdm**0.5 * PRdo**0.5)
-                r_sq = r**2
+                try:
+                    # Pearson Correlation Cofficient (r) (0 - 1)
+                    r = PRn / (PRdm**0.5 * PRdo**0.5)
+                    r_sq = r**2
                 
-                # bias (bias, pbias (0 - 1) )
-                bias = mod_mean - obs_mean
-                pbias = bias/obs_mean
+                    # bias (bias, pbias (0 - 1) )
+                    bias = mod_mean - obs_mean
+                    pbias = bias/obs_mean
                 
-                # Nash-Sutcliffe Efficiency (NSE) (-inf - 1)
-                NSE = 1 - NSEn / NSEd
+                    # Nash-Sutcliffe Efficiency (NSE) (-inf - 1)
+                    NSE = 1 - NSEn / NSEd
             
-                # Root Mean Squared Error (RMSE) - not normalized
-                RMSE = (NSEn / n_paired)**0.5
+                    # Root Mean Squared Error (RMSE) - not normalized
+                    RMSE = (NSEn / n_paired)**0.5
                 
-                # Root Mean Squared Error - Normalized
-                RMSEnorm = RMSE/obs_mean
+                    # Root Mean Squared Error - Normalized
+                    RMSEnorm = RMSE/obs_mean
                 
-                stats_text = 'Bias = %0.03f %s\nRMSE = %0.03f %s\nR-sq = %0.3f\nNSE  = %0.3f' % (bias,unit,RMSE,unit,r_sq,NSE)
-                stats_text_prop = dict(boxstyle='round', facecolor='white')
+                    stats_text = 'Bias = %0.03f %s\nRMSE = %0.03f %s\nR-sq = %0.3f\nNSE  = %0.3f' % (bias,unit,RMSE,unit,r_sq,NSE)
+                    _ = outfile.write('%d,%s,%0.03f,%0.03f,%0.3f,%0.3f\n' % (comp,site,bias,RMSE,r_sq,NSE))
                 
-                _ = outfile.write('%d,%s,%0.03f,%0.03f,%0.3f,%0.3f\n' % (comp,site,bias,RMSE,r_sq,NSE))
+                except:
+                    r = 'na'
+                    r_sq = 'na'
+                    bias = 'na'
+                    NSE = 'na'
+                    RMSE = 'na'
+                    RMSEnorm = 'na'
+                    stats_text = 'Bias = NA\nRMSE = NA\nR-sq = NA\nNSE  = NA'
+                    _ = outfile.write('%d,%s,NA,NA,NA,NA\n'
+                                stats_text_prop = dict(boxstyle='round', facecolor='white')
+
                 
                 
             fig = plt.figure()
