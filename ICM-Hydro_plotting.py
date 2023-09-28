@@ -9,28 +9,28 @@ import matplotlib.dates as mpd
 #########################################################################
 #          set parameters for this run                                  #
 #########################################################################
-comp_CRMS_LDEQ_map = r'E:\ICM\CRMS_LDEQ_ICM_compartment_map.csv'
-CRMS_dir = r'E:\CRMS\clean_daily'
+comp_CRMS_LDEQ_map = r'E:\ICM\calibration_run_files\final\CRMS_LDEQ_ICM_compartment_map.csv'
+CRMS_dir = r'E:\CRMS_2006-2019\clean_daily'
 LDEQ_dir = r'E:\MP2023\MP2023_observed_data_noCRMS\MP2023_Water_Quality_Data'
 
 scn = 'Hindcast (S00)'
 grp = 'Cal-Val (G000)'
 file_pre = ''   # prefix for run from file naming convention
 start_day = dt.date(2006,1,1)
-ICM_Hydro_dir = r'E:\ICM\ICM_hydro_CP'
+ICM_Hydro_dir = r'E:\ICM\calibration_run_files\final'
 plot_dir = r'%s\plots' % ICM_Hydro_dir
 html_dir = r'%s\html' % plot_dir
 png_dir = r'%s\png' % plot_dir
 
 types = ['STG','SAL','TRG','TSS']
 
-source = ['CRMS','CRMS','CRMS','LDEQ']
+sources = ['CRMS','CRMS','CRMS','LDEQ']
 date_cols = [1,1,1,0]
 data_cols = [8,5,(10,11),2]
 unit_convs = [0.3048,1,1,1]
-
+units = ['m','ppt','m','mg/L']
 y_labels = ['Daily Mean Stage (m, NAVD88)','Daily Mean Salinity (ppt)','Daily Mean Tidal Range (m)','Daily mean TSS (mg/L)']
-y_ranges = [ [-2.0, 2.0],[0, 36],-9999-9999 ]
+y_ranges = [ -9999,[0, 36],[0,1.0],-9999 ]
 
 #data type codes
 # STG = daily mean stage
@@ -116,14 +116,18 @@ with open(comp_CRMS_LDEQ_map,mode='r') as ccm:
             comp_LDEQ[comp] = LDEQ
         nl += 1
 
-for nt in RANGE(0,len(types)):
+for nt in range(0,len(types)):
+    source = sources[nt]
     out_type = types[nt]
-    date_col = data_cols[nt]
-    data_col = date_cols[nt]
+    date_col = date_cols[nt]
+    data_col = data_cols[nt]
     unit_conv = unit_convs[nt]
+    unit = units[nt]
     y_txt = y_labels[nt]
     y_range = y_ranges[nt]
 
+
+    csv_fpath = r'%s\MP2023_stats_%s.csv' % (plot_dir,out_type)
 
     if os.path.exists (plot_dir) == False:
         os.mkdir(plot_dir)
@@ -146,111 +150,192 @@ for nt in RANGE(0,len(types)):
     model_dates = [start_day + dt.timedelta(days=x) for x in range(0, ndays)]
     model_dates_plt = mpd.date2num(model_dates) # matplotlib date object
     
-    nc = 0
-    for c in range(0,ncomps):
-        nc += 1
-        comp = c+1
-        print(r' compartment %04d - %d/%d - %0.1f%%' %(comp,nc,ncomps,100*nc/ncomps))
-    
-        png_fname = 'ICM-Hydro_comp%04d_%s.png' % (comp,out_type)
-        png_fpath = r'%s\%s\%s' % (png_dir,out_type,png_fname)
+    # open output csv where statistics will be saved
+    with open(csv_fpath,mode='w') as outfile:
+        _ = outfile.write('ICM_Hydro_comp,site,Bias (%s),RMSE (%s),R-sq,NSE\n' % (unit,unit))
+        nc = 0
+        for c in range(0,ncomps):
+            nc += 1
+            comp = c+1
+            print(r' compartment %04d - %d/%d - %0.1f%%' %(comp,nc,ncomps,100*nc/ncomps))
         
-        model_label = 'ICM-Hydro comp %04d' % (comp)
-        model_vals = []
-        for d in range(0,ndays):
-            model_vals.append(float(h_out[d][c]))
-        
-        try:
-            # empty lists that will include timeseries of observed data
-            obs_dates = []
-            obs_vals = []
-    
-            # set file name based on data source
-            if source == 'CRMS':
-                site = comp_CRMS[comp]
-                dt_delim = '/'      # CRMS file date format is M/D/Y
-                print ('  - corresponding CRMS site is %s' % site)
-                csvf = r'%s\%s_daily_English.csv' % (CRMS_dir,site)
-            else if source == 'LDEQ':
-                site = comp_LDEQ[comp]
-                dt_delim = '/'      # CRMS file date format is M/D/Y
-                print ('  - corresponding LDEQ site is %s' % site)
-                csvf = r'%s\%s\%s_%s.csv' % (LDEQ_dir,out_type,site,out_type)
+            png_fname = 'ICM-Hydro_comp%04d_%s.png' % (comp,out_type)
+            png_fpath = r'%s\%s\%s' % (png_dir,out_type,png_fname)
             
-            # read in observed data
-            if out_type == 'TRG':
-                # tidal range calculations need to read in date, min stage, and max stage for the day
-                import_cols = [date_col,data_col[0],data_col[1]]
-                f = np.genfromtxt(csvf,dtype=(str,str),skip_header=1,usecols=import_cols,delimiter=',')
+            model_label = 'ICM-Hydro comp %04d' % (comp)
+            model_vals = []
+            for d in range(0,ndays):
+                model_vals.append(float(h_out[d][c]))
+            
+            try:
+                # empty lists that will include timeseries of observed data
+                obs_dates = []
+                obs_vals = []
+        
+                # set file name based on data source
+                if source == 'CRMS':
+                    site = comp_CRMS[comp]
+                    dt_delim = '/'      # CRMS file date format is M/D/Y
+                    print ('  - corresponding CRMS site is %s' % site)
+                    csvf = r'%s\%s_daily_English.csv' % (CRMS_dir,site)
+                elif source == 'LDEQ':
+                    site = comp_LDEQ[comp]
+                    dt_delim = '/'      # CRMS file date format is M/D/Y
+                    print ('  - corresponding LDEQ site is %s' % site)
+                    csvf = r'%s\%s\%s_%s.csv' % (LDEQ_dir,out_type,site,out_type)
                 
-                for row in f:
-                    if row[1] != 'na':          # if have min stage data for day
-                        if row[2] != 'na':      # and have max stage data for day
+                # read in observed data
+                if out_type == 'TRG':
+                    # tidal range calculations need to read in date, min stage, and max stage for the day
+                    import_cols = [date_col,data_col[0],data_col[1]]
+                    f = np.genfromtxt(csvf,dtype=(str,str),skip_header=1,usecols=import_cols,delimiter=',')
+                    
+                    for row in f:
+                        if row[1] != 'na':          # if have min stage data for day
+                            if row[2] != 'na':      # and have max stage data for day
+                                odate = dt.date(int(row[0].split(dt_delim)[2]),int(row[0].split(dt_delim)[0]),int(row[0].split(dt_delim)[1]))
+                                wsmin = float(row[1])*unit_conv
+                                wsmax = float(row[2])*unit_conv
+                                oval = wsmax - wsmin
+                                # append observed data and date of observation into lists that will be plotted
+                                obs_dates.append(odate)
+                                obs_vals.append(oval)
+                else:
+                    import_cols = [date_col,data_col]
+                    f = np.genfromtxt(csvf,dtype=(str,str),skip_header=1,usecols=import_cols,delimiter=',')
+                    for row in f:
+                        if row[1] != 'na':          # if have data for day
                             odate = dt.date(int(row[0].split(dt_delim)[2]),int(row[0].split(dt_delim)[0]),int(row[0].split(dt_delim)[1]))
-                            wsmin = float(row[1])*unit_conv
-                            wsmax = float(row[2])*unit_conv
-                            oval = wsmax - wsmin
+                            oval = float(row[1])*unit_conv
                             # append observed data and date of observation into lists that will be plotted
                             obs_dates.append(odate)
                             obs_vals.append(oval)
-            else:
-                import_cols = [date_col,data_col]
-                f = np.genfromtxt(csvf,dtype=(str,str),skip_header=1,usecols=import_cols,delimiter=',')
-                for row in f:
-                    if row[1] != 'na':          # if have data for day
-                        odate = dt.date(int(row[0].split(dt_delim)[2]),int(row[0].split(dt_delim)[0]),int(row[0].split(dt_delim)[1]))
-                        oval = float(row[1])*unit_conv
-                        # append observed data and date of observation into lists that will be plotted
-                        obs_dates.append(odate)
-                        obs_vals.append(oval)
+                
+                # convert list of observation dates into a matplotlib date object
+                obs_dates_plt = mpd.date2num(obs_dates)
+                # compartment had observed data, so set plot_obs and calc_stats flags to 1
+                plot_obs= 1
+                calc_stats = 1
+            except:
+                # failed to find 
+                plot_obs = 0
+                calc_stats = 0
+                print ('  - no corresponding observed data site')
             
-            # convert list of observation dates into a matplotlib date object
-            obs_dates_plt = mpd.date2num(obs_dates)
-            # compartment had observed data, so set plot_obs flag to 1
-            plot_obs= 1
-        except:
-            # failed to find 
-            plot_obs = 0
-            print ('  - no corresponding observed data site')
-    
-        fig = plt.figure()
-        ax = fig.add_subplot(111,facecolor='whitesmoke')
-        # plot model data
-        ax.plot_date(model_dates_plt,model_vals,marker='o',markersize=0,linestyle='solid',linewidth=1,color='black',label=model_label)
+            if calc_stats == 1:
+                
+                paired_data = {}
+                paired_data['obs'] = {}
+                paired_data['mod'] = {}
+                
+                for date in obs_dates_plt:
+                    if date in model_dates_plt:
+                        obs_index = np.where(obs_dates_plt == date)[0][0]
+                        mod_index = np.where(model_dates_plt == date)[0][0]
+                        paired_data['obs'][date] = obs_vals[obs_index]
+                        paired_data['mod'][date] = model_vals[mod_index]
+                
+                # calculate descriptive statistics using numpy
+                paired_dates = paired_data['obs'].keys()
+                
+                n_paired = len(paired_dates)
+                obs_mean = np.mean(np.fromiter(paired_data['obs'].values(),dtype=float))
+                obs_stdv = np.std(np.fromiter(paired_data['obs'].values(),dtype=float))
+                mod_mean = np.mean(np.fromiter(paired_data['mod'].values(),dtype=float))
+                mod_stdv = np.std(np.fromiter(paired_data['mod'].values(),dtype=float))
+            
+            
+                # calculate performance statistics using equations in Meselhe & Rodrigue (2013), Nash & Sutcliffe (1970)
+                PRn  = 0    # summation term for numerator of Pearson correlation coefficient (r)
+                PRdm = 0    # summation term for model component of denominator of Pearson correlation coefficient (r)
+                PRdo = 0    # summation term for observation component of denominator of Pearson correlation coefficient (r)
+                NSEn = 0    # summation term for numerator of Nash Sutcliffe Model Efficiency (NSE) - also the numerator for root mean squared error (RMSE)
+                NSEd = 0    # summation term for denominator of Nash Sutcliffe Model Efficiency (NSE)
+                RMSEd = 0   # summation term for denominator of root mean squared error (RMSE)
+                
+                for date in paired_data['obs'].keys():
+                    # shortened variable names
+                    oi = paired_data['obs'][date]
+                    om = obs_mean
+                    mi = paired_data['mod'][date]
+                    mm = mod_mean
+                    
+                    # calculate summmations used for Pearson Correlation Cofficient (r)
+                    PRn  += (mi-mm)*(oi-om)
+                    PRdm += (mi-mm)**2
+                    PRdo += (oi-om)**2
+                
+                    # calculate summmations used for Nash Sutcliffe Model Efficiency (NSE)
+                    NSEn += (oi-mi)**2
+                    NSEd += (oi-om)**2
+                    
+                    # calculate summation used in root mean squared error (RMSE)
+                    RMSEd += oi
+                
+                # Pearson Correlation Cofficient (r) (0 - 1)
+                r = PRn / (PRdm**0.5 * PRdo**0.5)
+                r_sq = r**2
+                
+                # bias (bias, pbias (0 - 1) )
+                bias = mod_mean - obs_mean
+                pbias = bias/obs_mean
+                
+                # Nash-Sutcliffe Efficiency (NSE) (-inf - 1)
+                NSE = 1 - NSEn / NSEd
+            
+                # Root Mean Squared Error (RMSE) - not normalized
+                RMSE = (NSEn / n_paired)**0.5
+                
+                # Root Mean Squared Error - Normalized
+                RMSEnorm = RMSE/obs_mean
+                
+                stats_text = 'Bias = %0.03f %s\nRMSE = %0.03f %s\nR-sq = %0.3f\nNSE  = %0.3f' % (bias,unit,RMSE,unit,r_sq,NSE)
+                stats_text_prop = dict(boxstyle='round', facecolor='white')
+                
+                _ = outfile.write('%d,%s,%0.03f,%0.03f,%0.3f,%0.3f\n' % (comp,site,bias,RMSE,r_sq,NSE))
+                
+                
+            fig = plt.figure()
+            ax = fig.add_subplot(111,facecolor='whitesmoke')
+            # plot model data
+            ax.plot_date(model_dates_plt,model_vals,marker='o',markersize=0,linestyle='solid',linewidth=1,color='black',label=model_label)
+            
+            # add observed data to plot (if available)
+            if plot_obs == 1:
+                ax.plot_date(obs_dates_plt,obs_vals,marker='o',markersize=1,linestyle='solid',linewidth=0,color='red',label=site)
+            
+            
+            # format X-axis
+            x_range = [model_dates[0],model_dates[-1]]
+            ax.set_xlim(x_range)
+            ax.xaxis.set_major_locator(mpd.YearLocator())
+            if ndays/365 <= 2:      # if data is no more than 2 years in length put tick marks at months
+                ax.xaxis.set_minor_locator(mpd.MonthLocator())
+                ax.xaxis.set_major_formatter(mpd.DateFormatter('%Y'))
+            elif ndays/365 < 10:    # if data is more than 2 years but less than 10 put tick marks at quarters
+                ax.xaxis.set_minor_locator(mpd.MonthLocator((1,4,7,10)))
+                ax.xaxis.set_major_formatter(mpd.DateFormatter('%Y'))
+            else:
+                ax.xaxis.set_major_formatter(mpd.DateFormatter('%y'))
+            x_txt = r'Year'
+            ax.set_xlabel(x_txt)    
         
-        # add observed data to plot (if available)
-        if plot_obs == 1:
-            ax.plot_date(obs_dates_plt,obs_vals,marker='o',markersize=1,linestyle='solid',linewidth=0,color='red',label=site)
+            # format Y-axis
+            if y_range != -9999:
+                ax.set_ylim(y_range)
+            ax.set_ylabel(y_txt)
         
+            # add legend
+            ax.legend(loc='upper right',edgecolor='none',facecolor='none')
         
-        # format X-axis
-        x_range = [model_dates[0],model_dates[-1]]
-        ax.set_xlim(x_range)
-        ax.xaxis.set_major_locator(mpd.YearLocator())
-        if ndays/365 <= 2:      # if data is no more than 2 years in length put tick marks at months
-            ax.xaxis.set_minor_locator(mpd.MonthLocator())
-            ax.xaxis.set_major_formatter(mpd.DateFormatter('%Y'))
-        elif ndays/365 < 10:    # if data is more than 2 years but less than 10 put tick marks at quarters
-            ax.xaxis.set_minor_locator(mpd.MonthLocator((1,4,7,10)))
-            ax.xaxis.set_major_formatter(mpd.DateFormatter('%Y'))
-        else:
-            ax.xaxis.set_major_formatter(mpd.DateFormatter('%y'))
-        x_txt = r'Year'
-        ax.set_xlabel(x_txt)    
+            # add grid 
+            ax.grid(True,which='both',axis='x',color='silver',linewidth=0.5)
     
-        # format Y-axis
-        if y_range != -9999:
-            ax.set_ylim(y_range)
-        ax.set_ylabel(y_txt)
+            if calc_stats == 1:         # add text box with statistics
+                ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, fontsize=8, verticalalignment='top', bbox=stats_text_prop)
     
-        # add legend
-        ax.legend(loc='upper right',edgecolor='none',facecolor='none')
-    
-        # add grid 
-        ax.grid(True,which='both',axis='x',color='silver',linewidth=0.5) 
-        
-        plt.savefig(png_fpath)
-        plt.close() 
+            plt.savefig(png_fpath)
+            plt.close() 
 
 
     #############################################################################################################
