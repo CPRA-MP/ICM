@@ -152,7 +152,7 @@ for nt in range(0,len(types)):
     
     # open output csv where statistics will be saved
     with open(csv_fpath,mode='w') as outfile:
-        _ = outfile.write('ICM_Hydro_comp,site,Bias (%s),RMSE (%s),R-sq,NSE\n' % (unit,unit))
+        _ = outfile.write('ICM_Hydro_comp,site,Obs Mean(%s), Obs StDv (%s), Model Mean (%s), Model StDv (%s),Bias (%s),RMSE (%s),R-sq,NSE,RMSE bias corrected(%s),NSE bias corrected\n' % (unit,unit,unit,unit,unit,unit,unit))
         nc = 0
         for c in range(0,ncomps):
             nc += 1
@@ -244,7 +244,10 @@ for nt in range(0,len(types)):
                 mod_mean = np.mean(np.fromiter(paired_data['mod'].values(),dtype=float))
                 mod_stdv = np.std(np.fromiter(paired_data['mod'].values(),dtype=float))
             
-            
+                # bias (bias, pbias (0 - 1) )
+                bias = mod_mean - obs_mean
+                pbias = bias/obs_mean
+                
                 # calculate performance statistics using equations in Meselhe & Rodrigue (2013), Nash & Sutcliffe (1970)
                 PRn  = 0    # summation term for numerator of Pearson correlation coefficient (r)
                 PRdm = 0    # summation term for model component of denominator of Pearson correlation coefficient (r)
@@ -252,22 +255,35 @@ for nt in range(0,len(types)):
                 NSEn = 0    # summation term for numerator of Nash Sutcliffe Model Efficiency (NSE) - also the numerator for root mean squared error (RMSE)
                 NSEd = 0    # summation term for denominator of Nash Sutcliffe Model Efficiency (NSE)
                 RMSEd = 0   # summation term for denominator of root mean squared error (RMSE)
-                
+                PRn_bc  = 0 # summation term for numerator of bias-corrected Pearson correlation coefficient (r) 
+                PRdm_bc = 0 # summation term for model component of denominator of bias-corrected Pearson correlation coefficient (r)
+                NSEn_bc = 0 # summation term for numerator of bias-corrected Nash Sutcliffe Model Efficiency (NSE) - also the numerator for root mean squared error (RMSE)
+                                
                 for date in paired_data['obs'].keys():
                     # shortened variable names
                     oi = paired_data['obs'][date]
                     om = obs_mean
                     mi = paired_data['mod'][date]
                     mm = mod_mean
+                    # bias correct model values
+                    mi_bc = mi - bias
+                    mm_bc = mm - bias
+                    
                     
                     # calculate summmations used for Pearson Correlation Cofficient (r)
                     PRn  += (mi-mm)*(oi-om)
                     PRdm += (mi-mm)**2
                     PRdo += (oi-om)**2
+                    # calculate bias-corrected version
+                    PRn_bc  += (mi_bc-mm_bc)*(oi-om)
+                    PRdm_bc += (mi_bc-mm_bc)**2
+
                 
                     # calculate summmations used for Nash Sutcliffe Model Efficiency (NSE)
                     NSEn += (oi-mi)**2
                     NSEd += (oi-om)**2
+                    # calculate bias-corrected version
+                    NSEn_bc += (oi-mi_bc)**2
                     
                     # calculate summation used in root mean squared error (RMSE)
                     RMSEd += oi
@@ -276,22 +292,23 @@ for nt in range(0,len(types)):
                     # Pearson Correlation Cofficient (r) (0 - 1)
                     r = PRn / (PRdm**0.5 * PRdo**0.5)
                     r_sq = r**2
-                
-                    # bias (bias, pbias (0 - 1) )
-                    bias = mod_mean - obs_mean
-                    pbias = bias/obs_mean
-                
+                    r_bc = PRn_bc / (PRdm_bc**0.5 * PRdo**0.5)
+                    r_sq_bc = r_bc**2
+                    
                     # Nash-Sutcliffe Efficiency (NSE) (-inf - 1)
                     NSE = 1 - NSEn / NSEd
-            
+                    NSE_bc = 1 - NSEn_bc / NSEd
+                    
                     # Root Mean Squared Error (RMSE) - not normalized
                     RMSE = (NSEn / n_paired)**0.5
-                
+                    RMSE_bc = (NSEn_bc / n_paired)**0.5
+                    
                     # Root Mean Squared Error - Normalized
                     RMSEnorm = RMSE/obs_mean
-                
-                    stats_text = 'Bias = %0.03f %s\nRMSE = %0.03f %s\nR-sq = %0.3f\nNSE  = %0.3f' % (bias,unit,RMSE,unit,r_sq,NSE)
-                    _ = outfile.write('%d,%s,%0.03f,%0.03f,%0.3f,%0.3f\n' % (comp,site,bias,RMSE,r_sq,NSE))
+                    RMSEnorm_bc = RMSE_bc/obs_mean
+                    
+                    stats_text = 'Obs mean = %0.03f %s\nObs stdv = = %0.03f %s\nBias = %0.03f %s\nR-sq = %0.3f\nRMSE = %0.03f (bc = %0.3f)\nNSE  = %0.3f (bc = %0.3f)' % (obs_mean,unit,obs_stdv,unit,bias,unit,r_sq,RMSE,RMSE_bc,NSE,NSE_bc)
+                    _ = outfile.write('%d,%s,%0.03f,%0.03f,%0.03f,%0.03f,%0.03f,%0.03f,%0.3f,%0.3f,%0.3f,%0.3f\n' % (comp,site,obs_mean,obs_stdv,mod_mean,mod_stdv,bias,RMSE,r_sq,NSE,RMSE_bc,NSE_bc))
                 
                 except:
                     r = 'na'
@@ -301,9 +318,9 @@ for nt in range(0,len(types)):
                     RMSE = 'na'
                     RMSEnorm = 'na'
                     stats_text = 'Bias = NA\nRMSE = NA\nR-sq = NA\nNSE  = NA'
-                    _ = outfile.write('%d,%s,NA,NA,NA,NA\n')
+                    _ = outfile.write('%d,%s,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA\n'  % (comp,site) )
                 
-                stats_text_prop = dict(boxstyle='round', facecolor='white')               
+                stats_text_prop = dict(boxstyle='round', facecolor='white')
                 
             fig = plt.figure()
             ax = fig.add_subplot(111,facecolor='whitesmoke')
@@ -351,7 +368,7 @@ for nt in range(0,len(types)):
     #############################################################################################################
     # build html pages for each compartment with stage and salinity plots and links to neighboring compartments #
     #############################################################################################################
-for c in range(0,ncomps):
+for comp in range(1,ncomps+1):
     html_fname = 'ICM-Hydro_comp%04d.html' % comp # this must match html writing script lower that maps to connected compartments
     html_file = r'%s\%s' % (html_dir,html_fname)
 
