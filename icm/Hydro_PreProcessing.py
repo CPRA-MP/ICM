@@ -1,6 +1,14 @@
+#ICM imports
+import ICM_Settings as icm
+import ICM_HelperFunctions as hf
 
+#Python imports
+import numpy as np
+import os
+import sys
+import time
 
-def HydroyearlyVars():
+def HydroyearlyVars(year):
     #########################################################
     ##     SETTING UP 1D HYDRO MODEL FOR CURRENT YEAR      ##
     #########################################################
@@ -28,12 +36,12 @@ def HydroyearlyVars():
             print(SalConfigFile[i])
 
             try:
-                wr = write_1d_sal_inp(SalConfigFile,i,year,lq)
+                wr = hf.write_1d_sal_inp(SalConfigFile,i,year,lq)
             except:
                 print('  - failed to write SAL input file for %s.   Retrying after 5 seconds.' % SalConfigFile[i])
                 time.sleep(5)
                 try:
-                    wr = write_1d_sal_inp(SalConfigFile,i,year,lq)
+                    wr = hf.write_1d_sal_inp(SalConfigFile,i,year,lq)
                 except:
                     print('  - failed on second attempt to write SAL input file for %s.   Quitting.' % SalConfigFile[i])
                     sys.exit()
@@ -44,12 +52,12 @@ def HydroyearlyVars():
             print(TempConfigFile[i])
 
             try:
-                wr = write_1d_tmp_inp(TempConfigFile,i,year,lq)
+                wr = hf.write_1d_tmp_inp(TempConfigFile,i,year,lq)
             except:
                 print('  - failed to write TMP input file for %s.   Retrying after 5 seconds.' % TempConfigFile[i])
                 time.sleep(5)
                 try:
-                    wr = write_1d_tmp_inp(TempConfigFile,i,year,lq)
+                    wr = hf.write_1d_tmp_inp(TempConfigFile,i,year,lq)
                 except:
                     print('  - failed on second attempt to write TMP input file for %s.   Quitting.' % TempConfigFile[i])
                     sys.exit()
@@ -59,12 +67,12 @@ def HydroyearlyVars():
             print(FineConfigFile[i])
 
             try:
-                wr = write_1d_fine_inp(FineConfigFile,i,year,lq)
+                wr = hf.write_1d_fine_inp(FineConfigFile,i,year,lq)
             except:
                 print('  - failed to write FINES input file for %s.   Retrying after 5 seconds.' % FineConfigFile[i])
                 time.sleep(5)
                 try:
-                    wr = write_1d_fine_inp(FineConfigFile,i,year,lq)
+                    wr = hf.write_1d_fine_inp(FineConfigFile,i,year,lq)
                 except:
                     print('  - failed on second attempt to write FINES input file for %s.   Quitting.' % FineConfigFile[i])
                     sys.exit()
@@ -73,12 +81,12 @@ def HydroyearlyVars():
             print(SandConfigFile[i])
 
             try:
-                wr = write_1d_sand_inp(SandConfigFile,i,year,lq)
+                wr = hf.write_1d_sand_inp(SandConfigFile,i,year,lq)
             except:
                 print('  - failed to write SAND input file for %s.   Retrying after 5 seconds.' % SandConfigFile[i])
                 time.sleep(5)
                 try:
-                    wr = write_1d_sand_inp(SandConfigFile,i,year,lq)
+                    wr = hf.write_1d_sand_inp(SandConfigFile,i,year,lq)
                 except:
                     print('  - failed on second attempt to write SAND input file for %s.   Quitting.' % SandConfigFile[i])
                     sys.exit()

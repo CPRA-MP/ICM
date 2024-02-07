@@ -2,7 +2,9 @@
 import ICM_Settings as icm
 
 #Python imports
+import numpy as np
 import os
+import shutil
 import sys
 
 n_1D = icm.n_1D

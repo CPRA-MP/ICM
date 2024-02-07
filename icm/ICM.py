@@ -5,9 +5,9 @@
 #########################################################################################################
 
 #ICM imports
-import HSI_Main as hsi_main
+#import HSI_Main as hsi_main
 import ICM_HelperFunctions as hf
-import ICM_PreProcessing as icm_pp
+import ICM_Setup
 import ICM_Settings as icm
 
 #Python imports
@@ -56,7 +56,7 @@ if not HSI_Standalone:
         FWA_prj_input_dir_MC, FWA_prj_input_dir_RR, FWA_prj_input_dir_BS, mc_elementIDs, mc_years, \
         mc_eid_with_deep_fill, mc_depth_threshold_def, mc_depth_threshold_deep, mc_links, mc_links_years, \
         sp_projectIDs, sp_years, rr_projectIDs, rr_years, comps_to_change_elev, comp_elevs, comp_years, \
-        act_del_files, act_del_years = icm_pp.ICMVars()
+        act_del_files, act_del_years = ICM_Setup.ICMVars()
 
 
     #TODO need to determine whether this step is necessary, all of these lists should be empty
@@ -164,7 +164,7 @@ if not HSI_Standalone:
     print('--------------------------------------------------\n')
 
     #Run HSI_Main
-    hsi_main.RunHSI(startyear, endyear)
+    #hsi_main.RunHSI(startyear, endyear)
           
     print('\n\n\n')
     print('-----------------------------------------' )
@@ -179,7 +179,7 @@ else:
     print('-----------------------------------------\n')
     
     #Run HSI_Main
-    hsi_main.RunHSI(startyear, endyear)
+    #hsi_main.RunHSI(startyear, endyear)
     
     print('\n\n\n')
     print('-----------------------------------------' )
