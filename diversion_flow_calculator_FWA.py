@@ -705,7 +705,7 @@ for d in range(0,ndays):
     # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
     if yr in [2041,2042]:
         Qdiv = 5000
-    # alternate ops with Mid Barataria - even years Mid-Breton will flow, odd years, Mid-Barataria will flow
+    # alternate ops with Mid Barataria - during even years Mid-Breton will be at baseflow only and Mid-Barataria will flow at full operations
     if yr > 2042:
         if yr in range(2044,2072,2):
             Qdiv = 5000
@@ -761,7 +761,7 @@ for d in range(0,ndays):
     # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
     if yr in [2041,2042]:
         Qdiv = 5000
-    # alternate ops with Mid Barataria - even years Mid-Breton will flow, odd years, Mid-Barataria will flow
+    # alternate ops with Mid Breton - during odd years Mid-Barataria will be at baseflow only and Mid-Breton will flow at full operations
     if yr > 2042:
         if yr in range(2043,2071,2):
             Qdiv = 5000
