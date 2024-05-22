@@ -298,7 +298,7 @@ if not HSI_Standalone:
              year, par_dir, mc_elementIDs, file_iprefix, file_oprefix, mc_eid_with_deep_fill, 
              mc_depth_threshold_deep, mc_depth_threshold_def, FWA_prj_input_dir_MC, sterm,
              runprefix, rr_years, rr_projectIDs, FWA_prj_input_dir_RR, sp_years, sp_projectIDs,
-             FWA_prj_input_dir_BS, startyear, act_del_years, act_del_files)
+             FWA_prj_input_dir_BS, startyear, act_del_years, act_del_files, mc_years)
 
         morph_main.RunMorph(wetland_morph_dir, startyear, elapsedyear, ncomp, year, fwoa_init_cond_tag, 
                             file_prefix_prv,exist_cond_tag, shallow_subsidence_column, file_oprefix, 

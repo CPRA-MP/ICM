@@ -8,7 +8,7 @@ import subprocess
 def MorphyearlyVars(year, par_dir, mc_elementIDs, file_iprefix, file_oprefix, mc_eid_with_deep_fill, 
                     mc_depth_threshold_deep, mc_depth_threshold_def, FWA_prj_input_dir_MC, sterm,
                     runprefix, rr_years, rr_projectIDs, FWA_prj_input_dir_RR, sp_years, sp_projectIDs,
-                    FWA_prj_input_dir_BS, startyear, act_del_years, act_del_files
+                    FWA_prj_input_dir_BS, startyear, act_del_years, act_del_files, mc_years
                     
                     ):
     #########################################################
@@ -28,7 +28,7 @@ def MorphyearlyVars(year, par_dir, mc_elementIDs, file_iprefix, file_oprefix, mc
     mc_project_list_VolArea_yr = 'na'
     
     mcyi = 0
-    for mc_yr in c:
+    for mc_yr in mc_years:
         if year == mc_yr:
             n_mc_yr += 1
             mc_eid_yr.append( mc_elementIDs[mcyi] )
