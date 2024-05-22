@@ -5,7 +5,12 @@ import ICM_Settings as icm
 import os
 import subprocess
 
-def MorphyearlyVars(year):
+def MorphyearlyVars(year, par_dir, mc_elementIDs, file_iprefix, file_oprefix, mc_eid_with_deep_fill, 
+                    mc_depth_threshold_deep, mc_depth_threshold_def, FWA_prj_input_dir_MC, sterm,
+                    runprefix, rr_years, rr_projectIDs, FWA_prj_input_dir_RR, sp_years, sp_projectIDs,
+                    FWA_prj_input_dir_BS, startyear, act_del_years, act_del_files
+                    
+                    ):
     #########################################################
     ##         SETUP MORPH MODEL FOR CURRENT YEAR          ##
     #########################################################
@@ -23,7 +28,7 @@ def MorphyearlyVars(year):
     mc_project_list_VolArea_yr = 'na'
     
     mcyi = 0
-    for mc_yr in mc_years:
+    for mc_yr in c:
         if year == mc_yr:
             n_mc_yr += 1
             mc_eid_yr.append( mc_elementIDs[mcyi] )
@@ -178,5 +183,9 @@ def MorphyearlyVars(year):
     for ady in range(startyear,year+1):
         if ady in act_del_years:
             act_del_file_2use = act_del_files[act_del_years.index(ady)]
+
+
+    return(act_del_file_2use, n_mc_yr, mc_project_list_yr, mc_project_list_VolArea_yr, 
+           rr_project_list_yr, n_sp_cumul, sp_project_list_cumul, n_rr_yr)
    
       

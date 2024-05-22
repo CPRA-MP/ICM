@@ -1,17 +1,22 @@
-#ICM imports
-import ICM_Settings as icm
-
 #Python imports
 import os
 
-def MorphPostProcess():
+#ICM imports
+
+
+
+
+def MorphPostProcess(monthly_file_avstg, n500grid, dem_grid_data_outfile, ncomp, dem_res, new_grid_filepath, grid_pct_edge_file, 
+                     comp_elev_file, comp_wat_file, comp_upl_file, grid_Gdw_dep_file, grid_GwT_dep_file, grid_MtD_dep_file):
+    
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
     ##############################################################
-        
-    Gdw_bin_n = 14    # number of water depth bins used by Gadwall HSI
-    GwT_bin_n = 9     # number of water depth bins used by Greenwing Teal HSI
-    MtD_bin_n = 9     # number of water depth bins used by Mottled Duck HSI
+    
+    # Water depth bins HSI
+    Gdw_bin_n = 14 # Gadwall
+    GwT_bin_n = 9 # Greenwing Teal
+    MtD_bin_n = 9 # Mottled Duck
     
     print(' Reading in monthly stage data.')
     comp_mon_stg = {}   
@@ -25,7 +30,7 @@ def MorphPostProcess():
                     comp_mon_stg[c][n_mon] = float(line.split(',')[n_mon])
             nline += 1
 
-    # set up empty dictionaries and arrays that will hold zonal statistic values
+    # Set up empty dictionaries and arrays that will hold zonal statistic values
     grid_bed_z_all = {}
     grid_bed_z = {} 
     

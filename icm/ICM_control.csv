@@ -1,0 +1,90 @@
+Description,Input Parameter
+#########################################################################,
+## Folder structure directories for ICM components - all paths relative to main /Gxxx/ directory,
+Working folder for Hydro model,./hydro
+Working folder for Geomorphology model,./geomorph
+Working folder for Vegetation model,./veg
+Working folder for Barrier Island model,./bidem
+Working folder for Habitat Suitability Indices,./hsi
+Working folder for Fish Biomass model,./ewe
+#########################################################################,
+## Path to compiled executables used by ICM ,
+Path to ICM-Hydro executable (relative to /Gxxx/hydro/ path),./hydro_v23.4.1
+Path to ICM-BIDEM executable (relative to each /Gxxx/bidem/REGION/ path),./bidem_v23.0.0
+Path to ICM-Morph executable (relative to /Gxxx/ path),./morph_v23.1.1
+#########################################################################,
+## Filenames for various ICM components,
+Input Configuration Filename for Vegetation model,lavegmod_proto.config
+Input Configuration Filename for Geomorphology model,input_params.csv
+Input Configuration Filename for Hydrology model,RuncontrolR.dat
+Filename for hydrology compartments file Hydrology model,Cells.csv
+Filename for hydraulic link file for Hydrology model,Links.csv
+Filename for MHW file prepared by Hydrology model for use in Barrier Island Model,MHW_ecohydro.txt
+Filenaming convention tag to use for existing condition files,MP2023_S00_G000_C000_U00_V00_SLA_I_00_00
+Filenaming convention tag to use for FWOA initial condition files,MP2023_S00_G500_C000_U00_V00_SLA_I_00_00
+Shallow subsidence column to use for current scenario (1=25th; 2=50th; 3=75th percentiles),1
+#########################################################################,
+## Filenames for Veg model input,
+Vegetation model input file: Standard deviation in summer water level,wselv.asc
+Vegetation model input file: Mean annual salinity,annsa.asc
+Vegetation model input file: Mean summer water depth,sumdp.asc
+Vegetation model input file: Mean summer salinity,sumsa.asc
+Vegetation model input file: Mean summer water temperature,sumtm.asc
+Vegetation model input file: Tree establishment condition flag,trcon.asc
+Vegetation model input file: Barrier Island height above mean water level,annht.asc
+Vegetation model input file: Land-water file (percent land),pland.asc
+Vegetation model input file: Land-water file (percent water),pwatr.asc
+Vegetation model input file: Acute salinity stress file,acsal.asc
+#########################################################################,
+## Simulation Settings,
+Start year of full simulation (e.g. year 0 of spin-up),2019
+Final year of full simulation (equals start year for a 1 year run),2070
+Current cycle (full model run can be split into cycles for HPC batch runs),11
+First year of current cycle (e.g. hotstart year) (set to Start Year if only one cycle),2019
+Last year of current cycle (set to Final Year if only one cycle,2070
+First year of data in Hydro input files,2019
+Vegetation types modeled,43
+Update elevation attributes of hydro links and compartments (1 if yes - 0 if no),0
+#########################################################################,
+## 500m grid structure,
+Number of 500 m grid cells with data,173898
+Number of rows in Vegetation input ASCII file,365
+Number of columns in Vegetation input ASCII file,1052
+X coordinate(UTM meters) of lower left corner of Vegetation input ASCII file,404710
+Y coordinate(UTM meters) of lower left corner of Vegetation input ASCII file,3199480
+#########################################################################,
+## EwE 1000m grid structure,
+Number of 1000 m grid cells,0
+Number of rows in Fisheries input ASCII file,0
+Number of columns in Fisheries input ASCII file,0
+X coordinate(UTM meters) of lower left corner of Fisheries input ASCII file,0
+Y coordinate(UTM meters) of lower left corner of Fisheries input ASCII file,0
+#########################################################################,
+## Filenaming settings,
+Filename prefix to use for all files,MP2023
+Scenario term for filename(S22),S08
+Group term for filename (G333),G500
+CLARA term for filename(C22),C000
+Uncertainty term for filename(U22),U00
+Variance term for filename(V22),V00
+Region term for filename(3 letters),SLA
+#########################################################################,
+## 1D River Model,
+Number of 1D River Domain,4
+1D River Model main setup file,region_input.txt
+#########################################################################,
+## Barrier Island Model settings,
+Input Configuration Filename for Tidal Inlet model,BITI_setup_input.xlsx
+Number of BIMODE directories,6
+Subfolder in BIDEM directory 1,IsleDernieres
+Subfolder in BIDEM directory 2,Timbalier
+Subfolder in BIDEM directory 3,Caminada
+Subfolder in BIDEM directory 4,Barataria
+Subfolder in BIDEM directory 5,Breton
+Subfolder in BIDEM directory 6,Chandeleurs
+Fixed BIDEM xyz grid for BIDEM directory 1,MP2023_S00_G000_C000_U00_V00_IsleDernieres_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 2,MP2023_S00_G000_C000_U00_V00_Timbalier_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 3,MP2023_S00_G000_C000_U00_V00_Caminada_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 4,MP2023_S00_G000_C000_U00_V00_Barataria_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 5,MP2023_S00_G000_C000_U00_V00_Breton_BIDEM_I_00_00_M_dem30.xyz
+Fixed BIDEM xyz grid for BIDEM directory 6,MP2023_S00_G000_C000_U00_V00_Chandeleurs_BIDEM_I_00_00_M_dem30.xyz

@@ -1,4 +1,16 @@
-def RunMorph():
+#Python imports
+import subprocess
+
+
+def RunMorph(wetland_morph_dir, startyear, elapsedyear, ncomp, year, fwoa_init_cond_tag, file_prefix_prv,
+             exist_cond_tag, shallow_subsidence_column, file_oprefix, monthly_file_avstg, monthly_file_mxstg,
+             monthly_file_sdowt, act_del_file_2use, monthly_file_sdint, monthly_file_sdedg, monthly_file_avsal,
+             monthly_file_avtss, bidem_xyz_file, file_prefix, new_grid_filepath, grid_Gdw_dep_file, 
+             grid_GwT_dep_file, grid_MtD_dep_file, grid_pct_edge_file, comp_elev_file, comp_wat_file, 
+             comp_upl_file, dem_grid_data_outfile, file_o_01_end_prefix, n_mc_yr, mc_project_list_yr, 
+             mc_project_list_VolArea_yr, n_rr_yr, rr_project_list_yr, n_sp_cumul, sp_project_list_cumul,
+             morph_exe_path, mc_depth_threshold_def, dem_res
+             ):
       
         
     #########################################################
@@ -8,7 +20,6 @@ def RunMorph():
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
     morph_zonal_stats = 0               # 1=zonal stats run in ICM-Morph; 0=zonal stats run in ICM
-    dem_res = 30.0
     
     with open (wm_param_file, mode='w') as ip_csv:
         ip_csv.write("%d, start_year - first year of model run\n" % startyear)

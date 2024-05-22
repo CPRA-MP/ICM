@@ -1,10 +1,10 @@
-#ICM imports
-import ICM_Settings as icm
-
 #Python imports
 import subprocess
 
-def RunSAV(year):
+#ICM imports
+
+
+def RunSAV(year, sterm, gterm, sav_submit_exe_path):
     try:
         snum = '%s' % int(sterm[1:])
         gnum = '%s' % int(gterm[1:])

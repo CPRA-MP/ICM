@@ -1,0 +1,8 @@
+
+
+__pycache__/
+
+# local dirs and files
+_deprecated/
+_original/
+notes.txt

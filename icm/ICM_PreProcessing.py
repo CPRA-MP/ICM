@@ -4,7 +4,7 @@ import ICM_Settings as icm
 #Python imports
 
 
-def ICMyearlyVars(year):
+def ICMyearlyVars(year,startyear,runprefix):
         ## calculate elapsed years of model run
     elapsedyear = year - startyear + 1
 
@@ -25,7 +25,6 @@ def ICMyearlyVars(year):
     file_oprefix    = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
 
-#TODO
-    return()
+    return(elapsedyear,ndays,file_prefix,file_iprefix,file_oprefix,file_prefix_prv)
 
     

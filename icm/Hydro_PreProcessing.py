@@ -8,7 +8,14 @@ import os
 import sys
 import time
 
-def HydroyearlyVars(year):
+def HydroyearlyVars(year, ecohydro_dir, n_1D, HydroConfigFile, lq, Sub_Sal, SalConfigFile,
+                    Sub_Temp, TempConfigFile, Sub_Fine, FineConfigFile, Sub_Sand, SandConfigFile,startrun,
+                    ndays, EHConfigFile, EHConfigArray, startyear, EHtemp_path, EH_grid_filepath, EHCellsArray,
+                    EHCellsArrayOrig, update_hydro_attr, EHLinksArray, link_years, links_to_change, mc_links_years,
+                    mc_links, comp_years, comps_to_change_elev, comp_elevs, EHCellsFile, cellsheader, EHLinksFile,
+                    linksheader
+                    ):
+    
     #########################################################
     ##     SETTING UP 1D HYDRO MODEL FOR CURRENT YEAR      ##
     #########################################################
@@ -19,7 +26,7 @@ def HydroyearlyVars(year):
 
         print(HydroConfigFile[i])
 
-        wr = write_1d_hyd_inp(ecohydro_dir,HydroConfigFile,i,year,lq)
+        wr = hf.write_1d_hyd_inp(ecohydro_dir,HydroConfigFile,i,year,lq)
 #        try:
 #            wr = write_1d_hyd_inp(HydroConfigFile,i,year,lq)
 #        except:
@@ -31,6 +38,9 @@ def HydroyearlyVars(year):
 #                print('  - failed on second attempt to write HYDRO input file for %s.   Quitting.' % HydroConfigFile[i])
 #                sys.exit()
 #
+
+        #TODO may be able to remove wr =
+        #       consolidate
 
         if Sub_Sal[i]=="1":
             print(SalConfigFile[i])
@@ -46,8 +56,6 @@ def HydroyearlyVars(year):
                     print('  - failed on second attempt to write SAL input file for %s.   Quitting.' % SalConfigFile[i])
                     sys.exit()
 
-
-
         if Sub_Temp[i]=="1":
             print(TempConfigFile[i])
 
@@ -61,7 +69,6 @@ def HydroyearlyVars(year):
                 except:
                     print('  - failed on second attempt to write TMP input file for %s.   Quitting.' % TempConfigFile[i])
                     sys.exit()
-
 
         if Sub_Fine[i]=="1":
             print(FineConfigFile[i])
@@ -452,3 +459,6 @@ def HydroyearlyVars(year):
         ## save updated Cell and Link attributes to text files read into Hydro model
         np.savetxt(EHCellsFile,EHCellsArray,fmt='%.12f',header=cellsheader,delimiter=',',comments='')
         np.savetxt(EHLinksFile,EHLinksArray,fmt='%.12f',header=linksheader,delimiter=',',comments='')
+
+
+    return endrun

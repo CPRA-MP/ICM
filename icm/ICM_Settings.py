@@ -1,17 +1,45 @@
-#ICM imports
-import ICM_HelperFunctions as hf
-
 #Python imports
 import os
 import numpy as np
 
 
-HSI_standalone = True # Run HSI in Standalone Mode; must have existing EcoHyd, Veg, and Morph model output
+#ICM imports
+import ICM_HelperFunctions as hf
 
-par_dir = os.getcwd()
+
+#Calculate specific HSIs
+#  For now this list includes the deprecated HSIs, these modules have been retained to document legacy code
+calc_bc_hsi = True          #blue crab
+calc_lgmb_hsi = True        #largemouth bass
+calc_ma_hsi = True          #menhaden - adult
+calc_mj_hsi = True          #menhaden - juvenile
+calc_brsS_hsi = True        #brown shrimp - seine
+calc_brsT_hsi = True        #brown shrimp - trawl
+calc_eo_hsi = True          #eastern oyster
+calc_ssj_hsi = True         #spotted seatrout - juvenile
+calc_ssa_hsi = True         #spotted seatrout - adult
+calc_whsS_hsi = True        #white shrimp - seine
+calc_whsT_hsi = False       #white shrimp - trawl
+calc_md_hsi = True          #mottled duck
+calc_gad_hsi = True         #gadwall
+calc_gwt_hsi = False        #green-winged teal
+calc_cf_hsi = True          #crawfish
+calc_al_hsi = True          #alligator
+calc_ss_hsi = True          #seaside sparrow
+calc_be_hsi = False         #bald eagle
+calc_brpel_hsi = False      #brown pelican
+
+# Run HSI in Standalone Mode; must have existing Hyd, Veg, and Morph model output
+HSI_standalone = False 
 
 #TODO this file name for the CSV should be rectified once ICM and HSI models are merged
-inputs = np.genfromtxt('ICM_HSI_control.csv',dtype=str,comments='#',delimiter=',')
+if HSI_standalone:
+    inputs = np.genfromtxt('ICM_HSI_control.csv',dtype=str,comments='#',delimiter=',')
+else:
+    inputs = np.genfromtxt('ICM_control.csv',dtype=str,comments='#',delimiter=',')
+
+# Begin defining configuration variables
+par_dir = os.getcwd()
 
 # Parent directory locations for various ICM components
 # These directories must exist in the model folder
@@ -23,16 +51,23 @@ bimode_dir = os.path.normpath('%s/%s' % (par_dir,inputs[4,1].lstrip().rstrip()))
 HSI_dir = os.path.normpath('%s/%s' % (par_dir,inputs[5,1].lstrip().rstrip()))
 ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
 
-#default# hydro_exe_path = './hydro_v23.4.0' 
-#default# bidem_exe_path = './bidem_v23.0.0'
-#default# morph_exe_path = './morph_v23.1.0' 
+# default# hydro_exe_path = './hydro_v23.4.0' 
+# default# bidem_exe_path = './bidem_v23.0.0'
+# default# morph_exe_path = './morph_v23.1.0' 
 
-hydro_exe_path = inputs[7,1].lstrip().rstrip() # path to hydro executable - ** path is relative to the S##/G###/hydro        ** - use './' if running copy of executable that is saved in /hydro directory 
-bidem_exe_path = inputs[8,1].lstrip().rstrip() # path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** - use './' if running copy of executable that is saved in /bidem/REGION directory
-morph_exe_path = inputs[9,1].lstrip().rstrip() # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
+# Path to hydro executable - ** path is relative to the S##/G###/hydro **    
+# Use './' if running copy of executable that is saved in /hydro directory 
+hydro_exe_path = inputs[7,1].lstrip().rstrip()
+
+# Path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** 
+# Use './' if running copy of executable that is saved in /bidem/REGION directory
+bidem_exe_path = inputs[8,1].lstrip().rstrip() 
+
+# Path to morph executable - ** path is relative to the S##/G### ** 
+# Use './' if running copy of executable that is saved in /G## directory
+morph_exe_path = inputs[9,1].lstrip().rstrip() 
+
 sav_submit_exe_path = '/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py'
-run_sav = 1         # 1 = submit SAV simulations to queue at end of year; 0 = do not run SAV
-morph_zonal_stats = 0 # 1 = zonal stats run in ICM-Morph; 0 = zonal stats run here in ICM
 
 # Configuration files used by various ICM components
 VegConfigFile = inputs[10,1].lstrip().rstrip()
@@ -62,7 +97,7 @@ PerWaterFile = inputs[27,1].lstrip().rstrip()
 AcuteSalFile = inputs[28,1].lstrip().rstrip()
 acute_sal_threshold = 5.5
 
-## Simulation Settings
+# Simulation Settings
 startyear = int(inputs[29,1].lstrip().rstrip())
 endyear = int(inputs[30,1].lstrip().rstrip())
 ncycle = int(inputs[31,1].lstrip().rstrip())
@@ -72,29 +107,27 @@ inputStartYear = int(inputs[34,1].lstrip().rstrip())
 nvegtype = int(inputs[35,1].lstrip().rstrip())
 update_hydro_attr = int(inputs[36,1].lstrip().rstrip())
 
-# convert calendar years to elapsed years
+# Convert calendar years to elapsed years
 hotstart_year = startyear_cycle
 elapsed_hotstart = hotstart_year - startyear
-#cycle_start_elapsed = startyear_cycle - startyear #TODO check, this line differs from the one below
 cycle_end_elapsed = endyear_cycle - startyear + 1
 cycle_start_elapsed = startyear_cycle - startyear + 1
 
-## grid information for Veg ASCII grid files
+# Grid information for Veg ASCII grid files
 n500grid= int(inputs[37,1].lstrip().rstrip())
-# n500gridveg = int(inputs[25,1].lstrip().rstrip()) #total number of grid cells in Veg model - including NoData cells
 n500rows = int(inputs[38,1].lstrip().rstrip())
 n500cols = int(inputs[39,1].lstrip().rstrip())
 xll500 = int(inputs[40,1].lstrip().rstrip())
 yll500 = int(inputs[41,1].lstrip().rstrip())
 
-## grid information for EwE ASCII grid files
+# Grid information for EwE ASCII grid files
 n1000grid = int(inputs[42,1].lstrip().rstrip())
 n1000rows = int(inputs[43,1].lstrip().rstrip())
 n1000cols = int(inputs[44,1].lstrip().rstrip())
 xll1000 = inputs[45,1].lstrip().rstrip()
 yll1000 = inputs[46,1].lstrip().rstrip()
 
-# file naming convention settings
+# File naming convention settings
 mpterm = inputs[47,1].lstrip().rstrip()
 sterm = inputs[48,1].lstrip().rstrip()
 gterm = inputs[49,1].lstrip().rstrip()
@@ -103,7 +136,7 @@ uterm = inputs[51,1].lstrip().rstrip()
 vterm = inputs[52,1].lstrip().rstrip()
 rterm = inputs[53,1].lstrip().rstrip()
 
-# build some file naming convention tags
+# Build some file naming convention tags
 runprefix = '%s_%s_%s_%s_%s_%s_%s' % (mpterm,sterm,gterm,cterm,uterm,vterm,rterm)
 file_prefix_cycle = r'%s_N_%02d_%02d' % (runprefix,cycle_start_elapsed,cycle_end_elapsed)
 file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
@@ -114,7 +147,7 @@ EHtemp_path = os.path.normpath(r'%s/TempFiles' % ecohydro_dir)
 n_1D = int(inputs[54,1].lstrip().rstrip())
 RmConfigFile = inputs[55,1].lstrip().rstrip()
 
-## Barrier Island Model settings
+# Barrier Island Model settings
 BITIconfig = inputs[56,1].lstrip().rstrip()
 n_bimode = int(inputs[57,1].lstrip().rstrip())
 bimode_folders=[]
@@ -124,7 +157,7 @@ bidem_fixed_grids=[]
 for row in range(58+n_bimode,58+2*n_bimode):
     bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
 
-# read in asci grid structure
+# read in ascii grid structure
 asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
 asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='int')
 asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
@@ -134,14 +167,62 @@ asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncel
 grid_lookup_file = r'%s/grid_lookup_500m.csv' % ecohydro_dir
 grid_lookup = np.genfromtxt(grid_lookup_file,skip_header=1,delimiter=',',dtype='int',usecols=[0,1])
 grid_comp = {row[0]:row[1] for row in grid_lookup}
+
 grid500_res = 480.0
 
-# Save list of GridIDs into an array for use in some loops later # ultimately can replace with grid_comp.keys() in loops
+# Save list of GridIDs into an array
 gridIDs=grid_comp.keys()
+
+# Euler’s number
+e = 2.718281828
+
+# optional flags
+# 1 = submit SAV simulations to queue at end of year; 0 = do not run SAV
+run_sav = 1
+# 1 = zonal stats run in ICM-Morph; 0 = zonal stats run here in ICM                 
+morph_zonal_stats = 0       
 
 # run HSIascii_grid for each species
 map2grid = False
-ascii_grid_lookup,ascii_header,ascii_header_nrows,n500rows,n500cols  = hf.create_ASCII_grid_vals(vegetation_dir,n500rows,n500cols,yll500,xll500)
+grid_ascii_file,ascii_grid_lookup,ascii_header,ascii_header_nrows,n500rows,n500cols = hf.create_ASCII_grid_vals(vegetation_dir,n500rows,n500cols,yll500,xll500)
 
+# use landdict to assign portion of cell that is water
+landwater_calc = False
 
-    
+# check the dictionary key format, for debugging and data type verification
+check_key_format = False
+
+# years when oyster cultch map is re-calculated from previous Oyster HSI outputs
+OYE_cultch_update_years = [1,3,13,23,33,43]
+
+# depth file name
+gadwall_dep_filename = 'Gadwall'
+motduck_dep_filename = 'MotDuck'
+gwteal_dep_filename = 'GWTeal'
+# alligator uses depths from gadwall
+alligator_dep_filename = 'Gadwall'
+use_deepwater = False
+
+# depth file cols depth intervals
+alligator_filecols = 15
+alligator_dep_ints = 14
+
+gadwall_filecols = 15
+gadwall_dep_ints = 13
+
+motduck_filecols = 10
+motduck_dep_ints = 9
+
+gwteal_filecols = 10
+gwteal_dep_ints = 9
+
+# GAMM table files
+bc_gamm_filename = 'seine_bluecrab_gamm_table_1dec.txt'
+ma_gamm_filename = 'gillnet_gulfmenhaden_gamm_table_1dec.txt'
+mj_gamm_filename = 'seine_gulfmenhaden_gamm_table_1dec.txt'
+ssa_gamm_filename = 'gillnet_spottedseatrout_gamm_table_1dec.txt'
+ssj_gamm_filename = 'seine_spottedseatrout_gamm_table_1dec.txt'
+
+dem_res = 30.0
+
+IslandMHWCompLists = [494,482,316,314,306,303]
