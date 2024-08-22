@@ -594,16 +594,16 @@ for d in range(0,ndays):
     ##########################################
     # river mile 69
     # 75k diversion: Diversion flow of rating curve 0.06667*Qresidual-8333 with a minimum of 5,000 cfs
-    # MP2023 FWOA using 55k diversion scenario: rating curve 0.04762*Qresidual-4524 with a minimum of 5,000 cfs, opens at 250,000 cfs
+    # MP2023 FWOA using 55k diversion scenario: rating curve 0.04762*Qresidual-4524 with a minimum of 5,000 cfs, opens at 450,000 cfs
         
     impl_yr = implementation['MBrD']
     
     if yr < yr0 + impl_yr:
         Qdiv = 0
     else:
-        #Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations - opening threshold @ 250k
+        Qdiv = max(5000,0.04762*Qresidual-4524)     # 55,000 cfs Operations - opening threshold @ 450k
         #Qdiv = max(5000,0.06667*Qresidual-8333)     # 75,000 cfs Operations - opening threshold @ 250k
-        Qdiv = max(5000,0.0625*Qresidual-23125)     # 45,000 cfs Operations - opening threshold @ 450k
+        #Qdiv = max(5000,0.0625*Qresidual-23125)     # 45,000 cfs Operations - opening threshold @ 450k
     
     # alternative operations to maximize land building after year 20
     # 'turn off' diversion for two years after 20 years of sediment deposition to allow for vegetation establishment
