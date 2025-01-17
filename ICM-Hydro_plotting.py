@@ -9,15 +9,15 @@ import matplotlib.dates as mpd
 #########################################################################
 #          set parameters for this run                                  #
 #########################################################################
-comp_CRMS_LDEQ_map = r'E:\ICM\calibration_run_files\final\CRMS_LDEQ_ICM_compartment_map.csv'
-CRMS_dir = r'E:\CRMS_2006-2019\clean_daily'
-LDEQ_dir = r'E:\MP2023\MP2023_observed_data_noCRMS\MP2023_Water_Quality_Data'
+ICM_Hydro_dir = r'/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv23/S00/G000/hydro'
+comp_CRMS_LDEQ_map = '/ocean/projects/bcs200002p/ewhite12/MP2029/task_4.1_CRMS_data/CRMS_LDEQ_ICMv23_compartment_map.csv'
+CRMS_dir = '/ocean/projects/bcs200002p/ewhite12/MP2029/task_4.1_CRMS_data/CRMS_2006-2024/clean_daily'
+LDEQ_dir = '/ocean/projects/bcs200002p/ewhite12/MP2029/task_4.1_CRMS_data/LDEQ_1958-2018'
 
 scn = 'Hindcast (S00)'
 grp = 'Cal-Val (G000)'
 file_pre = ''   # prefix for run from file naming convention
 start_day = dt.date(2006,1,1)
-ICM_Hydro_dir = r'E:\ICM\calibration_run_files\final'
 plot_dir = r'%s\plots' % ICM_Hydro_dir
 html_dir = r'%s\html' % plot_dir
 png_dir = r'%s\png' % plot_dir
