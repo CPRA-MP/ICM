@@ -3,8 +3,8 @@
 
 This release, v24.0.0, made the following updates to ICM v23.0.0:<br>
 1. Self-packing density of mineral component of marsh soils (`mn_k2`) was updated to 2.173 g/cm^3 based upon updated [soil properties data available in CRMS](https://cims.coastal.louisiana.gov/DataDownload/DataDownload.aspx?type=soil_properties); analysis conducted by Dr. Maddie Foster-Martinez in 2024. The previous value used for MP2023 was set to 2.106 g/cm^3; documentation and methodology is described in Appendix A of Baustian et al., (2020). Updated data required no changes to organic self-packing density. 
-2.  
-3. <br>
+2. Updates to input variables passed into ICM-Morph to account for updated ICM-LAVegMod output files produced by ICM-LAVegMod-Fortran 
+3.  <br>
 
 
 ### References

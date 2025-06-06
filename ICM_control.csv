@@ -6,15 +6,20 @@ Working folder for Geomorphology model,./geomorph
 Working folder for Vegetation model,./veg
 Working folder for Barrier Island model,./bidem
 Working folder for Habitat Suitability Indices,./hsi
-Working folder for Fish Biomass model,./ewe
+Working folder for Habitat Diversity Indices,./hdi
 #########################################################################,
 ## Path to compiled executables used by ICM ,
 Path to ICM-Hydro executable (relative to /Gxxx/hydro/ path),./hydro_v23.4.0
 Path to ICM-BIDEM executable (relative to each /Gxxx/bidem/REGION/ path),./bidem_v23.0.0
 Path to ICM-Morph executable (relative to /Gxxx/ path),./morph_v23.1.0
+Path to ICM-LAVegMod executable (relative to /Gxxx/ path),./LAVegMod_v24.0.0
+Path to exectuable to submit SAV job to queue,/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py
+Run SAV (1=yes 0=no),0
+Path to exectuable to submit WVA job to queue,
+Run WVA (1=yes 0=no),0
 #########################################################################,
 ## Filenames for various ICM components,
-Input Configuration Filename for Vegetation model,lavegmod_proto.config
+Input Configuration Filename for Vegetation model,LAVegMod_input_params.csv
 Input Configuration Filename for Geomorphology model,input_params.csv
 Input Configuration Filename for Hydrology model,RuncontrolR.dat
 Filename for hydrology compartments file Hydrology model,Cells.csv
@@ -23,18 +28,18 @@ Filename for MHW file prepared by Hydrology model for use in Barrier Island Mode
 Filenaming convention tag to use for existing condition files,MP2023_S00_G000_C000_U00_V00_SLA_I_00_00
 Filenaming convention tag to use for FWOA initial condition files,MP2023_S00_G500_C000_U00_V00_SLA_I_00_00
 Shallow subsidence column to use for current scenario (1=25th; 2=50th; 3=75th percentiles),1
-#########################################################################,
-## Filenames for Veg model input,
-Vegetation model input file: Standard deviation in summer water level,wselv.asc
-Vegetation model input file: Mean annual salinity,annsa.asc
-Vegetation model input file: Mean summer water depth,sumdp.asc
-Vegetation model input file: Mean summer salinity,sumsa.asc
-Vegetation model input file: Mean summer water temperature,sumtm.asc
-Vegetation model input file: Tree establishment condition flag,trcon.asc
-Vegetation model input file: Barrier Island height above mean water level,annht.asc
-Vegetation model input file: Land-water file (percent land),pland.asc
-Vegetation model input file: Land-water file (percent water),pwatr.asc
-Vegetation model input file: Acute salinity stress file,acsal.asc
+---#########################################################################,
+---## Filenames for Veg model input,
+24-Vegetation model input file: Standard deviation in summer water level,wselv.asc
+25-Vegetation model input file: Mean annual salinity,annsa.asc
+26-Vegetation model input file: Mean summer water depth,sumdp.asc
+27-Vegetation model input file: Mean summer salinity,sumsa.asc
+28-Vegetation model input file: Mean summer water temperature,sumtm.asc
+29-Vegetation model input file: Tree establishment condition flag,trcon.asc
+30-Vegetation model input file: Barrier Island height above mean water level,annht.asc
+31-Vegetation model input file: Land-water file (percent land),pland.asc
+32-Vegetation model input file: Land-water file (percent water),pwatr.asc
+33-Vegetation model input file: Acute salinity stress file,acsal.asc
 #########################################################################,
 ## Simulation Settings,
 Start year of full simulation (e.g. year 0 of spin-up),2019
