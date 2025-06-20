@@ -2423,7 +2423,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         lvm_ip_csv.write("%s, runprefix - file naming convention prefix\n" % runprefix)
         lvm_ip_csv.write("1, write_intermediate_files - set to 1 if intermediate output files should be written - set to 0 to only write end-of-year files\n")
 
-    veg_run = subprocess.call()
+    veg_run = subprocess.call(veg_exe_path)
 
     #########################################################
     ##         SETUP MORPH MODEL FOR CURRENT YEAR          ##
