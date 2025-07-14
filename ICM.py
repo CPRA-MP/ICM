@@ -2417,7 +2417,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         if year == startyear:
             lvm_ip_csv.write("'veg/%s_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % fwoa_init_cond_tag)
         else:
-            lvm_ip_csv.write("'veg/%s_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % file_oprefix_prv)
+            lvm_ip_csv.write("'veg/%s_O_%04d_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % (runprefix,year) )
         lvm_ip_csv.write("'%s', hydro_comp_out_file - file name - with relative path - to compartment_out.csv from current model year's ICM-Hydro simulation\n" % comp_out_file_yr)
         lvm_ip_csv.write("'%s', morph_grid_out_file - file name - with relative path - to grid_data.csv file from previous model year's ICM-Morph simulation\n" % grid_data_file_prv_yr)
         lvm_ip_csv.write("%s, runprefix - file naming convention prefix\n" % runprefix)
@@ -2684,9 +2684,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year))
         else:
             ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
-
-        ip_csv.write("'veg/%s_V_vegty.csv', veg_out_file - file name with relative path to *vegty.csv file saved by ICM-LAVegMod that has species-level relative coverage values\n" % file_oprefix)
-        ip_csv.write("'veg/%s_V_vegsm.csv', veg_out_summary_file - file name with relative path to *vegsm.csv file saved by ICM-LAVegMod that has the FFIBS coverage values for vegetated land area\n" % file_oprefix)
+        ip_csv.write("'veg/%s_O_%4d_V_vegty.csv', veg_out_file - file name with relative path to *vegty.csv file saved by ICM-LAVegMod that has species-level relative coverage values\n" %  (runprefix,year))
+        ip_csv.write("'veg/%s_O_%4d_V_vegsm.csv', veg_out_summary_file - file name with relative path to *vegsm.csv file saved by ICM-LAVegMod that has the FFIBS coverage values for vegetated land area\n" % (runprefix,year))
         ip_csv.write("'%s', monthly_mean_stage_file - file name with relative path to compartment summary file with monthly mean water levels\n" % monthly_file_avstg)
         ip_csv.write("'%s', monthly_max_stage_file - file name with relative path to compartment summary file with monthly maximum water levels\n" % monthly_file_mxstg)
         ip_csv.write("'%s', monthly_ow_sed_dep_file - file name with relative path to compartment summary file with monthly sediment deposition in open water\n" % monthly_file_sdowt)
