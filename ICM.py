@@ -733,27 +733,27 @@ EHInterfaceFile         = 'ICM_info_into_EH.txt'
 dem_res = 30.0
 
 # Filenames for Veg model input
-WaveAmplitudeFile = inputs[19,1].lstrip().rstrip()
-MeanSalinityFile = inputs[20,1].lstrip().rstrip()
-SummerMeanWaterDepthFile = inputs[21,1].lstrip().rstrip()
-SummerMeanSalinityFile = inputs[22,1].lstrip().rstrip()
-SummerMeanTempFile = inputs[23,1].lstrip().rstrip()
-TreeEstCondFile = inputs[24,1].lstrip().rstrip()
-HtAbvWaterFile = inputs[25,1].lstrip().rstrip()
-PerLandFile = inputs[26,1].lstrip().rstrip()
-PerWaterFile = inputs[27,1].lstrip().rstrip()
-AcuteSalFile = inputs[28,1].lstrip().rstrip()
+WaveAmplitudeFile = inputs[24,1].lstrip().rstrip()
+MeanSalinityFile = inputs[25,1].lstrip().rstrip()
+SummerMeanWaterDepthFile = inputs[26,1].lstrip().rstrip()
+SummerMeanSalinityFile = inputs[27,1].lstrip().rstrip()
+SummerMeanTempFile = inputs[28,1].lstrip().rstrip()
+TreeEstCondFile = inputs[29,1].lstrip().rstrip()
+HtAbvWaterFile = inputs[30,1].lstrip().rstrip()
+PerLandFile = inputs[31,1].lstrip().rstrip()
+PerWaterFile = inputs[32,1].lstrip().rstrip()
+AcuteSalFile = inputs[33,1].lstrip().rstrip()
 acute_sal_threshold = 5.5
 
 ## Simulation Settings
-startyear = int(inputs[29,1].lstrip().rstrip())
-endyear = int(inputs[30,1].lstrip().rstrip())
-ncycle = int(inputs[31,1].lstrip().rstrip())
-startyear_cycle = int(inputs[32,1].lstrip().rstrip())
-endyear_cycle = int(inputs[33,1].lstrip().rstrip())
-inputStartYear = int(inputs[34,1].lstrip().rstrip())
-nvegtype = int(inputs[35,1].lstrip().rstrip())
-update_hydro_attr = int(inputs[36,1].lstrip().rstrip())
+startyear = int(inputs[34,1].lstrip().rstrip())
+endyear = int(inputs[35,1].lstrip().rstrip())
+ncycle = int(inputs[36,1].lstrip().rstrip())
+startyear_cycle = int(inputs[37,1].lstrip().rstrip())
+endyear_cycle = int(inputs[38,1].lstrip().rstrip())
+inputStartYear = int(inputs[39,1].lstrip().rstrip())
+nvegtype = int(inputs[40,1].lstrip().rstrip())
+update_hydro_attr = int(inputs[41,1].lstrip().rstrip())
 
 # convert calendar years to elapsed years
 hotstart_year = startyear_cycle
@@ -767,28 +767,28 @@ cycle_end_elapsed = endyear_cycle - startyear + 1
 
 
 ## grid information for Veg ASCII grid files
-n500grid= int(inputs[37,1].lstrip().rstrip())
+n500grid= int(inputs[42,1].lstrip().rstrip())
 # n500gridveg = int(inputs[25,1].lstrip().rstrip()) #total number of grid cells in Veg model - including NoData cells
-n500rows = int(inputs[38,1].lstrip().rstrip())
-n500cols = int(inputs[39,1].lstrip().rstrip())
-xll500 = int(inputs[40,1].lstrip().rstrip())
-yll500 = int(inputs[41,1].lstrip().rstrip())
+n500rows = int(inputs[43,1].lstrip().rstrip())
+n500cols = int(inputs[44,1].lstrip().rstrip())
+xll500 = int(inputs[45,1].lstrip().rstrip())
+yll500 = int(inputs[46,1].lstrip().rstrip())
 
 ## grid information for EwE ASCII grid files
-n1000grid = int(inputs[42,1].lstrip().rstrip())
-n1000rows = int(inputs[43,1].lstrip().rstrip())
-n1000cols = int(inputs[44,1].lstrip().rstrip())
-xll1000 = inputs[45,1].lstrip().rstrip()
-yll1000 = inputs[46,1].lstrip().rstrip()
+n1000grid = int(inputs[47,1].lstrip().rstrip())
+n1000rows = int(inputs[48,1].lstrip().rstrip())
+n1000cols = int(inputs[49,1].lstrip().rstrip())
+xll1000 = inputs[50,1].lstrip().rstrip()
+yll1000 = inputs[51,1].lstrip().rstrip()
 
 # file naming convention settings
-mpterm = inputs[47,1].lstrip().rstrip()
-sterm = inputs[48,1].lstrip().rstrip()
-gterm = inputs[49,1].lstrip().rstrip()
-cterm = inputs[50,1].lstrip().rstrip()
-uterm = inputs[51,1].lstrip().rstrip()
-vterm = inputs[52,1].lstrip().rstrip()
-rterm = inputs[53,1].lstrip().rstrip()
+mpterm = inputs[52,1].lstrip().rstrip()
+sterm = inputs[53,1].lstrip().rstrip()
+gterm = inputs[54,1].lstrip().rstrip()
+cterm = inputs[55,1].lstrip().rstrip()
+uterm = inputs[56,1].lstrip().rstrip()
+vterm = inputs[57,1].lstrip().rstrip()
+rterm = inputs[58,1].lstrip().rstrip()
 
 
 # build some file naming convention tags
@@ -800,17 +800,17 @@ file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
 
 
 # 1D Hydro model information
-n_1D = int(inputs[54,1].lstrip().rstrip())
-RmConfigFile = inputs[55,1].lstrip().rstrip()
+n_1D = int(inputs[59,1].lstrip().rstrip())
+RmConfigFile = inputs[60,1].lstrip().rstrip()
 
 ## Barrier Island Model settings
-BITIconfig = inputs[56,1].lstrip().rstrip()
-n_bimode = int(inputs[57,1].lstrip().rstrip())
+BITIconfig = inputs[61,1].lstrip().rstrip()
+n_bimode = int(inputs[62,1].lstrip().rstrip())
 bimode_folders=[]
-for row in range(58,58+n_bimode):
+for row in range(63,63+n_bimode):
     bimode_folders.append(inputs[row,1].lstrip().rstrip())
 bidem_fixed_grids=[]
-for row in range(58+n_bimode,58+2*n_bimode):
+for row in range(63+n_bimode,63+2*n_bimode):
     bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
 
 # read in asci grid structure
@@ -2669,7 +2669,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/input/%s_W_polder30.xyz', pldr_file - file name with relative path to polder file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/%s_W_comp30.xyz', comp_file - file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/%s_W_grid30.xyz', grid_file - file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
-        ip_csv.write("'geomorph/input/%s_W_dpsub30.xyz', dsub_file - file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_subsidence.xyz', dsub_file - file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file - file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
         ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)\n" % shallow_subsidence_column)
         ip_csv.write("'geomorph/input/%s', act_del_file - file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n" % act_del_file_2use)
