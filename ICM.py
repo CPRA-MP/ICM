@@ -2673,7 +2673,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file - file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
         ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)\n" % shallow_subsidence_column)
         ip_csv.write("'geomorph/input/%s', act_del_file - file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n" % act_del_file_2use)
-        ip_csv.write("'geomorph/input/compartment_no_land_gain.csv, no_gain_file - file name with relative path to lookup table that identifies ICM-Hydro compartments where ICM-Morph land gain functions are deactivated\n")
+        ip_csv.write("'geomorph/input/compartment_no_land_gain.csv', no_gain_file - file name with relative path to lookup table that identifies ICM-Hydro compartments where ICM-Morph land gain functions are deactivated\n")
         ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file - file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
         ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file - file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
         ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name with relative path to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n")
