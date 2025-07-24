@@ -2398,7 +2398,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     grid_data_file_prv_yr = 'hydro/TempFiles/grid_data_500m_%04d.csv' % (year - 1)
     
     with open (lvm_param_file, mode='w') as lvm_ip_csv:
-        lvm_ip_csv.write("%04d, start_year - first year of model run\n" % year)
+        lvm_ip_csv.write("%04d, start_year - first year of model run\n" % startyear)
         lvm_ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsed_year)
         lvm_ip_csv.write("47, ncov - the number of coverage types included in the model\n")
         lvm_ip_csv.write("%d, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all grid-level data\n" % n500grid)
@@ -2417,7 +2417,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         if year == startyear:
             lvm_ip_csv.write("'veg/%s_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % fwoa_init_cond_tag)
         else:
-            lvm_ip_csv.write("'veg/%s_O_%04d_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % (runprefix,year) )
+            lvm_ip_csv.write("'veg/%s_O_%04d_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % (runprefix,year-1) )
         lvm_ip_csv.write("'%s', hydro_comp_out_file - file name - with relative path - to compartment_out.csv from current model year's ICM-Hydro simulation\n" % comp_out_file_yr)
         lvm_ip_csv.write("'%s', morph_grid_out_file - file name - with relative path - to grid_data.csv file from previous model year's ICM-Morph simulation\n" % grid_data_file_prv_yr)
         lvm_ip_csv.write("%s, runprefix - file naming convention prefix\n" % runprefix)
