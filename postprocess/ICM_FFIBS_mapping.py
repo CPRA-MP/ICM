@@ -11,6 +11,7 @@ import rasterio as rio
 from rasterio.plot import plotting_extent
 
 # read in simulation and plot settings from command arguments passed into this .py script
+m = 'MP2029' # m = 'MP2023'
 s = int(sys.argv[1])                 # s = '7'
 g = int(sys.argv[2])                 # g = '503'
 year = int(sys.argv[3])         # year = 2015
@@ -52,12 +53,15 @@ for fol in [xyz_fol,tif_fol,png_fol]:
 
 
 try:
-    LVMout_pth      = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_V_vegty.asc+' % (veg_fol,s,g,elapsedyear,elapsedyear)
-    FFIBSasc_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.asc' % (veg_fol,s,g,elapsedyear,elapsedyear)
-    FFIBStif_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_FFIBS.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
-    LTtif_pth       = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_lndtyp.tif' % (tif_fol,s,g,elapsedyear,elapsedyear)
-    LVgridtif_pth   = '%s/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.tif' % (in_fol)
-    png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.png' % (png_fol,s,g,elapsedyear,elapsedyear)
+    if m == 'MP209':
+        LVMout_pth      = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%04d_V_vegsm.csv' % (veg_fol,m,s,g,year)
+    else:
+        LVMout_pth      = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_V_vegty.asc+' % (veg_fol,m,s,g,elapsedyear,elapsedyear)
+    FFIBSasc_pth    = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.asc' % (veg_fol,m,s,g,elapsedyear,elapsedyear)
+    FFIBStif_pth    = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_FFIBS.tif' % (tif_fol,m,s,g,elapsedyear,elapsedyear)
+    LTtif_pth       = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_lndtyp.tif' % (tif_fol,m,s,g,elapsedyear,elapsedyear)
+    LVgridtif_pth   = '%s/%s_S00_G000_C000_U00_V00_SLA_I_00_00_W_grid30.tif' % (in_fol,m)
+    png_pth         = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_FFIBS.png' % (png_fol,m,s,g,elapsedyear,elapsedyear)
 
     png_title = 'Habitat Classification - S%02d - G%03d - Year %02d' % (s,g,elapsedyear-spinup_years)
 
@@ -100,13 +104,20 @@ try:
             sys.exit()
     
         # read in FFIBS score for each LAVegMod grid cell
-        sp_names = np.genfromtxt( LVMout_pth, skip_header=asc_grid_rows, skip_footer=ngrid, delimiter=',', dtype='str').tolist()
+        if m == 'MP2029':
+            sk_hd = 0
+            sk_ft = 0
+        else:
+            sk_hd = asc_grid_rows
+            sk_ft = ngrid
+
+        sp_names = np.genfromtxt( LVMout_pth, skip_header=sk_hd, skip_footer=sk_ft, delimiter=',', dtype='str').tolist()
         sp_names = [sn.strip() for sn in sp_names]
         
         grdID_i = sp_names.index('CELLID')
         FFIBS_i = sp_names.index('FFIBS')
     
-        LVMout   = np.genfromtxt( LVMout_pth, skip_header=asc_grid_rows+1,usecols=[grdID_i,FFIBS_i], delimiter=',', dtype='float')
+        LVMout   = np.genfromtxt( LVMout_pth, skip_header=sk_hd+1,usecols=[grdID_i,FFIBS_i], delimiter=',', dtype='float')
         FFIBS_d = {}
         for row in LVMout:
             cID = int(row[0])               # grid cell ID must be integer since grid30.tif is an integer raster

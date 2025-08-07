@@ -14,8 +14,9 @@ from rasterio.plot import plotting_extent
 mrb2x_exe = '/ocean/projects/bcs200002p/ewhite12/code/ICM_MorphRasters/build/morph_rasters_bin2xyz_v23.0.0'
 
 # read in simulation and plot settings from command arguments passed into this .py script
-s = int(sys.argv[1])                 # s = '7'
-g = int(sys.argv[2])                 # g = '503'
+m = 'MP2029'                    # m = 'MP2023'
+s = int(sys.argv[1])            # s = '7'
+g = int(sys.argv[2])            # g = '503'
 year = int(sys.argv[3])         # year = 2015
 startyear = int(sys.argv[4])    # startyear = 2015
 
@@ -117,10 +118,10 @@ for ftype in ftype_list:
         print('  No colormap settings available for **%s** output type' % ftype)
 
     try:
-        xyz_bin_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,s,g,elapsedyear,elapsedyear,ftype)
-        xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz'   % (xyz_fol,s,g,elapsedyear,elapsedyear,ftype)
-        tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif'   % (tif_fol,s,g,elapsedyear,elapsedyear,ftype_out)
-        png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png'   % (png_fol,s,g,elapsedyear,elapsedyear,ftype_out)
+        xyz_bin_pth     = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol,m,s,g,elapsedyear,elapsedyear,ftype)
+        xyz_asc_pth     = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz'   % (xyz_fol,m,s,g,elapsedyear,elapsedyear,ftype)
+        tif_pth         = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif'   % (tif_fol,m,s,g,elapsedyear,elapsedyear,ftype_out)
+        png_pth         = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png'   % (png_fol,m,s,g,elapsedyear,elapsedyear,ftype_out)
 
         x_bin_pth       = '%s/raster_x_coord.b' % out_fol
         y_bin_pth       = '%s/raster_y_coord.b' % out_fol

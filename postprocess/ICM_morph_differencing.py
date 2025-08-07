@@ -12,7 +12,7 @@ from rasterio.plot import plotting_extent
 md_exe = '/ocean/projects/bcs200002p/ewhite12/code/ICM_MorphDiff/build/morph_diff_v23.0.0'
 mrb2x_exe = '/ocean/projects/bcs200002p/ewhite12/code/ICM_MorphRasters/build/morph_rasters_bin2xyz_v23.0.0'
 
-
+m = 'MP2029' # m = 'MP2023'
 s   = int(sys.argv[1])
 g1  = int(sys.argv[2])
 g0  = int(sys.argv[3])
@@ -85,16 +85,16 @@ for fol in [xyz_fol,tif_fol,png_fol,ts_fol]:
 
         
 if yr0 == 0:
-    ras0_bin_pth    = 'S%02d/G500/geomorph/input/MP2023_S00_G500_C000_U00_V00_SLA_I_00_00_W_%s.xyz.b' % (s,rastype)
+    ras0_bin_pth    = 'S%02d/G500/geomorph/input/%s_S00_G500_C000_U00_V00_SLA_I_00_00_W_%s.xyz.b' % (m,s,rastype)
 else:
-    ras0_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol0,s,g0,yr0,yr0,rastype)
-ras1_bin_pth    = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g1,yr1,yr1,rastype)
-ras01_bin_pth   = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,s,g1,yr0,yr1,difftype)
+    ras0_bin_pth    = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol0,m,s,g0,yr0,yr0,rastype)
+ras1_bin_pth    = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,m,s,g1,yr1,yr1,rastype)
+ras01_bin_pth   = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz.b' % (out_fol1,m,s,g1,yr0,yr1,difftype)
 x_bin_pth       = '%s/raster_x_coord.b' % out_fol1
 y_bin_pth       = '%s/raster_y_coord.b' % out_fol1
-xyz_asc_pth     = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,s,g1,yr0,yr1,difftype)
-tif_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif' % (tif_fol,s,g1,yr0,yr1,difftype)
-png_pth         = '%s/MP2023_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png' % (png_fol,s,g1,yr0,yr1,difftype)
+xyz_asc_pth     = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_N_%02d_%02d_W_%s.xyz' % (xyz_fol,m,s,g1,yr0,yr1,difftype)
+tif_pth         = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.tif' % (tif_fol,m,s,g1,yr0,yr1,difftype)
+png_pth         = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_W_%s.png' % (png_fol,m,s,g1,yr0,yr1,difftype)
 
     
 ################################################

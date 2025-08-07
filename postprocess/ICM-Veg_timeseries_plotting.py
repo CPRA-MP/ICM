@@ -5,7 +5,7 @@ import numpy as np
 
 #Generates a csv properly formatted for use in 'Barplots_allspecies_selectcells.py' 
 
-
+m = 'MP2029'    # m = 'MP2023'
 s = int(sys.argv[1])
 g = int(sys.argv[2])
 endyear = int(sys.argv[3])
@@ -46,7 +46,7 @@ for c in cell_comp.keys():
 veg_dir = r'./%s/%s/veg' % (S,G)
 
 outdir = '%s/coverage_timeseries' % veg_dir
-input_file = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_V_barplot_input.csv' % (veg_dir,S,G)
+input_file = '%s/%s_%s_%s_C000_U00_V00_SLA_O_V_barplot_input.csv' % (veg_dir,m,S,G)
 spinup_years = 2
 
 if os.path.exists (outdir) == False:
@@ -57,7 +57,11 @@ with open(input_file,mode='w') as outcsv:
     m = 0
     for Y in years: 
         print('On year '+ str(Y))
-        LVMout_f = '%s/MP2023_%s_%s_C000_U00_V00_SLA_O_%02d_%02d_V_vegty.asc+' % (veg_dir,S,G,Y,Y)
+        if m == 'MP2029':
+            LVMout_f = '%s/%s_%s_%s_C000_U00_V00_SLA_O_%04d_V_vegty.csv' % (veg_dir,m,S,G,Y)
+        else:
+            LVMout_f = '%s/%s_%s_%s_C000_U00_V00_SLA_O_%02d_%02d_V_vegty.asc+' % (veg_dir,m,S,G,Y,Y)
+            
         sp_names = np.genfromtxt( LVMout_f, skip_header=asc_grid_rows, skip_footer=ngrid, delimiter=',', dtype='str') 
         sp_names = sp_names[1:-7]       # the first column is CellID and the last 7 columns are FFIBS and habitat summations - remove these from the species name list
         sp_names = [sn.strip() for sn in sp_names]
