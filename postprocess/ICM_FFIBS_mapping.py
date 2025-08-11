@@ -53,7 +53,7 @@ for fol in [xyz_fol,tif_fol,png_fol]:
 
 
 try:
-    if m == 'MP209':
+    if m == 'MP2029':
         LVMout_pth      = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%04d_V_vegsm.csv' % (veg_fol,m,s,g,year)
     else:
         LVMout_pth      = '%s/%s_S%02d_G%03d_C000_U00_V00_SLA_O_%02d_%02d_V_vegty.asc+' % (veg_fol,m,s,g,elapsedyear,elapsedyear)
