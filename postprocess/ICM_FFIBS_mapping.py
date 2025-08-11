@@ -107,8 +107,8 @@ try:
         if m == 'MP2029':
             sk_hd = 0
             sk_ft = ngrid
-            cid_hdr = 'GridCELLID'
-            ffib_hdr = 'WeightedFFIBS'
+            cid_hdr = 'GridCellID'
+            ffib_hdr = 'WeigtedFFIBS'
         else:
             sk_hd = asc_grid_rows
             sk_ft = ngrid
