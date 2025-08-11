@@ -107,15 +107,18 @@ try:
         if m == 'MP2029':
             sk_hd = 0
             sk_ft = ngrid
+            cid_hdr = 'GridCELLID'
+            ffib_hdr = 'WeightedFFIBS'
         else:
             sk_hd = asc_grid_rows
             sk_ft = ngrid
-
+            cid_hdr = 'CELLID'
+            ffib_hdr = 'FFIBS'
         sp_names = np.genfromtxt( LVMout_pth, skip_header=sk_hd, skip_footer=sk_ft, delimiter=',', dtype='str').tolist()
         sp_names = [sn.strip() for sn in sp_names]
         
-        grdID_i = sp_names.index('CELLID')
-        FFIBS_i = sp_names.index('FFIBS')
+        grdID_i = sp_names.index(cid_hdr)
+        FFIBS_i = sp_names.index(ffib_hdr)
     
         LVMout   = np.genfromtxt( LVMout_pth, skip_header=sk_hd+1,usecols=[grdID_i,FFIBS_i], delimiter=',', dtype='float')
         FFIBS_d = {}
