@@ -54,7 +54,7 @@ if os.path.exists (outdir) == False:
 
 with open(input_file,mode='w') as outcsv:
     outcsv.write(',pro_no,S,year,coverage_code,cell_ID,value\n')
-    m = 0
+
     for Y in years: 
         print('On year '+ str(Y))
         if m == 'MP2029':
