@@ -106,7 +106,7 @@ try:
         # read in FFIBS score for each LAVegMod grid cell
         if m == 'MP2029':
             sk_hd = 0
-            sk_ft = 0
+            sk_ft = ngrid
         else:
             sk_hd = asc_grid_rows
             sk_ft = ngrid
