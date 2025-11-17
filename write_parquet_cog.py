@@ -16,6 +16,7 @@ import zipfile
 import sqlalchemy
 import psycopg2
 import rasterio as rio
+import re
 from cpra.mp.data import write_data, read_fortran_array
 from cpra.mp.data.variables import VARIABLES
 from sqlalchemy import create_engine, text
@@ -23,16 +24,17 @@ from urllib.parse import quote_plus
 
 # for connection and paths
 username = r'hjaehn'
-password = ''
+password = r'071025H@rr!'
 
 # filepaths
 api_variables = fr"/ocean/projects/bcs200002p/{username}/cpra.mp.data/cpra/mp/data/structure/variables.csv"
 api_grids = fr"/ocean/projects/bcs200002p/{username}/cpra.mp.data/cpra/mp/data/structure/grids.csv"
 api_dimensions = fr"/ocean/projects/bcs200002p/{username}/cpra.mp.data/cpra/mp/data/structure/dimensions.csv"
-api_dimension_mapping = r"/ocean/projects/bcs200002p/shared/upload-tracker/CPRA MP29 Model Data Structure Upload Tracker.xlsx"
+api_dimension_mapping = r"/ocean/projects/bcs200002p/shared/upload-tracker/CPRA MP29 Model Data Structure Upload Tracker.xlsx" # [ ] remove duplicate
 api_variable_tracker = r"/ocean/projects/bcs200002p/shared/upload-tracker/CPRA MP29 Model Data Structure Upload Tracker.xlsx"
 local_storage = fr"/ocean/projects/bcs200002p/{username}/testing"
 veg_grid_path = r"/ocean/projects/bcs200002p/hjaehn/testing/MP2023_S00_G000_C000_U00_V00_SLA_I_00_00_V_grid480.tif" # [ ] move to the shared folder
+eaglecell_to_vegcell = r"/ocean/projects/bcs200002p/hjaehn/testing/bald_eagle_grid_lookup.csv" # [ ] move to the shared folder
 
 # constants
 # [ ] need to call these as variables instead of hard coding
@@ -131,20 +133,50 @@ def format_icm_hydro_daily_output(filepath, variable_metadata_series):
     df[f'{variable_metadata_series['required_dimensions']}'] = read_variable_dimensions(variable_metadata_series)['Dimension Value'].values[0]
     return df
 
-def format_icm_veg_annual_output(filepath, variable_metadata_series):
+def format_icm_hsi_annual_output(filepath, variable_metadata_series):
     dimensions = read_variable_dimensions(variable_metadata_series)['MP23 Dimension Value'].to_list()
-    # [ ] change this to the handler dictionary method
-    if filepath.endswith('.asc+.zip'):
-        df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', compression='zip', skiprows=371, sep=', ', engine='python')
-    elif filepath.endswith('.asc+'):
-        df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', skiprows=371, sep=', ', engine='python')
-    elif filepath.endswith('.zip'):
-        df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', compression='zip') # confirm index column
-    else:
-        df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID') # confirm index column
-    df = df.rename(columns={old_col: new_col for old_col, new_col in zip(read_variable_dimensions(variable_metadata_series)['MP23 Dimension Value'].to_list(), 
-                                                                         read_variable_dimensions(variable_metadata_series)['Dimension Value'].to_list())})
+    try: 
+        df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["GridID"], compression='zip')
+        df.rename(columns={"GridID":"gridid"}, inplace=True)
+        df["gridid"] = df["gridid"].astype(int)
+        df.set_index('gridid', inplace=True)
+    except:
+        df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], compression='zip')
+        df.columns = df.columns.str.lower()
+        dimensions_lower = [dim.lower() for dim in dimensions]
+        df = df[dimensions_lower + ['gridid']]
+        df["gridid"] = df["gridid"].astype(int)
+        df.set_index('gridid', inplace=True)
+    
+    # Bald Eagle HSI files have a different grid and need to be casted onto the veg_grid_cell grid
+    if os.path.basename(filepath).split("_")[11][:5] == 'EAGLE':
+        grid_mapping = pd.read_csv(eaglecell_to_vegcell).rename(columns=str.lower)
+        df = df.merge(grid_mapping, left_index=True, right_on='gridid', how='right')
+        df = df.set_index(variable_metadata_series['geographic_units']) # this is the other column in the mapping sheet
+        df = df.drop(columns=['gridid'])
+    
+    # All files need to be transposed and have the species code added
     df = df.transpose().reset_index().rename(columns={'index':variable_metadata_series['required_dimensions']})
+    df[variable_metadata_series['required_dimensions']] = os.path.basename(filepath).split("_")[11][:5].lower() #NOTE this pulls the 5 character species code from the filename
+    return df
+
+def format_icm_veg_annual_output(filepath, variable_metadata_series):
+    # [ ] change this to the handler dictionary method
+    if variable_metadata_series['name'] == 'hsi':
+        df = format_icm_hsi_annual_output(filepath, variable_metadata_series)
+    else:
+        dimensions = read_variable_dimensions(variable_metadata_series)['MP23 Dimension Value'].to_list()
+        if filepath.endswith('.asc+.zip'):
+            df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', compression='zip', skiprows=371, sep=', ', engine='python')
+        elif filepath.endswith('.asc+'):
+            df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', skiprows=371, sep=', ', engine='python')
+        elif filepath.endswith('.zip'):
+            df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', compression='zip') # confirm index column
+        else:
+            df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID') # confirm index column
+        df = df.rename(columns={old_col: new_col for old_col, new_col in zip(read_variable_dimensions(variable_metadata_series)['MP23 Dimension Value'].to_list(), 
+                                                                            read_variable_dimensions(variable_metadata_series)['Dimension Value'].to_list())})
+        df = df.transpose().reset_index().rename(columns={'index':variable_metadata_series['required_dimensions']})
     df['calendar_year'] = np.int32(int(os.path.basename(filepath).split("_")[8])) + 2018 
     df['scenario_id'] = np.int32(int(filepath.split(os.path.sep)[7][-2:]))
     df['model_group_id'] = np.int32(int(filepath.split(os.path.sep)[8][-3:]))
@@ -181,7 +213,7 @@ def format_icm_ecoregion_annual_output(filepath, variable_metadata_series):
         df.drop(columns=[f'{variable_metadata_series['required_dimensions']}'], inplace=True) # NOTE drop the column once you create the other two
         print(df['percentile'])
         print(df[f'{read_variable_dimensions(variable_metadata_series)['Required Dimension'][0]}'])
-    df['calendar_year'] = 2018 # NOTE this only is needed for inputs right now so not a problem, but could be one later...
+    df['calendar_year'] = extract_calendar_year(filepath)
     df['scenario_id'] = np.int32(int(filepath.split(os.path.sep)[7][-2:]))
     df['model_group_id'] = np.int32(int(filepath.split(os.path.sep)[8][-3:]))
     df['variable'] = variable_metadata_series['name']
@@ -202,7 +234,7 @@ def apply_formatting(variable_metadata_series, filepath, time_unit, geographic_u
     
     geographic_functions = {'ecoregion': ecoregion_format_functions,
                             'hydro_compartment': hydro_format_functions,
-                            'veg_pixel': veg_format_functions}
+                            'veg_grid_cell': veg_format_functions}
 
     df = geographic_functions[geographic_unit][time_unit](filepath=filepath, variable_metadata_series=variable_metadata_series)
     return df
@@ -288,13 +320,11 @@ def convert_veg_to_raster(data, variable_name):
         row_dims = dims[i].to_dicts()[0]
 
         print(f"Writing data for: {row_dims!s}...")
-        write_data(np.flip(flipped_data, 0), validate=False, **row_dims)
+        write_data(np.flip(flipped_data, 0), validate=True, **row_dims)
 
 def upload_veg_annual(variable_metadata_series, convert_list):
     start_time = time.time()
     convert_dict = find_variable_files(variable_metadata_series=variable_metadata_series, convert_list=convert_list)
-    # NOTE removed the required dimensions - manually added for veg pixel data
-    # [ ] rewrite the note above
     variable_metadata_series = pd.concat([variable_metadata_series, read_variable_metadata(variable_metadata_series['name']).loc[['dtype','geographic_units','required_dimensions']]]) 
     for k, v in convert_dict.items():
         print(f'the rasters for {k} are being uploaded:')
@@ -302,8 +332,10 @@ def upload_veg_annual(variable_metadata_series, convert_list):
             if check_filepath(path, k[0], k[1], variable_metadata_series):
                 print(f'    {path} is uploading!')
                 print(f'        calendar year: {np.int32(int(os.path.basename(path).split("_")[8]))+2018}')
+                print(f'        species: {os.path.basename(path).split("_")[11][:5]}')
                 data = apply_formatting(variable_metadata_series=variable_metadata_series, filepath=path, time_unit=variable_metadata_series['time_units'], geographic_unit=variable_metadata_series['geographic_units'])
-                convert_veg_to_raster(data=data, variable_name=variable_metadata_series['name']) # convert the parquet file to a raster
+                print(data)
+                convert_veg_to_raster(data=data, variable_name=variable_metadata_series['name']) # convert the dataframe to a raster
             else:
                 print(f'    {path} is not needed, skipped!\n')
     print(variable_metadata_series['name'] + " was saved in oceans!")
@@ -441,41 +473,42 @@ def process_sql_statement(pdd_conn, path):
     df = pd.read_sql_query(sql_statement_full, pdd_conn)
     return df
 
-def clara_dtype_conversions(df, variable_metadata_series): 
-    # todo: we can probably update this to be read from the csv's but this is okay for now
-    # set the dtypes for the clara specific dimensions
-    column_dtype_mapping = { # [ ]  bring this in from the structure csv
-    'scenario_id': np.int32,
-    'model_group_id': np.int32,
-    'geographic_unit': str,
-    'fragility_scenario': np.int8,
-    'pumping_id': np.float32,
-    'asset_type': np.int8,
-    'calendar_year': np.int32,
-    'variable': str,
-    'percentile': np.int8,
-    'population_variant':  np.int8,
-    'clara_variant' : np.int8,
-    'aep': np.float32
-    }
+# NOTE - this is no longer used, kept just in case 
+# def clara_dtype_conversions(df, variable_metadata_series): 
+#     # todo: we can probably update this to be read from the csv's but this is okay for now
+#     # set the dtypes for the clara specific dimensions
+#     column_dtype_mapping = { # [ ]  bring this in from the structure csv
+#     'scenario_id': np.int32,
+#     'model_group_id': np.int32,
+#     'geographic_unit': str,
+#     'fragility_scenario': np.int8,
+#     'pumping_id': np.float32,
+#     'asset_type': np.int8,
+#     'calendar_year': np.int32,
+#     'variable': str,
+#     'percentile': np.int8,
+#     'population_variant':  np.int8,
+#     'clara_variant' : np.int8,
+#     'aep': np.float32
+#     }
     
-    # Create the geographies list
-    grids = pd.read_csv(api_grids)
-    max_geographies = grids.loc[grids["name"] == (variable_metadata_series["geographic_units"] + "_v001"), 'id_count'].tolist()
-    geographies = range(1, int(max_geographies[0]) + 1)
+#     # Create the geographies list
+#     grids = pd.read_csv(api_grids)
+#     max_geographies = grids.loc[grids["name"] == (variable_metadata_series["geographic_units"] + "_v001"), 'id_count'].tolist()
+#     geographies = range(1, int(max_geographies[0]) + 1)
 
-    # Assign dtypes to the dimensions in the DataFrame
-    for column, dtype in column_dtype_mapping.items():
-        if column in df.columns:
-            df[column] = df[column].astype(dtype)
+#     # Assign dtypes to the dimensions in the DataFrame
+#     for column, dtype in column_dtype_mapping.items():
+#         if column in df.columns:
+#             df[column] = df[column].astype(dtype)
 
-    # Assign dtypes to the output geographies
-    for geography in geographies:
-        if geography in df.columns:
-            df[geography] = df[geography].astype(variable_metadata_series['dtype'])
-    return df
+#     # Assign dtypes to the output geographies
+#     for geography in geographies:
+#         if geography in df.columns:
+#             df[geography] = df[geography].astype(variable_metadata_series['dtype'])
+#     return df
 
-def check_dtype_conversions(df):
+def check_dtype_conversions(df, variable_metadata_series):
     dimensions = pd.read_csv(api_dimensions)
     names = dimensions['name'].tolist()
     dtypes = dimensions['dtype'].tolist()
@@ -486,6 +519,12 @@ def check_dtype_conversions(df):
     for column, dtype in column_dtype_mapping.items():
         if column in df.columns:
             df[column] = df[column].astype(dtype)
+    
+    # Assign dtypes to the output geographies
+    geographies = [col for col in df.columns if isinstance(col, int)]
+    for geography in geographies:
+        if geography in df.columns:
+            df[geography] = df[geography].astype(variable_metadata_series['dtype'])
     return df
 
 def check_grid_geographies(df, variable_metadata_series):
@@ -511,17 +550,18 @@ def format_clara_outputs(df, variable_metadata_series):
     
     required_clara_dimensions = read_variable_dimensions(variable_metadata_series)
     
-    # Create conditions to update SQL table
-    condition_0 = (df['ModelGroup'] == 0)
-    condition_1 = (df['ModelGroup'] == 500) & (df['Year_FWOA'] == 1)
-    condition_2 = (df['ModelGroup'] == 500) & (df['Year_FWOA'] != 1)
-    condition_3 = (df['ModelGroup'].isin([515, 516]))
+    # NOTE we are now using the model groups from ICM instead of creating new ones for MP23
+    # # Create conditions to update SQL table
+    # condition_0 = (df['ModelGroup'] == 0)
+    # condition_1 = (df['ModelGroup'] == 500) & (df['Year_FWOA'] == 1)
+    # condition_2 = (df['ModelGroup'] == 500) & (df['Year_FWOA'] != 1)
+    # condition_3 = (df['ModelGroup'].isin([515, 516]))
 
-    # Update the 'model_group_id' based on the conditions
-    df.loc[condition_0, 'ModelGroup'] = 400
-    df.loc[condition_1, 'ModelGroup'] = 401
-    df.loc[condition_2, 'ModelGroup'] = 402
-    df.loc[condition_3, 'ModelGroup'] = 403
+    # # Update the 'model_group_id' based on the conditions
+    # df.loc[condition_0, 'ModelGroup'] = 400
+    # df.loc[condition_1, 'ModelGroup'] = 401
+    # df.loc[condition_2, 'ModelGroup'] = 402
+    # df.loc[condition_3, 'ModelGroup'] = 403
 
     # Change the year to the correct value
     df['calendar_year'] =np.int32((df['Year_ICM'] + 2018) // 1)
@@ -570,7 +610,7 @@ def format_clara_outputs(df, variable_metadata_series):
     df['model'] = 'clara_v2023.0.0' # standard value
     
     # update the dtypes
-    df = clara_dtype_conversions(df, variable_metadata_series)
+    df = check_dtype_conversions(df, variable_metadata_series)
 
     return df
 
@@ -579,6 +619,9 @@ def upload_clara(variable_metadata_series):
     variable_metadata_series = pd.concat([variable_metadata_series, read_variable_metadata(variable_metadata_series['name']).loc[['dtype','geographic_units']]])
     print(f"Loading data for {variable_metadata_series['name']} from the PDD...")
     load_start = time.time()
+    # NOTE 1) this currently loads the entire table into memory, which is not ideal.
+    # NOTE 2) we can add chunking to load sections (say 10k rows each time) of the table, format them, save on bridges in a temp folder, then clear memory and repeat.
+    # NOTE 3) we can then rejoin the chunks into a single table, and upload that to the MPD, and delete the temp files.
     df = process_sql_statement(create_pdd_connection(username, password), variable_metadata_series['path'])
     load_end = time.time()
     print(f"Data loaded in {load_end-load_start} seconds")
