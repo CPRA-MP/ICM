@@ -23,8 +23,8 @@ from sqlalchemy import create_engine, text
 from urllib.parse import quote_plus
 
 # for connection and paths
-username = r'hjaehn'
-password = r'071025H@rr!'
+username = 'your username'
+password = 'password'
 
 # filepaths
 api_variables = fr"/ocean/projects/bcs200002p/{username}/cpra.mp.data/cpra/mp/data/structure/variables.csv"
