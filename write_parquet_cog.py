@@ -125,8 +125,8 @@ def format_icm_hydro_daily_output(filepath, variable_metadata_series):
         df = pd.read_csv(filepath, names=hydrocomp, dtype=variable_metadata_series['dtype'])
     df = df[df.columns[df.columns.astype(int) < 1658]]
     df['calendar_day'] = pd.Series(dates)
-    df['scenario_id'] = np.int32(int(os.path.basename(filepath)[8:10])) 
-    df['model_group_id'] = np.int32(int(os.path.basename(filepath)[12:15])) 
+    df['scenario_id'] = np.int32(int(filepath.split(os.path.sep)[7][-2:]))
+    df['model_group_id'] = np.int32(int(filepath.split(os.path.sep)[8][-3:]))
     df['variable'] = variable_metadata_series['name']
     df['time_unit'] = variable_metadata_series['time_units']
     df['model'] = variable_metadata_series['model'] + "_v2023.0.0"
@@ -174,9 +174,14 @@ def format_icm_veg_annual_output(filepath, variable_metadata_series):
             df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID', compression='zip') # confirm index column
         else:
             df = pd.read_csv(filepath, dtype=variable_metadata_series['dtype'], usecols=dimensions+["CELLID"], index_col='CELLID') # confirm index column
+        df.index = df.index.astype(int)
         df = df.rename(columns={old_col: new_col for old_col, new_col in zip(read_variable_dimensions(variable_metadata_series)['MP23 Dimension Value'].to_list(), 
                                                                             read_variable_dimensions(variable_metadata_series)['Dimension Value'].to_list())})
         df = df.transpose().reset_index().rename(columns={'index':variable_metadata_series['required_dimensions']})
+        # need to add this for files without any dimensions
+        if variable_metadata_series['name'] == 'ffibs_score':
+            df = df.loc[:, [col for col in df.columns if not pd.isna(col)]]
+            df.columns = [int(float(col)) for col in df.columns]
     df['calendar_year'] = np.int32(int(os.path.basename(filepath).split("_")[8])) + 2018 
     df['scenario_id'] = np.int32(int(filepath.split(os.path.sep)[7][-2:]))
     df['model_group_id'] = np.int32(int(filepath.split(os.path.sep)[8][-3:]))
@@ -256,6 +261,8 @@ def upload_parquet_annual(variable_metadata_series, convert_list):
         print(k, v)
         for path in v:
             upload_df = pd.concat([upload_df, apply_formatting(variable_metadata_series=variable_metadata_series, filepath=path, time_unit=variable_metadata_series['time_units'], geographic_unit=variable_metadata_series['geographic_units'])])
+    # TODO check if parquet file exists. If yes, read it, concatinate new to old, and overwrite; check for duplicate df lines
+    # TODO add function 
     data = pl.from_pandas(upload_df)
     print(data)
     write_data(data=data, grid=variable_metadata_series['geographic_units'] + '_v001')
@@ -318,9 +325,12 @@ def convert_veg_to_raster(data, variable_name):
         flipped_data = flipped_mask.copy()
         flipped_data[flipped_data == 255] = row
         row_dims = dims[i].to_dicts()[0]
-
         print(f"Writing data for: {row_dims!s}...")
-        write_data(np.flip(flipped_data, 0), validate=True, **row_dims)
+        try: 
+            write_data(np.flip(flipped_data, 0), validate=True, **row_dims)
+        except Exception as e:
+            print(f'    there was an error writing the data for {row_dims!s}: {e}\n')
+            pass
 
 def upload_veg_annual(variable_metadata_series, convert_list):
     start_time = time.time()
@@ -332,9 +342,7 @@ def upload_veg_annual(variable_metadata_series, convert_list):
             if check_filepath(path, k[0], k[1], variable_metadata_series):
                 print(f'    {path} is uploading!')
                 print(f'        calendar year: {np.int32(int(os.path.basename(path).split("_")[8]))+2018}')
-                print(f'        species: {os.path.basename(path).split("_")[11][:5]}')
                 data = apply_formatting(variable_metadata_series=variable_metadata_series, filepath=path, time_unit=variable_metadata_series['time_units'], geographic_unit=variable_metadata_series['geographic_units'])
-                print(data)
                 convert_veg_to_raster(data=data, variable_name=variable_metadata_series['name']) # convert the dataframe to a raster
             else:
                 print(f'    {path} is not needed, skipped!\n')
@@ -357,7 +365,11 @@ def upload_cog(variable_metadata_series, convert_list, storage):
             print(f'The rasters for {k} are being uploaded:')
             for path in v:
                 if check_filepath(path, k[0], k[1], variable_metadata_series): # NOTE this checks to see if the file has already been uploaded
-                    process_path(path, k, variable_metadata_series, storage)
+                    try: 
+                        process_path(path, k, variable_metadata_series, storage)
+                    except Exception as e:
+                        print(f'    there was an error processing {path}: {e}\n')
+                        pass
                 else:
                     print(f'    {path} is not needed, skipped!\n')
                     
@@ -472,41 +484,6 @@ def process_sql_statement(pdd_conn, path):
     sql_statement_full = f'SELECT * FROM {path}' 
     df = pd.read_sql_query(sql_statement_full, pdd_conn)
     return df
-
-# NOTE - this is no longer used, kept just in case 
-# def clara_dtype_conversions(df, variable_metadata_series): 
-#     # todo: we can probably update this to be read from the csv's but this is okay for now
-#     # set the dtypes for the clara specific dimensions
-#     column_dtype_mapping = { # [ ]  bring this in from the structure csv
-#     'scenario_id': np.int32,
-#     'model_group_id': np.int32,
-#     'geographic_unit': str,
-#     'fragility_scenario': np.int8,
-#     'pumping_id': np.float32,
-#     'asset_type': np.int8,
-#     'calendar_year': np.int32,
-#     'variable': str,
-#     'percentile': np.int8,
-#     'population_variant':  np.int8,
-#     'clara_variant' : np.int8,
-#     'aep': np.float32
-#     }
-    
-#     # Create the geographies list
-#     grids = pd.read_csv(api_grids)
-#     max_geographies = grids.loc[grids["name"] == (variable_metadata_series["geographic_units"] + "_v001"), 'id_count'].tolist()
-#     geographies = range(1, int(max_geographies[0]) + 1)
-
-#     # Assign dtypes to the dimensions in the DataFrame
-#     for column, dtype in column_dtype_mapping.items():
-#         if column in df.columns:
-#             df[column] = df[column].astype(dtype)
-
-#     # Assign dtypes to the output geographies
-#     for geography in geographies:
-#         if geography in df.columns:
-#             df[geography] = df[geography].astype(variable_metadata_series['dtype'])
-#     return df
 
 def check_dtype_conversions(df, variable_metadata_series):
     dimensions = pd.read_csv(api_dimensions)
@@ -634,15 +611,15 @@ def upload_clara(variable_metadata_series):
     elapsed_time = end_time - start_time
     print(f"Elapsed time: {elapsed_time} seconds")
 
-def read_upload_tracker(variable_queue):
+def read_upload_tracker(variable_queue, time_unit):
     df = pd.read_excel(api_variable_tracker, sheet_name="_Upload Tracker", header=0)
-    df = df[df['name'] == variable_queue]
+    df = df[(df['name'] == variable_queue) & (df['time_units'] == time_unit)]
     return df 
 
-def upload_files(modelgroups, scenarios, variable_queue, storage):
+def upload_files(modelgroups, scenarios, variable_queue, storage, time_unit):
     convert_list = list(itertools.product(scenarios, modelgroups)) 
     print(convert_list)
-    variables_upload_tracker = read_upload_tracker(variable_queue)
+    variables_upload_tracker = read_upload_tracker(variable_queue, time_unit)
     for variable_metadata_series in [row for index, row in variables_upload_tracker.iterrows() if 'in-progress' in row['status'] and 'parquet' in row['type']]:
         upload_parquet(time_unit=variable_metadata_series['time_units'])(variable_metadata_series, convert_list)
     for variable_metadata_series in [row for index, row in variables_upload_tracker.iterrows() if 'in-progress' in row['status'] and 'cog' in row['type']]:
@@ -658,7 +635,7 @@ def check_filepath(filepath, scenario_str, model_group_str, variable_metadata_se
     except:
         year_check = True # for inputs we have to hard code it to be 2018 since the basename is different
     # [ ] create a new line that creates glob list, then new line "if length of glob list > 1 then true"
-    file_check = not glob.glob(f'/ocean/projects/bcs200002p/shared/data/variable={variable_metadata_series["name"]}/grid={variable_metadata_series["geographic_units"] + "_v001"}/time_unit=annual/model_group_id={model_group_str[1:]}/scenario_id={scenario_str[2:]}/**/{int(os.path.basename(filepath).split("_")[8]) + 2018}.tif', recursive=True)
+    file_check = not glob.glob(f'/ocean/projects/bcs200002p/shared/data/variable={variable_metadata_series["name"]}/*/model_group_id={model_group_str[1:]}/scenario_id={scenario_str[2:]}/*/calendar_year={int(os.path.basename(filepath).split("_")[8]) + 2018}.tif', recursive=True)
     final_flag = scenario_match and model_group_match and year_check and file_check
     return final_flag
 
@@ -668,6 +645,7 @@ def list_of_strs(arg):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--variable_queue", type=str, dest="variable_queue", help="Job specific variables to be uploaded")
+    parser.add_argument("--time_unit", type=str, dest="time_unit", help="Time unit of the variable to be uploaded")
     parser.add_argument("--model_groups", type=list_of_strs, dest="modelgroups", help="Job specific modelgroups to be uploaded")
     parser.add_argument("--scenarios", type=list_of_strs, dest="scenarios", help="Job specific scenarios to be uploaded")
     args = parser.parse_args()
@@ -676,4 +654,5 @@ if __name__ == "__main__":
     upload_files(modelgroups=args.modelgroups,
                  scenarios=args.scenarios,
                  variable_queue=args.variable_queue,
+                 time_unit=args.time_unit,
                  storage=local_storage)
