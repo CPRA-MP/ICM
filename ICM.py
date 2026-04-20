@@ -699,56 +699,61 @@ wetland_morph_dir = os.path.normpath('%s/%s' % (par_dir,inputs[2,1].lstrip().rst
 vegetation_dir = os.path.normpath('%s/%s' % (par_dir,inputs[3,1].lstrip().rstrip()))
 bimode_dir = os.path.normpath('%s/%s' % (par_dir,inputs[4,1].lstrip().rstrip()))
 HSI_dir = os.path.normpath('%s/%s' % (par_dir,inputs[5,1].lstrip().rstrip()))
-ewe_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
+HDI_dir = os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
+ewe_dir = 'null'    #os.path.normpath('%s/%s' % (par_dir,inputs[6,1].lstrip().rstrip()))
 
 #default# hydro_exe_path = './hydro_v23.4.0' 
 #default# bidem_exe_path = './bidem_v23.0.0'
 #default# morph_exe_path = './morph_v23.1.0' 
 
-hydro_exe_path = inputs[7,1].lstrip().rstrip() # path to hydro executable - ** path is relative to the S##/G###/hydro        ** - use './' if running copy of executable that is saved in /hydro directory 
-bidem_exe_path = inputs[8,1].lstrip().rstrip() # path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** - use './' if running copy of executable that is saved in /bidem/REGION directory
-morph_exe_path = inputs[9,1].lstrip().rstrip() # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
-sav_submit_exe_path = '/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py'
-run_sav = 1         # 1 to submit SAV simulations to queue at end of year; 0 to not run SAV
+hydro_exe_path      = inputs[7,1].lstrip().rstrip()         # path to hydro executable - ** path is relative to the S##/G###/hydro        ** - use './' if running copy of executable that is saved in /hydro directory 
+bidem_exe_path      = inputs[8,1].lstrip().rstrip()         # path to bidem executable - ** path is relative to the S##/G###/bidem/REGION ** - use './' if running copy of executable that is saved in /bidem/REGION directory
+morph_exe_path      = inputs[9,1].lstrip().rstrip()         # path to morph executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
+veg_exe_path        = inputs[10,1].lstrip().rstrip()        # path to veg executable - ** path is relative to the S##/G###              ** - use './' if running copy of executable that is saved in /G## directory
+sav_submit_exe_path = inputs[11,1].lstrip().rstrip()        # path to exectuable to submit SAV job to queue  # '/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py'
+run_sav             = int(inputs[12,1].lstrip().rstrip())   # 1 to submit SAV simulations to queue at end of year; 0 to not run SAV
+wva_submit_exe_path = inputs[13,1].lstrip().rstrip()        # path to exectuable to submit WVA job to queue
+run_wva             = int(inputs[14,1].lstrip().rstrip())   # 1 to submit WVA simulations to queue at end of year (after SAV); 0 to not run WVA
+
 
 # Configuration files used by various ICM components
-VegConfigFile = inputs[10,1].lstrip().rstrip()
-WMConfigFile = inputs[11,1].lstrip().rstrip()
-EHConfigFile = inputs[12,1].lstrip().rstrip()
-EHCellsFile = inputs[13,1].lstrip().rstrip()
-EHLinksFile = inputs[14,1].lstrip().rstrip()
-BIMHWFile = inputs[15,1].lstrip().rstrip()
-exist_cond_tag = inputs[16,1].lstrip().rstrip()
-fwoa_init_cond_tag = inputs[17,1].lstrip().rstrip()
-shallow_subsidence_column = int(inputs[18,1].lstrip().rstrip())
+VegConfigFile = inputs[15,1].lstrip().rstrip()
+WMConfigFile = inputs[16,1].lstrip().rstrip()
+EHConfigFile = inputs[17,1].lstrip().rstrip()
+EHCellsFile = inputs[18,1].lstrip().rstrip()
+EHLinksFile = inputs[19,1].lstrip().rstrip()
+BIMHWFile = inputs[20,1].lstrip().rstrip()
+exist_cond_tag = inputs[21,1].lstrip().rstrip()
+fwoa_init_cond_tag = inputs[22,1].lstrip().rstrip()
+shallow_subsidence_column = int(inputs[23,1].lstrip().rstrip())
 
 compartment_output_file = 'compartment_out.csv'
 grid_output_file        = 'grid_500m_out.csv'
 EHInterfaceFile         = 'ICM_info_into_EH.txt'
-
+dem_res = 30.0
 
 # Filenames for Veg model input
-WaveAmplitudeFile = inputs[19,1].lstrip().rstrip()
-MeanSalinityFile = inputs[20,1].lstrip().rstrip()
-SummerMeanWaterDepthFile = inputs[21,1].lstrip().rstrip()
-SummerMeanSalinityFile = inputs[22,1].lstrip().rstrip()
-SummerMeanTempFile = inputs[23,1].lstrip().rstrip()
-TreeEstCondFile = inputs[24,1].lstrip().rstrip()
-HtAbvWaterFile = inputs[25,1].lstrip().rstrip()
-PerLandFile = inputs[26,1].lstrip().rstrip()
-PerWaterFile = inputs[27,1].lstrip().rstrip()
-AcuteSalFile = inputs[28,1].lstrip().rstrip()
+WaveAmplitudeFile = inputs[24,1].lstrip().rstrip()
+MeanSalinityFile = inputs[25,1].lstrip().rstrip()
+SummerMeanWaterDepthFile = inputs[26,1].lstrip().rstrip()
+SummerMeanSalinityFile = inputs[27,1].lstrip().rstrip()
+SummerMeanTempFile = inputs[28,1].lstrip().rstrip()
+TreeEstCondFile = inputs[29,1].lstrip().rstrip()
+HtAbvWaterFile = inputs[30,1].lstrip().rstrip()
+PerLandFile = inputs[31,1].lstrip().rstrip()
+PerWaterFile = inputs[32,1].lstrip().rstrip()
+AcuteSalFile = inputs[33,1].lstrip().rstrip()
 acute_sal_threshold = 5.5
 
 ## Simulation Settings
-startyear = int(inputs[29,1].lstrip().rstrip())
-endyear = int(inputs[30,1].lstrip().rstrip())
-ncycle = int(inputs[31,1].lstrip().rstrip())
-startyear_cycle = int(inputs[32,1].lstrip().rstrip())
-endyear_cycle = int(inputs[33,1].lstrip().rstrip())
-inputStartYear = int(inputs[34,1].lstrip().rstrip())
-nvegtype = int(inputs[35,1].lstrip().rstrip())
-update_hydro_attr = int(inputs[36,1].lstrip().rstrip())
+startyear = int(inputs[34,1].lstrip().rstrip())
+endyear = int(inputs[35,1].lstrip().rstrip())
+ncycle = int(inputs[36,1].lstrip().rstrip())
+startyear_cycle = int(inputs[37,1].lstrip().rstrip())
+endyear_cycle = int(inputs[38,1].lstrip().rstrip())
+inputStartYear = int(inputs[39,1].lstrip().rstrip())
+nvegtype = int(inputs[40,1].lstrip().rstrip())
+update_hydro_attr = int(inputs[41,1].lstrip().rstrip())
 
 # convert calendar years to elapsed years
 hotstart_year = startyear_cycle
@@ -762,28 +767,28 @@ cycle_end_elapsed = endyear_cycle - startyear + 1
 
 
 ## grid information for Veg ASCII grid files
-n500grid= int(inputs[37,1].lstrip().rstrip())
+n500grid= int(inputs[42,1].lstrip().rstrip())
 # n500gridveg = int(inputs[25,1].lstrip().rstrip()) #total number of grid cells in Veg model - including NoData cells
-n500rows = int(inputs[38,1].lstrip().rstrip())
-n500cols = int(inputs[39,1].lstrip().rstrip())
-xll500 = int(inputs[40,1].lstrip().rstrip())
-yll500 = int(inputs[41,1].lstrip().rstrip())
+n500rows = int(inputs[43,1].lstrip().rstrip())
+n500cols = int(inputs[44,1].lstrip().rstrip())
+xll500 = int(inputs[45,1].lstrip().rstrip())
+yll500 = int(inputs[46,1].lstrip().rstrip())
 
 ## grid information for EwE ASCII grid files
-n1000grid = int(inputs[42,1].lstrip().rstrip())
-n1000rows = int(inputs[43,1].lstrip().rstrip())
-n1000cols = int(inputs[44,1].lstrip().rstrip())
-xll1000 = inputs[45,1].lstrip().rstrip()
-yll1000 = inputs[46,1].lstrip().rstrip()
+n1000grid = int(inputs[47,1].lstrip().rstrip())
+n1000rows = int(inputs[48,1].lstrip().rstrip())
+n1000cols = int(inputs[49,1].lstrip().rstrip())
+xll1000 = inputs[50,1].lstrip().rstrip()
+yll1000 = inputs[51,1].lstrip().rstrip()
 
 # file naming convention settings
-mpterm = inputs[47,1].lstrip().rstrip()
-sterm = inputs[48,1].lstrip().rstrip()
-gterm = inputs[49,1].lstrip().rstrip()
-cterm = inputs[50,1].lstrip().rstrip()
-uterm = inputs[51,1].lstrip().rstrip()
-vterm = inputs[52,1].lstrip().rstrip()
-rterm = inputs[53,1].lstrip().rstrip()
+mpterm = inputs[52,1].lstrip().rstrip()
+sterm = inputs[53,1].lstrip().rstrip()
+gterm = inputs[54,1].lstrip().rstrip()
+cterm = inputs[55,1].lstrip().rstrip()
+uterm = inputs[56,1].lstrip().rstrip()
+vterm = inputs[57,1].lstrip().rstrip()
+rterm = inputs[58,1].lstrip().rstrip()
 
 
 # build some file naming convention tags
@@ -793,18 +798,19 @@ file_o_01_end_prefix = r'%s_O_01_%02d' % (runprefix,endyear-startyear+1)
 
 
 
+
 # 1D Hydro model information
-n_1D = int(inputs[54,1].lstrip().rstrip())
-RmConfigFile = inputs[55,1].lstrip().rstrip()
+n_1D = int(inputs[59,1].lstrip().rstrip())
+RmConfigFile = inputs[60,1].lstrip().rstrip()
 
 ## Barrier Island Model settings
-BITIconfig = inputs[56,1].lstrip().rstrip()
-n_bimode = int(inputs[57,1].lstrip().rstrip())
+BITIconfig = inputs[61,1].lstrip().rstrip()
+n_bimode = int(inputs[62,1].lstrip().rstrip())
 bimode_folders=[]
-for row in range(58,58+n_bimode):
+for row in range(63,63+n_bimode):
     bimode_folders.append(inputs[row,1].lstrip().rstrip())
 bidem_fixed_grids=[]
-for row in range(58+n_bimode,58+2*n_bimode):
+for row in range(63+n_bimode,63+2*n_bimode):
     bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
 
 # read in asci grid structure
@@ -1394,6 +1400,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     file_prefix     = r'%s_N_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_iprefix    = r'%s_I_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
     file_oprefix    = r'%s_O_%02d_%02d' % (runprefix,elapsedyear,elapsedyear)
+    file_oprefix_prv = r'%s_O_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
     file_prefix_prv = r'%s_N_%02d_%02d' % (runprefix,elapsedyear-1,elapsedyear-1)
 
 
@@ -2380,27 +2387,43 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
 
     #########################################################
-    ##                RUN VEGETATION MODEL                 ##
+    ##         RUN VEGETATION MODEL FOR CURRENT YEAR       ##
     #########################################################
 
-    os.chdir(vegetation_dir)
+    # read in LAVegMod input file and update variables for year of simulation
+    lvm_param_file = '%s/%s' % (vegetation_dir,VegConfigFile)
+    
+    ## REPLACE THESE TWO VARIABLES WITH UPDATED COMP/GRID FILE PATHS IN FUTURE (comp_out_file, eh_outfiles, grid_500m_out,etc.) 
+    comp_out_file_yr = 'hydro/TempFiles/compartment_out_%04d.csv' % year
+    grid_data_file_prv_yr = 'hydro/TempFiles/grid_data_500m_%04d.csv' % (year - 1)
+    
+    with open (lvm_param_file, mode='w') as lvm_ip_csv:
+        lvm_ip_csv.write("%04d, start_year - first year of model run\n" % startyear)
+        lvm_ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsed_year)
+        lvm_ip_csv.write("47, ncov - the number of coverage types included in the model\n")
+        lvm_ip_csv.write("%d, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all grid-level data\n" % n500grid)
+        lvm_ip_csv.write("%d, ncomp - number of ICM-Hydro compartmenets - will be an array dimension for all compartment-level data\n" % ncomp)
+        lvm_ip_csv.write("%d, dem_res - XY resolution of DEM (meters)\n" % dem_res)
+        lvm_ip_csv.write("'veg/%s_V_grid_XYAreaComp.csv', grid_file - csv with X and Y coordinates (UTM meters) of grid cell centroids grid cell area (sq meters) and overlaying ICM-Hydro Compartment number\n" % fwoa_init_cond_tag)
+        lvm_ip_csv.write("0, build_neighbors - flag - set to 1 if near and nearest neighbor lists need to be built from Grid XY data - set to 0 if neighbor files already exist\n")
+        lvm_ip_csv.write("'veg/%s_V_neighbor_grids_480m.csv',nearest_neighbors_file - text file with list of grid cells that are the defined nearest neighbors\n" % fwoa_init_cond_tag)
+        lvm_ip_csv.write("679, nearest_neighbors_dist - distance in which a neighboring grid cell is considered a nearest neighbor (meters) *must be smaller magnitude than near_neighbor_dist*\n")
+        lvm_ip_csv.write("'veg/%s_V_neighbor_grids_960m.csv',near_neighbors_file -  text file with list of grid cells that are the defined near neighbors\n" % fwoa_init_cond_tag)
+        lvm_ip_csv.write("1358, near_neighbors_dist - distance in which a neighboring grid cell is considered a near neighbor (meters) *must be larger magnitude than nearest_neighbor_dist*\n")
+        lvm_ip_csv.write("16, max_neighbors - maximum number of grid cells that will be allowed in the near and nearest neighbor lists - this will be the number of columns in the neighbor files\n")
+        lvm_ip_csv.write("'veg/LAVegMod_coverage_attributes.csv',coverage_attribute_file - file name - with relative path - to csv with model attributes for each coverage type - this file row-order must match the column-order of veg_in_file below\n")
+        lvm_ip_csv.write("24, n_X_bins - number of bins definiing the X-axis of the establishment and mortability input tables\n")
+        lvm_ip_csv.write("39, n_Y_bins - number of bins definiing the Y-axis of the establishment and mortability input tables\n")
+        if year == startyear:
+            lvm_ip_csv.write("'veg/%s_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % fwoa_init_cond_tag)
+        else:
+            lvm_ip_csv.write("'veg/%s_O_%04d_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % (runprefix,year-1) )
+        lvm_ip_csv.write("'%s', hydro_comp_out_file - file name - with relative path - to compartment_out.csv from current model year's ICM-Hydro simulation\n" % comp_out_file_yr)
+        lvm_ip_csv.write("'%s', morph_grid_out_file - file name - with relative path - to grid_data.csv file from previous model year's ICM-Morph simulation\n" % grid_data_file_prv_yr)
+        lvm_ip_csv.write("%s, runprefix - file naming convention prefix\n" % runprefix)
+        lvm_ip_csv.write("1, write_intermediate_files - set to 1 if intermediate output files should be written - set to 0 to only write end-of-year files\n")
 
-    if year == startyear + elapsed_hotstart:
-        print ('\n--------------------------------------------------')
-        print ('        CONFIGURING VEGETATION MODEL')
-        print ('----------------------------------------------------')
-        sys.path.append(vegetation_dir)
-        import model_v3
-        LAVegMod = model_v3.Model()
-        veg_config = LAVegMod.config(VegConfigFile)
-
-    print('\n--------------------------------------------------')
-    print('  RUNNING VEGETATION MODEL - Year %s' % year)
-    print('--------------------------------------------------\n')
-    veg_run = LAVegMod.step()
-
-
-
+    veg_run = subprocess.call(veg_exe_path)
 
     #########################################################
     ##         SETUP MORPH MODEL FOR CURRENT YEAR          ##
@@ -2581,7 +2604,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
     morph_zonal_stats = 0               # 1=zonal stats run in ICM-Morph; 0=zonal stats run in ICM
-    dem_res = 30.0
     
     with open (wm_param_file, mode='w') as ip_csv:
         ip_csv.write("%d, start_year - first year of model run\n" % startyear)
@@ -2595,15 +2617,16 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("32, neco - number of ecoregions\n")
         ip_csv.write("5, nlt - number of landtype classifications\n")
         ip_csv.write("0.10, ht_above_mwl_est - elevation (meters) relative to annual mean water level at which point vegetation can establish\n")
-        ip_csv.write("2.57, ptile_Z - Z-value for quantile definining inundation curve\n")
-        ip_csv.write("0.0058, B0 - beta-0 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("-0.00207, B1 - beta-1 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("0.0809, B2 - beta-2 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("0.0892, B3 - beta-3 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
-        ip_csv.write("-0.19, B4 - beta-4 coefficient from quantile regression on CRMS annual inundation-salinity data (see App. A of MP2023 Wetland Vegetation Model Improvement report)\n")
+        ip_csv.write("0.51012, inun_thr_C0 - Y-intercept for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
+        ip_csv.write("-0.0758, inun_thr_C1 - X^1 coeffiecent  for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
+        ip_csv.write("0.0054, inun_thr_C2 - X^2 coeffiecent  for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
+        ip_csv.write("-0.00011, inun_thr_C3 - X^3 coeffiecent  for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
+        ip_csv.write("0, inun_thr_C4 - X^4 coeffiecent  for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
+        ip_csv.write("0, inun_thr_C5 - X^5 coeffiecent  for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
         ip_csv.write("0.835, ow_bd - bulk density of water bottoms (g/cm3)\n")
         ip_csv.write("0.076, om_k1 - organic matter self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
-        ip_csv.write("2.106, mn_k2- mineral soil self-packing density (g/cm3) from CRMS soil data (see 2023 Wetlands Model Improvement report)\n")
+        ip_csv.write("2.173, mn_k2- mineral soil self-packing density (g/cm3) from CRMS soil data - value derived from CRMS soil data in 2024 (MP2023 value was 2.106 g/cm3)\n")
+        ip_csv.write("0, OMAR_interp - flag used to identify how to calculate OMAR: (1) interpolate between OMAR values input file or (0) use hard-coded OMAR equations [OMAR = f(FFIBS)]\n")
         ip_csv.write("0, FIBS_intvals(1) - FFIBS score that will serve as lower end for Fresh forested\n")
         ip_csv.write("0.15, FIBS_intvals(2) - FFIBS score that will serve as lower end for Fresh marsh\n")
         ip_csv.write("1.5, FIBS_intvals(3) - FFIBS score that will serve as lower end for Intermediate marsh\n")
@@ -2646,10 +2669,11 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'geomorph/input/%s_W_polder30.xyz', pldr_file - file name with relative path to polder file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/%s_W_comp30.xyz', comp_file - file name with relative path to ICM-Hydro compartment map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/%s_W_grid30.xyz', grid_file - file name with relative path to ICM-LAVegMod grid map file that is same resolution and structure as DEM XYZ\n" % exist_cond_tag)
-        ip_csv.write("'geomorph/input/%s_W_dpsub30.xyz', dsub_file - file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
+        ip_csv.write("'geomorph/input/%s_W_subsidence.xyz', dsub_file - file name with relative path to deep subsidence rate map file that is same resolution and structure as DEM XYZ (mm/yr; positive value\n" % exist_cond_tag)
         ip_csv.write("'geomorph/input/ecoregion_shallow_subsidence_mm.csv', ssub_file - file name with relative path to shallow subsidence table with statistics by ecoregion (mm/yr; positive values are for downward VLM)\n")
         ip_csv.write(" %d,ssub_col - column of shallow subsidence rates to use for current scenario (1=25th percentile; 2=50th percentile; 3=75th percentile)\n" % shallow_subsidence_column)
         ip_csv.write("'geomorph/input/%s', act_del_file - file name with relative path to lookup table that identifies whether an ICM-Hydro compartment is assigned as an active delta site\n" % act_del_file_2use)
+        ip_csv.write("'geomorph/input/compartment_no_land_gain.csv', no_gain_file - file name with relative path to lookup table that identifies ICM-Hydro compartments where ICM-Morph land gain functions are deactivated\n")
         ip_csv.write("'geomorph/input/ecoregion_organic_matter_accum.csv', eco_omar_file - file name with relative path to lookup table of organic accumulation rates by marsh type/ecoregion\n")
         ip_csv.write("'geomorph/input/compartment_ecoregion.csv', comp_eco_file - file name with relative path to lookup table that assigns an ecoregion to each ICM-Hydro compartment\n")
         ip_csv.write("'geomorph/input/ecoregion_sav_priors.csv', sav_priors_file - file name with relative path to CSV containing parameters defining the periors (per basin) for the SAV statistical model\n")
@@ -2660,8 +2684,8 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year))
         else:
             ip_csv.write("'hydro/TempFiles/compartment_out_%4d.csv', prv_hydro_comp_out_file - file name with relative path to compartment_out.csv file saved by ICM-Hydro for previous year\n" % (year-1))
-
-        ip_csv.write("'veg/%s_V_vegty.asc+', veg_out_file - file name with relative path to *vegty.asc+ file saved by ICM-LAVegMod\n" % file_oprefix)
+        ip_csv.write("'veg/%s_O_%4d_V_vegty.csv', veg_out_file - file name with relative path to *vegty.csv file saved by ICM-LAVegMod that has species-level relative coverage values\n" %  (runprefix,year))
+        ip_csv.write("'veg/%s_O_%4d_V_vegsm.csv', veg_out_summary_file - file name with relative path to *vegsm.csv file saved by ICM-LAVegMod that has the FFIBS coverage values for vegetated land area\n" % (runprefix,year))
         ip_csv.write("'%s', monthly_mean_stage_file - file name with relative path to compartment summary file with monthly mean water levels\n" % monthly_file_avstg)
         ip_csv.write("'%s', monthly_max_stage_file - file name with relative path to compartment summary file with monthly maximum water levels\n" % monthly_file_mxstg)
         ip_csv.write("'%s', monthly_ow_sed_dep_file - file name with relative path to compartment summary file with monthly sediment deposition in open water\n" % monthly_file_sdowt)
