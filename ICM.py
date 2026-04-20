@@ -625,11 +625,13 @@ FWA_prj_input_dir_BS = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_proje
 mc_elementIDs = []
 # Years (calendar year) to implement each respective marsh creation element IDs listed above
 mc_years = []
+# Elevation datum to use for each respective marsh creation element ID listed above; set to 0 if using MWL as the elevation datum; set to 1 if using NAVD88 as the elevation datum
+mc_elev_datums = []
+
 # Marsh creation project element IDs that have deep water areas filled in (leave array empty if all use default shallow water fill threshold)
 mc_eid_with_deep_fill = []
 mc_depth_threshold_def = 0.762
 mc_depth_threshold_deep = 9999.999
-
 
 # link ID numbers for 'composite' marsh flow links (type 11) that need to be updated due to marsh creation projects
 mc_links = []
@@ -2437,6 +2439,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # count number of marsh creation project elements to be built during current year
     n_mc_yr = 0
     mc_eid_yr = []
+    mc_datum_eid_yr = {}
     mc_project_list_yr = 'na'
     mc_project_list_VolArea_yr = 'na'
     
@@ -2444,7 +2447,9 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     for mc_yr in mc_years:
         if year == mc_yr:
             n_mc_yr += 1
-            mc_eid_yr.append( mc_elementIDs[mcyi] )
+            mceid = mc_elementIDs[mcyi]
+            mc_eid_yr.append( mceid )
+            mc_datum_eid_yr[mceid] = mc_elev_datums[mcyi]
         mcyi += 1
 
     # unzip each TIF file and convert to XYZ format for each element of marsh creation projects implemented during current year
@@ -2453,9 +2458,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         mc_project_list_VolArea_yr = 'geomorph/output/%s_MC_VolArea.csv' % file_oprefix
         
         with open (mc_project_list_yr,mode='w') as mcpl:
-            mcpl.write('ElementID,xyz_file\n')
+            mcpl.write('ElementID,xyz_file,element-specific_fill_depth_threshold,elevation_datum_(0=MWL;1=NAVD88)\n')
             
             for eid in mc_eid_yr:
+                elev_datum = mc_datum_eid_yr[eid]
                 
                 if eid in mc_eid_with_deep_fill:
                     fill_depth =  mc_depth_threshold_deep
@@ -2480,7 +2486,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 rmcmd = subprocess.call(rmcmd)
                
                 # add element ID and location of XYZ project file to text file passed into Morph
-                mcpl.write('%d,%s,%f\n' % (eid,XYZfile,fill_depth) )
+                mcpl.write('%d,%s,%f\n' % (eid,XYZfile,fill_depth,elev_datum) )
 
     
     ###########################################################
