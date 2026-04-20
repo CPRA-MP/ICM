@@ -806,14 +806,16 @@ n_1D = int(inputs[59,1].lstrip().rstrip())
 RmConfigFile = inputs[60,1].lstrip().rstrip()
 
 ## Barrier Island Model settings
-BITIconfig = inputs[61,1].lstrip().rstrip()
-n_bimode = int(inputs[62,1].lstrip().rstrip())
+pre_run_BIDEM == int(inputs[61,1].lstrip().rstrip())     #set to 1 if BIDEM profile files were pre-run and are saved in each BIDEM results folder - otherwise set to 0 and BIDEM will be run during the simulation
+BITIconfig = inputs[62,1].lstrip().rstrip()
+n_bimode = int(inputs[63,1].lstrip().rstrip())
 bimode_folders=[]
-for row in range(63,63+n_bimode):
+for row in range(64,64+n_bimode):
     bimode_folders.append(inputs[row,1].lstrip().rstrip())
 bidem_fixed_grids=[]
-for row in range(63+n_bimode,63+2*n_bimode):
+for row in range(64+n_bimode,64+2*n_bimode):
     bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
+
 
 # read in asci grid structure
 asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
@@ -2336,7 +2338,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     #########################################################
     ##              RUN BARRIER ISLAND MODEL               ##
     #########################################################
-
     print('\n--------------------------------------------------' )
     print('  RUNNING BARRIER ISLAND MODEL (ICM-BIDEM) - Year %s' % year)
     print('--------------------------------------------------\n')
@@ -2359,18 +2360,19 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 f.write(bmhw)
                 f.write('\n')
 
-
-        # run compiled Fortran executable - will automatically return to Python window when done running
-        print(' Running BIDEM executable for %s region.' % fol)
-        bimoderun = subprocess.call(bidem_exe_path)
-
-        if bimoderun != 0:
-            error_msg = '\n BIDEM model run for region %s year %s was unsuccessful.' % (fol,year)
-            sys.exit(error_msg)
         
-        os.remove('input.txt')
-        os.rename('input.txt.new','input.txt')
-        
+        if pre_run_BIDEM == 0:      # if set to 0 in ICM_control.csv no BIDEM output files exist and BIDEM will be run - if set to 1, pre-simulated BIDEM profiles will be interpolated to the Morph mesh
+            # run compiled Fortran executable - will automatically return to Python window when done running
+            print(' Running BIDEM executable for %s region.' % fol)
+            bimoderun = subprocess.call(bidem_exe_path)
+    
+            if bimoderun != 0:
+                error_msg = '\n BIDEM model run for region %s year %s was unsuccessful.' % (fol,year)
+                sys.exit(error_msg)
+            
+            os.remove('input.txt')
+            os.rename('input.txt.new','input.txt')
+            
         print(' Interpolating BIDEM outputs for %s to ICM-Morph DEM' % fol)
         bidem_out = './results/profile_%04d' % elapsedyear
         fixed_grid_in = bidem_fixed_grids[fol_n]

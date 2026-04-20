@@ -79,6 +79,7 @@ Number of 1D River Domain,4
 1D River Model main setup file,region_input.txt
 #########################################################################,
 ## Barrier Island Model settings,
+Do BIDEM output profiles already exist (1) or does BIDEM need to be run (0) (pre_run_BIDEM),1
 Input Configuration Filename for Tidal Inlet model,BITI_setup_input.xlsx
 Number of BIMODE directories,6
 Subfolder in BIDEM directory 1,IsleDernieres
