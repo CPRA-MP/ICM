@@ -245,8 +245,9 @@ def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
 
 
     # read in irregular and regular grids
-    results = pandas.read_csv( irregular_xyz_in,delim_whitespace=False,names=['x','y','z','trans'] )
-    fixed_grid = pandas.read_csv( fixed_xyz_in,delim_whitespace=True,names=['x','y','z'] )
+    bddelim = ', '      # MP29 BIDEM profile xyz files are comma-space delimited
+    results = pandas.read_csv( irregular_xyz_in,delimiter=bddelim,names=['x','y','z','trans'] )
+    fixed_grid = pandas.read_csv( fixed_xyz_in,delimiter=bddelim,names=['x','y','z','trans'] )
 
     # restructure input arrays so that they align for passing into scipy.griddata function
     results_xy = np.vstack((results.x,results.y)).T
@@ -258,7 +259,7 @@ def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
     # note that points on the edges of the grid domain *may* return NaN from griddata()
     # could be handled by passing a default fill value into griddata via fill_value variable
     # instead it will be handled lower to keep previous values
-    interp_results = griddata(results_xy,results.z,fixed_grid_array,method='linear')
+    interp_results = griddata(results_xy,results_z,fixed_grid_array,method='linear')
 
     with open(fixed_xyz_out,mode='w') as interp2write:
         nanflag = 0
@@ -268,12 +269,13 @@ def bidem_interp2xyz(irregular_xyz_in,fixed_xyz_in,fixed_xyz_out):
             z = interp_results[ni]
             if np.isnan(z):
                 nanflag = 1
-                if ni == 0:
-                    z = np.mean(interp_results)
-                else:
-                    z = last_good_z
-            else:
-                last_good_z = z
+                z = -9999
+#                if ni == 0:
+#                    z = np.mean(interp_results)
+#                else:
+#                    z = last_good_z
+#            else:
+#                last_good_z = z
             writeout = interp2write.write( '%d %d %0.4f\n' % (x,y,z) )
 
     if nanflag == 1:
