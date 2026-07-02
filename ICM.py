@@ -502,7 +502,7 @@ import xlrd
 import pandas
 from builtins import Exception as exceptions
 from scipy.interpolate import griddata
-
+from pathlib import Path
 
 
 
@@ -619,9 +619,9 @@ links_to_change = []
 link_years = []
 
 # full path to directory with FWA project GIS data files
-FWA_prj_input_dir_MC = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/MC_elev_rasters'
-FWA_prj_input_dir_RR = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/Ridge_Levee_elev_rasters'
-FWA_prj_input_dir_BS = '/ocean/projects/bcs200002p/ewhite12/MP2023/ICM/FWA_project_data/BS_SP_edge_erosion_multiplier_rasters'
+FWA_prj_input_dir_MC = '/ocean/projects/bcs200002p/ewhite12/MP2029/MP29_FWOAv24_project_rasters/MC_elev_rasters'
+FWA_prj_input_dir_RR = '/ocean/projects/bcs200002p/ewhite12/MP2029/MP29_FWOAv24_project_rasters/Ridge_Levee_elev_rasters'
+FWA_prj_input_dir_BS = '/ocean/projects/bcs200002p/ewhite12/MP2029/MP29_FWOAv24_project_rasters/BS_SP_edge_erosion_multiplier_rasters'
 
 # Marsh creation project element IDs that are implemented in this simulation
 mc_elementIDs = []
@@ -639,6 +639,7 @@ mc_depth_threshold_deep = 9999.999
 mc_links = []
 # Years (calendar year) to update each respective'composite' marsh flow links (type 11) for marsh creation projects - this value should be the year after the project is implemented in the morphology model
 mc_links_years = []
+
 
 # Shoreline protection project IDs that are implemented in this simulation
 sp_projectIDs = []
@@ -661,6 +662,7 @@ comp_years = []
 act_del_files = []
 # Years (calendar year) to implement each respective active deltaic compartment file listed above
 act_del_years = []
+
 
 
 # check that project implementation variables are of the correct lengths
@@ -762,10 +764,10 @@ update_hydro_attr = int(inputs[41,1].lstrip().rstrip())
 # convert calendar years to elapsed years
 hotstart_year = startyear_cycle
 elapsed_hotstart = hotstart_year - startyear
-cycle_start_elapsed = startyear_cycle - startyear
-cycle_end_elapsed = endyear_cycle - startyear + 1
+# cycle_start_elapsed = startyear_cycle - startyear
+# cycle_end_elapsed = endyear_cycle - startyear + 1
 
-hotstart_year = startyear_cycle
+# hotstart_year = startyear_cycle
 cycle_start_elapsed = startyear_cycle - startyear + 1
 cycle_end_elapsed = endyear_cycle - startyear + 1
 
@@ -808,7 +810,7 @@ n_1D = int(inputs[59,1].lstrip().rstrip())
 RmConfigFile = inputs[60,1].lstrip().rstrip()
 
 ## Barrier Island Model settings
-pre_run_BIDEM == int(inputs[61,1].lstrip().rstrip())     #set to 1 if BIDEM profile files were pre-run and are saved in each BIDEM results folder - otherwise set to 0 and BIDEM will be run during the simulation
+pre_run_BIDEM = int(inputs[61,1].lstrip().rstrip())     #set to 1 if BIDEM profile files were pre-run and are saved in each BIDEM results folder - otherwise set to 0 and BIDEM will be run during the simulation
 BITIconfig = inputs[62,1].lstrip().rstrip()
 n_bimode = int(inputs[63,1].lstrip().rstrip())
 bimode_folders=[]
@@ -821,8 +823,9 @@ for row in range(64+n_bimode,64+2*n_bimode):
 
 # read in asci grid structure
 asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
-asc_grid_ids = np.genfromtxt(asc_grid_file,skip_header=6,delimiter=' ',dtype='int')
-asc_grid_head = 'ncols 1052\nnrows 365\nxllcorner 404710\nyllcorner 3199480\ncellsize 480\nNODATA_value -9999\n'
+#asc_grid_ids = np.genfromtxt(asc_grid_file, skip_header=6, delimiter=' ', dtype='int')
+asc_grid_ids = np.atleast_2d(np.genfromtxt(asc_grid_file, skip_header=6, dtype='int')) # TN test 4/27
+asc_grid_head = 'ncols 1040\nnrows 364\nxllcorner 4104710\nyllcorner 3199960\ncellsize 480\nNODATA_value -9999\n'
 
 # read in compartment-to-grid structure
 grid_lookup_file = '%s/grid_lookup_500m.csv' % ecohydro_dir
@@ -1136,15 +1139,16 @@ if os.path.isfile(EH_grid_file) == False:
     except:
         sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_grid_file) 
 
-# EH_hs_file = 'hotstart_in.dat'
-# if os.path.isfile(EH_hs_file) == False:
-#     print('\n******File check failed*********\n%s not found - checking for previous year file in hydro\Tempfiles' % EH_hs_file)
-#     try:
-#         prv_EH_hs_file = 'hotstart_out.dat'
-#         shutil.copyfile(prv_EH_hs_file,EH_hs_file)
-#         os.remove(prv_EH_hs_file)
-#     except:
-#         sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_hs_file) 
+EH_hs_file = 'hotstart_in.dat'
+if os.path.isfile(EH_hs_file) == False:
+    print('\n******File check failed*********\n%s not found - checking for previous year file in hydro\Tempfiles' % EH_hs_file)
+    try:
+        # prv_EH_hs_file = 'hotstart_out.dat'
+        prv_EH_hs_file = os.path.normpath(r"%s/hotstart_in_%04d.dat" % (EHtemp_path,startyear_cycle-1))
+        shutil.copyfile(prv_EH_hs_file,EH_hs_file)
+        os.remove(prv_EH_hs_file)
+    except:
+        sys.exit('\n******File copy failed*********\nCould not find %s - exiting run.' % EH_hs_file) 
 
 
 ## Read Ecohydro's initial configuration, compartmentm and link attributes file into an arrayfile into an array of strings
@@ -2016,10 +2020,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     monthly_file_sdint = os.path.normpath(r'%s/compartment_monthly_sed_dep_interior_%4d.csv' % (EHtemp_path,year) )
     monthly_file_sdedg = os.path.normpath(r'%s/compartment_monthly_sed_dep_edge_%4d.csv'     % (EHtemp_path,year) )
     bidem_xyz_file     = os.path.normpath(r'%s/%s_W_dem30_bi.xyz'                           % (bimode_dir,file_prefix) )
-    new_grid_filepath  = os.path.normpath(r'%s/grid_data_500m_end%d.csv'                    % (EHtemp_path,year)
-    comp_elev_file     =  os.path.normpath(r'%s/compelevs_end_%d.csv'                       % (EHtemp_path,year)
-    comp_wat_file      =  os.path.normpath(r'%s/PctWater_%d.csv'                            % (EHtemp_path,year)
-    comp_upl_file      =  os.path.normpath(r'%s/PctUpland_%d.csv'                           % (EHtemp_path,year)
+    new_grid_filepath  = os.path.normpath(r'%s/grid_data_500m_end%d.csv'                    % (EHtemp_path,year) )
+    comp_elev_file     =  os.path.normpath(r'%s/compelevs_end_%d.csv'                       % (EHtemp_path,year) )
+    comp_wat_file      =  os.path.normpath(r'%s/PctWater_%d.csv'                            % (EHtemp_path,year) )
+    comp_upl_file      =  os.path.normpath(r'%s/PctUpland_%d.csv'                           % (EHtemp_path,year) )
     grid_pct_edge_file  = 'hsi/%s_W_pedge.csv' % (file_prefix)
     grid_Gdw_dep_file   = 'hsi/GadwallDepths_cm_%d.csv' % (year)
     grid_GwT_dep_file   = 'hsi/GWTealDepths_cm__%d.csv' % (year)
@@ -2347,6 +2351,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
 
     # loop BI runs over the different folders - each with individual executables and I/O
     fol_n = 0
+    ndem_bi = 0                  # initialize counting ndem_bi zw 05/14/2026
+    Path(bidem_xyz_file).touch() # create an empty didem_xyz_file zw 05/14/2026
+    
+    
     for fol in bimode_folders:
         print('\n Modeling %s' % fol)
         bmdir = os.path.normpath(r'%s/%s' %(bimode_dir,fol))
@@ -2387,6 +2395,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 for line in regout:
                     allout.write(line)
         fol_n += 1
+        ndem_bi += file_len(fixed_grid_in) # counting ndem_bi zw 05/14/2026
 
         os.remove(fixed_grid_out) # delete temp file that has region xyz snapped to DEM grid
 
@@ -2396,22 +2405,31 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     ##         RUN VEGETATION MODEL FOR CURRENT YEAR       ##
     #########################################################
 
+    os.chdir(par_dir)
+    
     # read in LAVegMod input file and update variables for year of simulation
     lvm_param_file = '%s/%s' % (vegetation_dir,VegConfigFile)
     
     ## REPLACE THESE TWO VARIABLES WITH UPDATED COMP/GRID FILE PATHS IN FUTURE (comp_out_file, eh_outfiles, grid_500m_out,etc.) 
     comp_out_file_yr = 'hydro/TempFiles/compartment_out_%04d.csv' % year
-    grid_data_file_prv_yr = 'hydro/TempFiles/grid_data_500m_%04d.csv' % (year - 1)
+    #if year == startyear:
+    #    grid_data_file_prv_yr = 'hydro/TempFiles/grid_data_500m_%04d.csv' % (year)
+    #else:
+    #    grid_data_file_prv_yr = 'hydro/TempFiles/grid_data_500m_%04d.csv' % (year - 1)
+    grid_data_file_prv_yr = 'hydro/TempFiles/grid_data_500m_%04d.csv' % (year)
     
     with open (lvm_param_file, mode='w') as lvm_ip_csv:
         lvm_ip_csv.write("%04d, start_year - first year of model run\n" % startyear)
-        lvm_ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsed_year)
+        lvm_ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsedyear)
         lvm_ip_csv.write("47, ncov - the number of coverage types included in the model\n")
         lvm_ip_csv.write("%d, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all grid-level data\n" % n500grid)
         lvm_ip_csv.write("%d, ncomp - number of ICM-Hydro compartmenets - will be an array dimension for all compartment-level data\n" % ncomp)
         lvm_ip_csv.write("%d, dem_res - XY resolution of DEM (meters)\n" % dem_res)
         lvm_ip_csv.write("'veg/%s_V_grid_XYAreaComp.csv', grid_file - csv with X and Y coordinates (UTM meters) of grid cell centroids grid cell area (sq meters) and overlaying ICM-Hydro Compartment number\n" % fwoa_init_cond_tag)
-        lvm_ip_csv.write("0, build_neighbors - flag - set to 1 if near and nearest neighbor lists need to be built from Grid XY data - set to 0 if neighbor files already exist\n")
+        if year == startyear:
+            lvm_ip_csv.write("1, build_neighbors - flag - set to 1 if near and nearest neighbor lists need to be built from Grid XY data - set to 0 if neighbor files already exist\n")
+        else:
+            lvm_ip_csv.write("0, build_neighbors - flag - set to 1 if near and nearest neighbor lists need to be built from Grid XY data - set to 0 if neighbor files already exist\n")
         lvm_ip_csv.write("'veg/%s_V_neighbor_grids_480m.csv',nearest_neighbors_file - text file with list of grid cells that are the defined nearest neighbors\n" % fwoa_init_cond_tag)
         lvm_ip_csv.write("679, nearest_neighbors_dist - distance in which a neighboring grid cell is considered a nearest neighbor (meters) *must be smaller magnitude than near_neighbor_dist*\n")
         lvm_ip_csv.write("'veg/%s_V_neighbor_grids_960m.csv',near_neighbors_file -  text file with list of grid cells that are the defined near neighbors\n" % fwoa_init_cond_tag)
@@ -2426,10 +2444,15 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             lvm_ip_csv.write("'veg/%s_O_%04d_V_vegty.csv', veg_in_file - file name with relative path to *vegty csv file saved by ICM-LAVegMod in previous year run\n" % (runprefix,year-1) )
         lvm_ip_csv.write("'%s', hydro_comp_out_file - file name - with relative path - to compartment_out.csv from current model year's ICM-Hydro simulation\n" % comp_out_file_yr)
         lvm_ip_csv.write("'%s', morph_grid_out_file - file name - with relative path - to grid_data.csv file from previous model year's ICM-Morph simulation\n" % grid_data_file_prv_yr)
+        lvm_ip_csv.write("'%s/STG.out', hydro_daily_stage_file - file name - with relative path - to daily timeseries of water surface elevation from current ICM-Hydro simulation\n" % ecohydro_dir)
         lvm_ip_csv.write("%s, runprefix - file naming convention prefix\n" % runprefix)
         lvm_ip_csv.write("1, write_intermediate_files - set to 1 if intermediate output files should be written - set to 0 to only write end-of-year files\n")
 
     veg_run = subprocess.call(veg_exe_path)
+
+    # append year and move LAVegMod input file
+    move_veg = os.path.normpath(r"%s/LAVegMod_input_params_%s.csv" % (vegetation_dir,year))
+    shutil.copyfile(lvm_param_file,move_veg)
 
     #########################################################
     ##         SETUP MORPH MODEL FOR CURRENT YEAR          ##
@@ -2472,7 +2495,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 else:
                     fill_depth =  mc_depth_threshold_def
                 
-                zfile = '%s/%s/MCElementElevation_%s_%s.zip' % (FWA_prj_input_dir_MC,sterm,sterm,eid)
+                zfile = '%s/MCElementElevation_S00_%s.tif.zip' % (FWA_prj_input_dir_MC,eid)
                 print ('unzipping %s' % zfile)
                 zcmd = ['unzip','-j',zfile]
                 zrun = subprocess.check_output(zcmd).decode()
@@ -2490,7 +2513,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
                 rmcmd = subprocess.call(rmcmd)
                
                 # add element ID and location of XYZ project file to text file passed into Morph
-                mcpl.write('%d,%s,%f\n' % (eid,XYZfile,fill_depth,elev_datum) )
+                mcpl.write('%d,%s,%f,%d\n' % (eid,XYZfile,fill_depth,elev_datum) )
 
     
     ###########################################################
@@ -2517,7 +2540,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
             rrpl.write('ProjectID,xyz_file\n')
             
             for eid in rr_eid_yr:
-                zfile = '%s/RR_PL_PW_ProjectElevation_%s.zip' % (FWA_prj_input_dir_RR,eid)
+                zfile = '%s/RR_PL_PW_ProjectElevation_S00_%s.tif.zip' % (FWA_prj_input_dir_RR,eid)
                 print ('unzipping %s' % zfile)
                 zcmd = ['unzip','-j',zfile]
                 zrun = subprocess.check_output(zcmd).decode()
@@ -2575,7 +2598,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         spyi += 1
 
     for eid in sp_eid_yr:
-        zfile = '%s/BS_SP_MEEmultiplier_%s.zip' % (FWA_prj_input_dir_BS,eid)
+        zfile = '%s/BS_SP_MEEmultiplier_S00_%s.tif.zip' % (FWA_prj_input_dir_BS,eid)
         print ('unzipping %s' % zfile)
         zcmd = ['unzip','-j',zfile]
         zrun = subprocess.check_output(zcmd).decode()
@@ -2614,17 +2637,27 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # read in Wetland Morph input file and update variables for year of simulation
     wm_param_file = r'%s/input_params.csv' % wetland_morph_dir
     morph_zonal_stats = 0               # 1=zonal stats run in ICM-Morph; 0=zonal stats run in ICM
-    
+    grid_file = r'%s/input/%s_W_grid30.xyz' % (wetland_morph_dir, exist_cond_tag)  #30m grid file zw 05/14/2026
+    ndem = file_len(grid_file) #size of 30m grid file zw 05/14/2026
+
+    comp_eco_file = r'%s/input/compartment_ecoregion.csv' % wetland_morph_dir
+    eco_vals = np.genfromtxt(comp_eco_file, delimiter=',', skip_header=1, usecols=[1], dtype='int')
+    neco = max(set(eco_vals.tolist()))
+
+    #qaqc_site_list_file = r'%s/output_qaqc/qaqc_site_list.csv' % wetland_morph_dir
+    #nqaqc = file_len(qaqc_site_list_file) - 1
+    nqaqc = 0 # 2026/05/12 bypassing qaqc because of an issue with the inputs points file
+        
     with open (wm_param_file, mode='w') as ip_csv:
         ip_csv.write("%d, start_year - first year of model run\n" % startyear)
         ip_csv.write("%d, elapsed_year - elapsed year of model run\n" % elapsedyear)
         ip_csv.write("%d, dem_res - XY resolution of DEM (meters)\n" % dem_res)
         ip_csv.write("-9999, dem_NoDataVal - value representing nodata in input rasters and XYZ files\n")
-        ip_csv.write("171284090, ndem - number of DEM pixels - will be an array dimension for all DEM-level data\n")
-        ip_csv.write("2904131, ndem_bi - number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n")
+        ip_csv.write("%d, ndem - number of DEM pixels - will be an array dimension for all DEM-level data\n" % ndem)
+        ip_csv.write("%d, ndem_bi - number of pixels in interpolated ICM-BI-DEM XYZ that overlap primary DEM\n" % ndem_bi)
         ip_csv.write("%d, ncomp - number of ICM-Hydro compartments - will be an array dimension for all compartment-level data\n" % ncomp)
-        ip_csv.write("173898, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n")
-        ip_csv.write("32, neco - number of ecoregions\n")
+        ip_csv.write("%d, ngrid - number of ICM-LAVegMod grid cells - will be an array dimension for all gridd-level data\n" % n500grid)  #zw edit 05/13/2026 to replace the hardcoded value
+        ip_csv.write("%d, neco - number of ecoregions\n" % neco)
         ip_csv.write("5, nlt - number of landtype classifications\n")
         ip_csv.write("0.10, ht_above_mwl_est - elevation (meters) relative to annual mean water level at which point vegetation can establish\n")
         ip_csv.write("0.51012, inun_thr_C0 - Y-intercept for the inundation threshold depth-salinity function Blue Line Curve [ Y = C0 + C1*x + C2*x^2 + C3*x^3 + C4*x^4 + C5*x^5 ]\n")
@@ -2725,7 +2758,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'%s', comp_upl_file - file name with relative path to percent upland summary compartment file used internally by ICM\n" % comp_upl_file)
         ip_csv.write("%d, write_zonal_stats - integer flag to indicate whether zonal statistics are to be conducted in ICM-Morph (1) or whether a CSV file will be saved to do external zonal statistics(0)\n" % morph_zonal_stats)
         ip_csv.write("'%s',dem_grid_out_summary_file - file name, with relative path, to CSV output file that will save DEM-resolution landscape data to be used in zonal statistics\n" % dem_grid_data_outfile)
-        ip_csv.write("2941, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n")
+        ip_csv.write("%d, nqaqc - number of QAQC points for reporting - as listed in qaqc_site_list_file\n" % nqaqc)
         ip_csv.write("'geomorph/output_qaqc/qaqc_site_list.csv', qaqc_site_list_file - file name, with relative path, to percent upland summary compartment file used internally by ICM\n")
         ip_csv.write(" %s, file naming convention prefix\n" % file_o_01_end_prefix)
         ip_csv.write(" %d, n_mc - number of marsh creation elements to be built in current year\n" % n_mc_yr)
@@ -2737,6 +2770,10 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         ip_csv.write("'%s', project_list_BS_file - file name with relative path to list of MEE rate multiplier XYZ files for current and all previous BS projects\n" % sp_project_list_cumul)
    
     morph_run = subprocess.call(morph_exe_path)
+
+    # append year and copy morph input file
+    move_morph = os.path.normpath(r"%s/input_params_%s.csv" % (wetland_morph_dir,year))
+    shutil.copyfile(wm_param_file,move_morph)
     
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
@@ -2986,8 +3023,16 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         
             if nc > 0:
                 comp_pct_upland[c] = sum(comp_pct_upland_all[c]) / nc
-                comp_water_z[c]    = sum(comp_water_z_all[c]   ) / nc
-                comp_wetland_z[c]  = sum(comp_wetland_z_all[c] ) / nc
+                # comp_water_z[c]    = sum(comp_water_z_all[c]   ) / nc  #zw
+                # comp_wetland_z[c]  = sum(comp_wetland_z_all[c] ) / nc  #zw
+                if len(comp_water_z_all[c]) > 0:
+                    comp_water_z[c]    = sum(comp_water_z_all[c]   ) / len(comp_water_z_all[c])
+                else:
+                    comp_water_z[c]    = 0.0
+                if len(comp_wetland_z_all[c]) > 0:
+                    comp_wetland_z[c]  = sum(comp_wetland_z_all[c] ) / len(comp_wetland_z_all[c])
+                else:
+                    comp_wetland_z[c]  = 0.0
                 comp_pct_water[c]  = sum(comp_pct_water_all[c] ) / nc
                 comp_edge_area[c]  = sum(comp_edge_area_all[c] )
             else:
