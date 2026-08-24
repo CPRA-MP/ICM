@@ -503,6 +503,7 @@ import pandas
 from builtins import Exception as exceptions
 from scipy.interpolate import griddata
 from pathlib import Path
+from postprocess_icm import postprocess_icm
 
 
 
@@ -820,6 +821,11 @@ bidem_fixed_grids=[]
 for row in range(64+n_bimode,64+2*n_bimode):
     bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
 
+#postprocessing
+cpra_api = inputs[76,1].lstrip().rstrip()
+base_icm = inputs[77,1].lstrip().rstrip()
+model = inputs[78,1].lstrip().rstrip()
+grid_version = inputs[79,1].lstrip().rstrip()
 
 # read in asci grid structure
 asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
@@ -2774,6 +2780,43 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # append year and copy morph input file
     move_morph = os.path.normpath(r"%s/input_params_%s.csv" % (wetland_morph_dir,year))
     shutil.copyfile(wm_param_file,move_morph)
+
+    ##############################################################
+    ##   RUN POSTPROCESSING SCRIPTS FOR HYDRO, VEG, & MORPH     ##
+    ##############################################################
+
+    print(f"Summary info from ICM_control.csv\n \
+        startyear = {startyear}\n \
+        sterm = {sterm}\n \
+        gterm = {gterm}\n \
+        cpra_api = {cpra_api}\n \
+        base_icm = {base_icm}\n \
+        model = {model}\n \
+        grid_version = {grid_version}\n")
+
+    print(f"\n\nPostprocessing {year}")
+
+    #processing code, to be inserted after all model execution code
+    scripts = [
+        "postprocess_hydro.py",
+        "postprocess_vegsm_ffibs_cvg.py",
+        "postprocess_vegsm_ffibs_scr.py",
+        "postprocess_vegty.py",
+        "postprocess_morph.py"
+        ]
+
+    for script in scripts:
+        postprocess_icm(
+            script,
+            year=year,
+            cpra_api=cpra_api,
+            base_icm=base_icm,
+            model=model,
+            grid_version=grid_version,
+            start_year=startyear,
+            sterm=sterm,
+            gterm=gterm
+        )
     
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
