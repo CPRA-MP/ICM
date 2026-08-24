@@ -503,6 +503,7 @@ import pandas
 from builtins import Exception as exceptions
 from scipy.interpolate import griddata
 from pathlib import Path
+from postprocess_icm import postprocess_icm
 
 
 
@@ -2779,6 +2780,43 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # append year and copy morph input file
     move_morph = os.path.normpath(r"%s/input_params_%s.csv" % (wetland_morph_dir,year))
     shutil.copyfile(wm_param_file,move_morph)
+
+    ##############################################################
+    ##   RUN POSTPROCESSING SCRIPTS FOR HYDRO, VEG, & MORPH     ##
+    ##############################################################
+
+    print(f"Summary info from ICM_control.csv\n \
+        startyear = {startyear}\n \
+        sterm = {sterm}\n \
+        gterm = {gterm}\n \
+        cpra_api = {cpra_api}\n \
+        base_icm = {base_icm}\n \
+        model = {model}\n \
+        grid_version = {grid_version}\n")
+
+    print(f"\n\nPostprocessing {year}")
+
+    #processing code, to be inserted after all model execution code
+    scripts = [
+        "postprocess_hydro.py",
+        "postprocess_vegsm_ffibs_cvg.py",
+        "postprocess_vegsm_ffibs_scr.py",
+        "postprocess_vegty.py",
+        "postprocess_morph.py"
+        ]
+
+    for script in scripts:
+        postprocess_icm(
+            script,
+            year=year,
+            cpra_api=cpra_api,
+            base_icm=base_icm,
+            model=model,
+            grid_version=grid_version,
+            start_year=startyear,
+            sterm=sterm,
+            gterm=gterm
+        )
     
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
