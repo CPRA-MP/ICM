@@ -56,12 +56,10 @@ def postprocess_ffibs_cvg(year,base_icm,model,grid_version,sterm,gterm):
     grid_str = f'{geographic_units}{grid_version}'
 
     filename = f'MP2029_{sterm}_{gterm}_C000_U00_V00_SLA_O_{year}_V_vegsm.csv'
-    outpath = f'{base_icm}/{sterm}/{gterm}/veg'
     centers = 'MP2029_S00_G700_C000_U00_V00_SLA_I_00_00_V_grid_XYAreaComp.csv'
 
-    filepath = f'{outpath}/{filename}'
-
-    centers_filepath = f'{outpath}/{centers}'
+    filepath = f'{base_icm}/{filename}'
+    centers_filepath = f'{base_icm}/{centers}'
 
     centers_df = pd.read_csv(centers_filepath)
     centers_df.columns = centers_df.columns.str.lower()
@@ -138,11 +136,13 @@ def postprocess_ffibs_cvg(year,base_icm,model,grid_version,sterm,gterm):
             dst.update_tags(**kwargs)
             dst.write(raster, 1)
 
+        os.chmod(cog_path,0o667) #change permissions -rw-rw-rwx
+
     print(f"Complete processing for {var}")
 
 def main():
     #Expected values to be read in from ICM_control.csv
-    # base_icm = '/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv26'
+    # base_icm = '/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv26/S##/G###/[hydro,geomorph,veg]'
     # model = 'icm_v26.0.0'
     # grid_version = '_v002'
     # start_year = 2025

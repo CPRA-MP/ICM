@@ -33,11 +33,10 @@ def postprocess_morph(year,base_icm,model,grid_version,start_year,sterm,gterm):
         file_year = f"{year - start_year + 1:02d}"
         
         filename = f'MP2029_{sterm}_{gterm}_C000_U00_V00_SLA_N_{file_year}_{file_year}_W_{file_var}30.xyz.b'
-        outpath = f'{base_icm}/{sterm}/{gterm}/geomorph/output'
         sterm_str = sterm[1:]
         gterm_str = gterm[1:]
         
-        filepath = f'{outpath}/{filename}'
+        filepath = f'{base_icm}/output/{filename}'
 
         data = read_fortran_array(filename=filepath, variable=var)
 
@@ -55,9 +54,15 @@ def postprocess_morph(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
         print(f"Complete processing for {var}")
 
+        #this is the expected path based on existing file structure
+        #file path is actually created as part of the write_data function
+        cog_path = f"/ocean/projects/bcs200002p/shared/data/variable={var}/grid={grid_str}/time_unit={var_time_unit}/model_group_id={gterm_str}/scenario_id={sterm_str}/calendar_year={year}.tif"
+
+        os.chmod(cog_path,0o667) #change permissions -rw-rw-rwx
+
 def main():
     #Expected values to be read in from ICM_control.csv
-    # base_icm = '/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv26'
+    # base_icm = '/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv26/S##/G###/[hydro,geomorph,veg]'
     # model = 'icm_v26.0.0'
     # grid_version = '_v002'
     # start_year = 2025

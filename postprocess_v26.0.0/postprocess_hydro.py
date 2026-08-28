@@ -8,6 +8,7 @@ import argparse
 from datetime import date
 import os
 import pandas as pd
+import time
 
 script_name = os.path.basename(__file__)
 
@@ -25,6 +26,25 @@ hydro_var_lookup = {
     "stgm": "STGm.out" 
     }
 
+aggregate_type='mean'
+
+#change file access for files created within a window
+def chmod_recent_files(directory_path, octal_mode=0o667, minutes=1):
+
+    cutoff_time = time.time() - (minutes * 60) #time in seconds
+
+    for filename in os.listdir(directory_path):
+        file_path = os.path.join(directory_path, filename)
+        
+        if os.path.isfile(file_path):
+            #file metadata
+            file_stat = os.stat(file_path)
+            
+            #check file mod time
+            if file_stat.st_mtime >= cutoff_time:
+                os.chmod(file_path, octal_mode)
+
+#only read what you need to minimize memory requirement
 def read_single_year(csv_path, start_year, target_year):
 
     model_start_date = date(start_year, 1, 1)
@@ -72,7 +92,6 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
     scenario_id = int(sterm[1:])
     model_group_id = int(gterm[1:])
-    outpath = f'{base_icm}/{sterm}/{gterm}/hydro'
 
     for var, file in hydro_var_lookup.items():
 
@@ -84,7 +103,7 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
         geographic_units = var_properties.geographic_units[0]
         grid_str = f'{geographic_units}{grid_version}'
 
-        filepath = f'{outpath}/{file}'
+        filepath = f'{base_icm}/{file}'
 
         #read dataframe here
         df = read_single_year(filepath, start_year, year)
@@ -93,6 +112,7 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
         numeric_cols = df.select_dtypes(include="number").columns
         
         if 'daily' in var_properties.time_units:
+            time_unit='daily'='daily'
         
             df_daily = df.copy() # create a copy of df, need df with pandas-type dates for later
 
@@ -105,19 +125,22 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
             #write data to view in mpdp
             write_data(data=df_daily,
                         variable=var,
-                        time_unit='daily',
+                        time_unit=time_unit,
                         grid=grid_str,
                         model=model,
                         scenario_id=scenario_id,
                         model_group_id=model_group_id,
-                        aggregate_type='mean'
+                        aggregate_type=aggregate_type
                         )
 
             print(f"Daily processing for {var} complete")
-            
+
+            directory_path = f"/ocean/projects/bcs200002p/shared/data/variable={var}/grid={grid_str}/time_unit={time_unit}/model_group_id={model_group_id}/scenario_id={scenario_id}/aggregate_type={aggregate_type}"
+            chmod_recent_files(directory_path)
 
         if 'monthly' in var_properties.time_units:
-            
+            time_unit='monthly'
+
             # calculate monthly average
             df_monthly = (
                 df
@@ -132,17 +155,21 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
             #write data to view in mpdp
             write_data(data=df_monthly,
                         variable=var,
-                        time_unit='monthly',
+                        time_unit=time_unit,
                         grid=grid_str,
                         model=model,
                         scenario_id=scenario_id,
                         model_group_id=model_group_id,
-                        aggregate_type='mean'
+                        aggregate_type=aggregate_type
                         )
 
             print(f"Monthly processing for {var} complete")
 
+            directory_path = f"/ocean/projects/bcs200002p/shared/data/variable={var}/grid={grid_str}/time_unit={time_unit}"
+            chmod_recent_files(directory_path)
+
         if 'annual' in var_properties.time_units:
+            time_unit='annual'
 
             # calculate annual average
             df_annual = (
@@ -174,9 +201,12 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
             print(f"Annual processing for {var} complete")
 
+            directory_path = f"/ocean/projects/bcs200002p/shared/data/variable={var}/grid={grid_str}/time_unit={time_unit}"
+            chmod_recent_files(directory_path)
+
 def main():
     #Expected values to be read in from ICM_control.csv
-    # base_icm = '/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv26'
+    # base_icm = '/ocean/projects/bcs200002p/ewhite12/MP2029/ICMv26/S##/G###/[hydro,geomorph,veg]'
     # model = 'icm_v26.0.0'
     # grid_version = '_v002'
     # start_year = 2025
@@ -208,5 +238,4 @@ def main():
     print(f"{script_name} completed for year {args.year}")
 
 if __name__ == "__main__":
-    #run main
     main() 
