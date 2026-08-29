@@ -2450,6 +2450,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         lvm_ip_csv.write("'%s', hydro_comp_out_file - file name - with relative path - to compartment_out.csv from current model year's ICM-Hydro simulation\n" % comp_out_file_yr)
         lvm_ip_csv.write("'%s', morph_grid_out_file - file name - with relative path - to grid_data.csv file from previous model year's ICM-Morph simulation\n" % grid_data_file_prv_yr)
         lvm_ip_csv.write("'%s/STG.out', hydro_daily_stage_file - file name - with relative path - to daily timeseries of water surface elevation from current ICM-Hydro simulation\n" % ecohydro_dir)
+        lvm_ip_csv.write("'%s/TRG.out', hydro_daily_tiderange_file - file name - with relative path - to daily timeseries of tide range from current ICM-Hydro simulation\n" % ecohydro_dir)
         lvm_ip_csv.write("%s, runprefix - file naming convention prefix\n" % runprefix)
         lvm_ip_csv.write("1, write_intermediate_files - set to 1 if intermediate output files should be written - set to 0 to only write end-of-year files\n")
 
