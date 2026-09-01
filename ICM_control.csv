@@ -94,17 +94,9 @@ Fixed BIDEM xyz grid for BIDEM directory 4,MP2023_S00_G000_C000_U00_V00_Baratari
 Fixed BIDEM xyz grid for BIDEM directory 5,MP2023_S00_G000_C000_U00_V00_Breton_BIDEM_I_00_00_M_dem30.xyz
 Fixed BIDEM xyz grid for BIDEM directory 6,MP2023_S00_G000_C000_U00_V00_Chandeleurs_BIDEM_I_00_00_M_dem30.xyz
 #########################################################################,
-## Post-processing information
+## Post-processing information,
 Location of CPRA API,/ocean/projects/bcs200002p/shared/python/cpra-python3
 Main path to ICM exectuable code,/ocean/projects/bcs200002p/ewhite12/code/ICM
 Model version for API metadata,icm_v26.0.0
 Grid version for API,_v002
 Script folder with version for postprocessing,postprocess_v26.0.0
-
-
-
-
-
-
-
-
