@@ -820,11 +820,12 @@ bidem_fixed_grids=[]
 for row in range(64+n_bimode,64+2*n_bimode):
     bidem_fixed_grids.append(inputs[row,1].lstrip().rstrip())
 
-#postprocessing
+# Postprocessing
 cpra_api = inputs[76,1].lstrip().rstrip()
-base_icm = inputs[77,1].lstrip().rstrip()
+main_path = inputs[77,1].lstrip().rstrip()
 model = inputs[78,1].lstrip().rstrip()
 grid_version = inputs[79,1].lstrip().rstrip()
+script_version = inputs[80,1].lstrip().rstrip()
 
 # read in asci grid structure
 asc_grid_file = os.path.normpath(r'%s/veg_grid.asc' % vegetation_dir)
@@ -2780,6 +2781,38 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # append year and copy morph input file
     move_morph = os.path.normpath(r"%s/input_params_%s.csv" % (wetland_morph_dir,year))
     shutil.copyfile(wm_param_file,move_morph)
+
+    ##############################################################
+    ##   RUN POSTPROCESSING SCRIPTS FOR HYDRO, VEG, & MORPH     ##
+    ##############################################################
+
+    print(f"Postprocessing {year}")
+
+    scripts = {
+        "hydro": [ecohydro_dir, f"{main_path}/{script_version}/postprocess_hydro.py"],
+        "veg_ffibs_cvg": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegsm_ffibs_cvg.py"],
+        "veg_ffibs_scr": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegsm_ffibs_scr.py"],
+        "veg_spec": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegty.py"],
+        "morph": [wetland_morph_dir, f"{main_path}/{script_version}/postprocess_morph.py"]
+        }
+
+    for key,value in scripts.items():
+        base_icm = value[0]
+        script_path = value[1]
+        command = [
+            str(cpra_api), #cpra api is needed for correct py env
+            str(script_path),
+            "--year", str(year),
+            "--base_icm", str(base_icm),
+            "--model", str(model),
+            "--grid_version", str(grid_version),
+            "--start_year", str(startyear),
+            "--sterm", str(sterm),
+            "--gterm", str(gterm)
+        ]
+        print(command)
+
+        subprocess.call(command)
     
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
