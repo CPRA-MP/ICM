@@ -2782,37 +2782,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     move_morph = os.path.normpath(r"%s/input_params_%s.csv" % (wetland_morph_dir,year))
     shutil.copyfile(wm_param_file,move_morph)
 
-    ##############################################################
-    ##   RUN POSTPROCESSING SCRIPTS FOR HYDRO, VEG, & MORPH     ##
-    ##############################################################
-
-    print(f"Postprocessing {year}")
-
-    scripts = {
-        "hydro": [ecohydro_dir, f"{main_path}/{script_version}/postprocess_hydro.py"],
-        "veg_ffibs_cvg": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegsm_ffibs_cvg.py"],
-        "veg_ffibs_scr": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegsm_ffibs_scr.py"],
-        "veg_spec": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegty.py"],
-        "morph": [wetland_morph_dir, f"{main_path}/{script_version}/postprocess_morph.py"]
-        }
-
-    for key,value in scripts.items():
-        base_icm = value[0]
-        script_path = value[1]
-        command = [
-            str(cpra_api), #cpra api is needed for correct py env
-            str(script_path),
-            "--year", str(year),
-            "--base_icm", str(base_icm),
-            "--model", str(model),
-            "--grid_version", str(grid_version),
-            "--start_year", str(startyear),
-            "--sterm", str(sterm),
-            "--gterm", str(gterm)
-        ]
-        print(command)
-
-        subprocess.call(command)
     
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
@@ -3150,7 +3119,41 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         except:
             print(' !! Failed to submit SAV for %s' % year)
         
-        
+    
+    ##############################################################
+    ##   RUN POSTPROCESSING SCRIPTS FOR HYDRO, VEG, & MORPH     ##
+    ##############################################################
+
+    print(f"Postprocessing {year}")
+
+    scripts = {
+        "hydro": [ecohydro_dir, f"{main_path}/{script_version}/postprocess_hydro.py"],
+        "veg_ffibs_cvg": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegsm_ffibs_cvg.py"],
+        "veg_ffibs_scr": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegsm_ffibs_scr.py"],
+        "veg_spec": [vegetation_dir, f"{main_path}/{script_version}/postprocess_vegty.py"],
+        "morph": [wetland_morph_dir, f"{main_path}/{script_version}/postprocess_morph.py"]
+        }
+
+    for key,value in scripts.items():
+        base_icm = value[0]
+        script_path = value[1]
+        command = [
+            str(cpra_api), #cpra api is needed for correct py env
+            str(script_path),
+            "--year", str(year),
+            "--base_icm", str(base_icm),
+            "--model", str(model),
+            "--grid_version", str(grid_version),
+            "--start_year", str(startyear),
+            "--sterm", str(sterm),
+            "--gterm", str(gterm)
+        ]
+        print(command)
+
+        subprocess.call(command)
+
+
+     
 print('\n\n\n')
 print('-----------------------------------------' )
 print(' ICM Model run complete!')

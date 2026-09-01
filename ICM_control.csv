@@ -100,4 +100,4 @@ Location of CPRA API,/ocean/projects/bcs200002p/shared/python/cpra-python3
 Main path to ICM exectuable code,/ocean/projects/bcs200002p/ewhite12/code/ICM
 Model version for API metadata,icm_v26.0.0
 Grid version for API,_v002
-Script folder with version for postprocessing,postprocess_v26.0.0
+Script folder with version for postprocessing (relative to "Main path" above),postprocess_v26.0.0
