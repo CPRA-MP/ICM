@@ -30,7 +30,7 @@ validate=True
 def kwargs_function(**kwargs):
     return kwargs
 
-def postprocess_ffibs_scr(year,base_icm,model,grid_version,sterm,gterm):
+def postprocess_ffibs_scr(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
     var = vars_to_process[0]
 
@@ -137,6 +137,7 @@ def main():
     parser.add_argument("--base_icm", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--grid_version", required=True)
+    parser.add_argument("--start_year", required=True, type=int)
     parser.add_argument("--sterm", required=True)
     parser.add_argument("--gterm", required=True)
 
@@ -147,6 +148,7 @@ def main():
         base_icm=args.base_icm,
         model=args.model,
         grid_version=args.grid_version,
+        start_year=args.start_year,
         sterm=args.sterm,
         gterm=args.gterm
         )

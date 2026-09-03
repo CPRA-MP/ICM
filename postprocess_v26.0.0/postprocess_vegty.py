@@ -41,7 +41,7 @@ def get_species(base_icm,sterm,gterm):
 
     return spec_code
 
-def postprocess_vegty(year,base_icm,model,grid_version,sterm,gterm):
+def postprocess_vegty(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
     spec_code = get_species(base_icm,sterm,gterm)
 
@@ -152,6 +152,7 @@ def main():
     parser.add_argument("--base_icm", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--grid_version", required=True)
+    parser.add_argument("--start_year", required=True, type=int)
     parser.add_argument("--sterm", required=True)
     parser.add_argument("--gterm", required=True)
 
@@ -162,6 +163,7 @@ def main():
         base_icm=args.base_icm,
         model=args.model,
         grid_version=args.grid_version,
+        start_year=args.start_year,
         sterm=args.sterm,
         gterm=args.gterm
         )
