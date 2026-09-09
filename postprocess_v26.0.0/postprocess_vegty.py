@@ -42,7 +42,7 @@ def get_species(base_icm):
 
 def postprocess_vegty(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
-    spec_code = get_species(base_icm,sterm,gterm)
+    spec_code = get_species(base_icm)
 
     var = vars_to_process[0]
 
