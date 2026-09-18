@@ -2628,7 +2628,7 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     ##    IMPLEMENT ACTIVE DELTAIC COMPARTMENT FILES FOR DIVERSION PROJECT    ##
     ############################################################################
     # set default active deltaic compartment file
-    act_del_file_2use = 'compartment_active_delta.csv'
+    act_del_file_2use = 'MP29_compartment_active_delta.csv'
     # loop through all past and present model years - look to see if any previous (or current) year had an updated active delta file
     # if so, the year closest (but prior) to the current model year's active deltaic file will be used
     for ady in range(startyear,year+1):
