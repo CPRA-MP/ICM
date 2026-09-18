@@ -9,10 +9,10 @@ Working folder for Habitat Suitability Indices,./hsi
 Working folder for Habitat Diversity Indices,./hdi
 #########################################################################,
 ## Path to compiled executables used by ICM ,
-Path to ICM-Hydro executable (relative to /Gxxx/hydro/ path),./hydro_v26.1.1
+Path to ICM-Hydro executable (relative to /Gxxx/hydro/ path),./hydro_v26.2.0
 Path to ICM-BIDEM executable (relative to each /Gxxx/bidem/REGION/ path),./bidem_v23.1.0
-Path to ICM-Morph executable (relative to /Gxxx/ path),./morph_v26.0.0
-Path to ICM-LAVegMod executable (relative to /Gxxx/ path),./LAVegMod_v26.1.2
+Path to ICM-Morph executable (relative to /Gxxx/ path),./morph_v26.1.0
+Path to ICM-LAVegMod executable (relative to /Gxxx/ path),./LAVegMod_v26.2.1
 Path to exectuable to submit SAV job to queue,/ocean/projects/bcs200002p/ewhite12/code/git/ICM/submit_SAV.py
 Run SAV (1=yes 0=no),0
 Path to exectuable to submit WVA job to queue,
@@ -68,7 +68,7 @@ Y coordinate(UTM meters) of lower left corner of Fisheries input ASCII file,0
 ## Filenaming settings,
 Filename prefix to use for all files,MP2029
 Scenario term for filename(S22),S34
-Group term for filename (G333),G700
+Group term for filename (G333),G707
 CLARA term for filename(C22),C000
 Uncertainty term for filename(U22),U00
 Variance term for filename(V22),V00
