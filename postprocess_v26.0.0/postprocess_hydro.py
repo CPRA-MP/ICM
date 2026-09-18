@@ -112,7 +112,7 @@ def postprocess_hydro(year,base_icm,model,grid_version,start_year,sterm,gterm):
         numeric_cols = df.select_dtypes(include="number").columns
         
         if 'daily' in var_properties.time_units:
-            time_unit='daily'='daily'
+            time_unit='daily'
         
             df_daily = df.copy() # create a copy of df, need df with pandas-type dates for later
 

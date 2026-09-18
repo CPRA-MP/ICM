@@ -25,11 +25,10 @@ validate=True
 def kwargs_function(**kwargs):
     return kwargs
 
-def get_species(base_icm,sterm,gterm):
+def get_species(base_icm):
     # get species for processing
     read_cols_file = 'MP2029_S00_G000_C000_U00_V00_SLA_I_00_00_V_2024_vegty.csv' # initial conditions file
-    read_cols_outpath = f'{base_icm}/{sterm}/{gterm}/veg'
-    read_cols_filepath = f'{read_cols_outpath}/{read_cols_file}'
+    read_cols_filepath = f'{base_icm}/{read_cols_file}'
 
     with open(read_cols_filepath, mode='r', newline='', encoding='utf-8') as f:
         reader = csv.reader(f)
@@ -41,9 +40,9 @@ def get_species(base_icm,sterm,gterm):
 
     return spec_code
 
-def postprocess_vegty(year,base_icm,model,grid_version,sterm,gterm):
+def postprocess_vegty(year,base_icm,model,grid_version,start_year,sterm,gterm):
 
-    spec_code = get_species(base_icm,sterm,gterm)
+    spec_code = get_species(base_icm)
 
     var = vars_to_process[0]
 
@@ -152,6 +151,7 @@ def main():
     parser.add_argument("--base_icm", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--grid_version", required=True)
+    parser.add_argument("--start_year", required=True, type=int)
     parser.add_argument("--sterm", required=True)
     parser.add_argument("--gterm", required=True)
 
@@ -162,6 +162,7 @@ def main():
         base_icm=args.base_icm,
         model=args.model,
         grid_version=args.grid_version,
+        start_year=args.start_year,
         sterm=args.sterm,
         gterm=args.gterm
         )
