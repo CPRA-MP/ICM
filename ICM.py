@@ -2442,6 +2442,9 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
         lvm_ip_csv.write("1358, near_neighbors_dist - distance in which a neighboring grid cell is considered a near neighbor (meters) *must be larger magnitude than nearest_neighbor_dist*\n")
         lvm_ip_csv.write("16, max_neighbors - maximum number of grid cells that will be allowed in the near and nearest neighbor lists - this will be the number of columns in the neighbor files\n")
         lvm_ip_csv.write("'veg/LAVegMod_coverage_attributes.csv',coverage_attribute_file - file name - with relative path - to csv with model attributes for each coverage type - this file row-order must match the column-order of veg_in_file below\n")
+        lvm_ip_csv.write("1,prob_table_type - define which approach to use for est/mort probabilities; (1) use the universal probability of mortality table and the 'mort_est_shift' variable to algorithmically adjust species-level probabilities; (2) use the individual species-level establishement and mortality tables\n")
+        lvm_ip_csv.write("-0.05,mort_est_shift - shift on salinity percentiles to convert from the mortality to the establishment percentiles - default to -0.05; can be between -0.5 and +0.5; establishment conditions are more stringent so something that was a 75th percentile condition becomes a 60th percentile condition (if set to -0.05)\n")
+        lvm_ip_csv.write("23,n_ptile - number of bins defining the percentiles included in the universal mortality probability table\n")
         lvm_ip_csv.write("24, n_X_bins - number of bins definiing the X-axis of the establishment and mortability input tables\n")
         lvm_ip_csv.write("39, n_Y_bins - number of bins definiing the Y-axis of the establishment and mortability input tables\n")
         if year == startyear:
