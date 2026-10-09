@@ -2784,7 +2784,6 @@ for year in range(startyear+elapsed_hotstart,endyear_cycle+1):
     # append year and copy morph input file
     move_morph = os.path.normpath(r"%s/input_params_%s.csv" % (wetland_morph_dir,year))
     shutil.copyfile(wm_param_file,move_morph)
-
     
     ##############################################################
     ##          RUN ZONAL STATISTICS ON MORPH OUTPUTS           ##
