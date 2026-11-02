@@ -83,7 +83,7 @@ importance to the Calcasieu River/Ship Channel where salinity intrusion
 and tidal dynamics are an important driver of the hydrology of the
 Calcasieu-Sabine Basin.
 
-![](C:/Users/P00357462/Documents/MP23%20Appendices%20for%20GitHub/ICM/C_ICM_Fig1.png)  
+![](https://github.com/CPRA-MP/ICM/blob/ICM_scg/ICM_Figs/C_ICM_Fig1.png)  
 
 <caption>
 
@@ -137,7 +137,7 @@ assigned based on the cover weighted average score assigned to each
 species (Visser, 2002). The habitat type and FFIBS score are used in the
 subsequent ICM subroutine, ICM-Morph.
 
-![](C:/Users/P00357462/Documents/MP23%20Appendices%20for%20GitHub/ICM/C_ICM_Fig2.png)  
+![](https://github.com/CPRA-MP/ICM/blob/ICM_scg/ICM_Figs/C_ICM_Fig2.png)  
 
 <caption>
 
@@ -179,7 +179,7 @@ Improvements](https://coastal.la.gov/wp-content/uploads/2023/08/D2_2023ICM-Wetla
 (Figure 3). Total accretion on the wetland surface is the sum of mineral
 and organic components.
 
-![](C:/Users/P00357462/Documents/MP23%20Appendices%20for%20GitHub/ICM/C_ICM_Fig3.png)  
+![](https://github.com/CPRA-MP/ICM/blob/ICM_scg/ICM_Figs/C_ICM_Fig3.png)  
 
 <caption>
 
@@ -215,7 +215,7 @@ conditions exceed the 99.5th percentile line shown in Figure 4 for two
 consecutive years, land is converted to open water and is not eligible
 for vegetative establishment.
 
-![](C:/Users/P00357462/Documents/MP23%20Appendices%20for%20GitHub/ICM/C_ICM_Fig4.png)  
+![](https://github.com/CPRA-MP/ICM/blob/ICM_scg/ICM_Figs/C_ICM_Fig4.png)  
 
 <caption>
 
@@ -259,7 +259,7 @@ represent key geomorphic features along the coast. The subroutine also
 includes an auto-restoration feature that increases the profile of the
 islands on restoration units that drop below a critical width threshold.
 
-![](C:/Users/P00357462/Documents/MP23%20Appendices%20for%20GitHub/ICM/C_ICM_Fig5.png)  
+![](https://github.com/CPRA-MP/ICM/blob/ICM_scg/ICM_Figs/C_ICM_Fig5.png)  
 
 <caption>
 
